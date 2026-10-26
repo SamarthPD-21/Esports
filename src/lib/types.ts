@@ -1,0 +1,145 @@
+// Shared tournament data model. The static branch fills these from a Google
+// Sheet; the backend branch fills the same shapes from Postgres. Keep this
+// file free of runtime code so scripts can import it under plain Node.
+
+export type Mode = "HP" | "SND" | "CTRL";
+export type Stage = "group" | "qf" | "sf" | "third" | "final";
+export type PlayerRole = "main" | "sub";
+
+export interface Player {
+  teamId: string;
+  ign: string;
+  codmUid: string;
+  role: PlayerRole;
+}
+
+export interface Team {
+  id: string;
+  name: string;
+  tag: string;
+  group: string;
+  logoUrl?: string;
+  captain?: string;
+  players: Player[];
+}
+
+export interface MapResult {
+  game: number;
+  mode: Mode;
+  map: string;
+  scoreA: number;
+  scoreB: number;
+}
+
+/**
+ * A side of a match as written in the sheet: a team id, or a slot reference
+ * that resolves once earlier results are in.
+ *   A1      → group A, 1st place
+ *   S3      → overall seed #3
+ *   W:QF1   → winner of match QF1
+ *   L:SF2   → loser of match SF2
+ */
+export type SlotRef = string;
+
+export interface MatchInput {
+  id: string;
+  stage: Stage;
+  group?: string;
+  round?: number;
+  bestOf: 1 | 3 | 5;
+  sideA: SlotRef;
+  sideB: SlotRef;
+  /** ISO 8601 with offset, e.g. 2026-11-08T18:00:00+05:30 */
+  scheduledAt?: string;
+  /** Only "forfeit" and "live" need to be set by hand; everything else is derived. */
+  statusOverride?: "live" | "forfeit" | "cancelled";
+  forfeitWinner?: "A" | "B";
+  vetoNote?: string;
+  notes?: string;
+  maps: MapResult[];
+}
+
+export type MatchStatus = "scheduled" | "live" | "completed" | "forfeit" | "cancelled";
+
+export interface ResolvedSide {
+  ref: SlotRef;
+  teamId?: string;
+  /** Human label shown while the slot is unresolved, e.g. "Winner QF1". */
+  label: string;
+  /** True when the slot depends on a group that hasn't finished yet. */
+  projected: boolean;
+}
+
+export interface Match extends Omit<MatchInput, "sideA" | "sideB"> {
+  a: ResolvedSide;
+  b: ResolvedSide;
+  status: MatchStatus;
+  mapWinsA: number;
+  mapWinsB: number;
+  winner?: "A" | "B";
+  /** Semifinal veto power holder (higher group-stage seed), if known. */
+  vetoHolder?: "A" | "B";
+}
+
+export interface StandingRow {
+  teamId: string;
+  group: string;
+  position: number;
+  played: number;
+  won: number;
+  lost: number;
+  points: number;
+  scoreFor: number;
+  scoreAgainst: number;
+  diff: number;
+  qualified: boolean;
+  /** Set when every configured tiebreaker failed; referee coin toss decides. */
+  unresolvedTie: boolean;
+  form: ("W" | "L")[];
+}
+
+export interface GroupTable {
+  group: string;
+  rows: StandingRow[];
+  complete: boolean;
+}
+
+export type Tiebreaker = "h2h" | "diff" | "scored";
+
+export interface TournamentConfig {
+  qualifiersPerGroup: number;
+  tiebreakers: Tiebreaker[];
+  perspective?: string;
+  eventDates?: string;
+  registrationDeadline?: string;
+  registrationUrl?: string;
+}
+
+export interface Announcement {
+  date: string;
+  title: string;
+  body: string;
+}
+
+export interface MapPoolEntry {
+  mode: Mode;
+  map: string;
+}
+
+export interface RawTournament {
+  config: TournamentConfig;
+  teams: Team[];
+  matches: MatchInput[];
+  announcements: Announcement[];
+  mapPool: MapPoolEntry[];
+}
+
+export interface Tournament extends Omit<RawTournament, "matches"> {
+  matches: Match[];
+  groups: GroupTable[];
+  /** Overall seed order of qualified teams (index 0 = seed 1). */
+  seeds: string[];
+  source: "sheet" | "sample";
+  warnings: string[];
+  fetchedAt: string;
+}

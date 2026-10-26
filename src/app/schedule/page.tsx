@@ -1,0 +1,50 @@
+import type { Metadata } from "next";
+import { MatchCard } from "@/components/MatchCard";
+import { PageHeader } from "@/components/SectionHeading";
+import { getTournament, teamMap } from "@/lib/data";
+import { dayKey, fmtDay } from "@/lib/format";
+import type { Match } from "@/lib/types";
+
+export const metadata: Metadata = { title: "Schedule" };
+
+export default async function SchedulePage() {
+  const t = await getTournament();
+  const teams = teamMap(t);
+
+  const days = new Map<string, Match[]>();
+  for (const m of [...t.matches].sort((x, y) => (x.scheduledAt ?? "~").localeCompare(y.scheduledAt ?? "~") || x.id.localeCompare(y.id))) {
+    const key = m.scheduledAt ? dayKey(m.scheduledAt) : "tba";
+    days.set(key, [...(days.get(key) ?? []), m]);
+  }
+  const done = t.matches.filter((m) => m.status === "completed" || m.status === "forfeit").length;
+
+  return (
+    <>
+      <PageHeader kicker={`${done} of ${t.matches.length} matches played`} title="Schedule & results">
+        All times are IST. Room ID/password is shared with teams 15–5 minutes before each match.
+      </PageHeader>
+
+      <nav className="mb-8 flex flex-wrap gap-2" aria-label="Jump to day">
+        {[...days.keys()].map((k) => (
+          <a key={k} href={`#d-${k}`} className="rounded-full border border-line px-3 py-1 text-xs font-medium text-muted hover:border-violet/50 hover:text-text">
+            {k === "tba" ? "Date TBA" : fmtDay(days.get(k)![0].scheduledAt!)}
+          </a>
+        ))}
+      </nav>
+
+      <div className="flex flex-col gap-12">
+        {[...days.entries()].map(([k, ms]) => (
+          <section key={k} id={`d-${k}`} className="scroll-mt-20">
+            <h2 className="mb-4 flex items-baseline gap-3 font-display text-xl font-bold">
+              {k === "tba" ? "Date TBA" : fmtDay(ms[0].scheduledAt!)}
+              <span className="text-xs font-normal text-faint">{ms.length} matches</span>
+            </h2>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {ms.map((m) => <MatchCard key={m.id} match={m} teams={teams} />)}
+            </div>
+          </section>
+        ))}
+      </div>
+    </>
+  );
+}

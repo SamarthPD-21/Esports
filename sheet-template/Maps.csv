@@ -1,0 +1,25 @@
+match_id,game,mode,map,score_a,score_b
+G01,1,HP,Summit,250,142
+G02,1,HP,Summit,212,250
+G03,1,HP,Raid,250,159
+G04,1,HP,Firing Range,250,213
+G05,1,HP,Raid,218,250
+G06,1,HP,Firing Range,250,150
+G07,1,HP,Standoff,250,193
+G08,1,HP,Raid,250,237
+G09,1,SND,Tunisia,1,6
+G10,1,SND,Standoff,6,4
+G11,1,SND,Firing Range,6,3
+G12,1,SND,Firing Range,6,2
+G13,1,SND,Crossfire,6,3
+G14,1,SND,Crossfire,6,4
+G15,1,SND,Firing Range,6,4
+G16,1,SND,Firing Range,0,6
+G17,1,CTRL,Terminal,,
+G18,1,CTRL,Terminal,2,3
+G19,1,CTRL,Raid,,
+G20,1,CTRL,Raid,,
+G21,1,CTRL,Hacienda,3,2
+G22,1,CTRL,Hacienda,,
+G23,1,CTRL,Hacienda,,
+G24,1,CTRL,Terminal,2,3

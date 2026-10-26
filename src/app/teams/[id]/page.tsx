@@ -1,0 +1,124 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { Suspense } from "react";
+import { MatchCard } from "@/components/MatchCard";
+import { TeamBadge } from "@/components/TeamBadge";
+import { getTournament, matchesForTeam, teamMap } from "@/lib/data";
+
+export async function generateStaticParams() {
+  const t = await getTournament();
+  return t.teams.map((team) => ({ id: team.id }));
+}
+
+export async function generateMetadata({ params }: PageProps<"/teams/[id]">): Promise<Metadata> {
+  const { id } = await params;
+  const t = await getTournament();
+  return { title: t.teams.find((x) => x.id === id)?.name ?? "Team" };
+}
+
+async function TeamDetail({ params }: Pick<PageProps<"/teams/[id]">, "params">) {
+  const { id } = await params;
+  const t = await getTournament();
+  const teams = teamMap(t);
+  const team = teams.get(id);
+  if (!team) notFound();
+
+  const row = t.groups.flatMap((g) => g.rows).find((r) => r.teamId === id);
+  const seed = t.seeds.indexOf(id);
+  const matches = matchesForTeam(t, id).sort((x, y) => (x.scheduledAt ?? "").localeCompare(y.scheduledAt ?? ""));
+  const upcoming = matches.filter((m) => m.status === "scheduled" || m.status === "live");
+  const played = matches.filter((m) => m.status === "completed" || m.status === "forfeit").reverse();
+  const mapsWon = played.reduce((n, m) => n + (m.a.teamId === id ? m.mapWinsA : m.mapWinsB), 0);
+  const mapsLost = played.reduce((n, m) => n + (m.a.teamId === id ? m.mapWinsB : m.mapWinsA), 0);
+
+  const stats = [
+    { k: "Group", v: team.group || "–" },
+    { k: "Position", v: row && row.played > 0 ? `#${row.position}` : "–" },
+    { k: "Series W-L", v: `${played.filter((m) => (m.winner === "A") === (m.a.teamId === id)).length}-${played.filter((m) => (m.winner === "A") !== (m.a.teamId === id)).length}` },
+    { k: "Maps W-L", v: `${mapsWon}-${mapsLost}` },
+    { k: "Seed", v: seed >= 0 ? `#${seed + 1}` : "–" },
+  ];
+
+  return (
+    <>
+      <header className="flex flex-col gap-5 pt-10 sm:flex-row sm:items-center">
+        <TeamBadge team={team} size="lg" />
+        <div className="min-w-0">
+          <p className="font-display text-xs font-semibold uppercase tracking-[0.25em] text-violet-soft">
+            [{team.tag}] · Group {team.group}
+          </p>
+          <h1 className="font-display text-4xl font-bold tracking-tight sm:text-5xl">{team.name}</h1>
+        </div>
+      </header>
+      <div className="rift-line mt-6 mb-8" />
+
+      <dl className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+        {stats.map((s) => (
+          <div key={s.k} className="panel p-4">
+            <dt className="text-[11px] uppercase tracking-widest text-faint">{s.k}</dt>
+            <dd className="tnum mt-1 font-mono text-xl font-semibold">{s.v}</dd>
+          </div>
+        ))}
+      </dl>
+
+      <div className="mt-10 grid gap-8 lg:grid-cols-[1fr_1.6fr]">
+        <section>
+          <h2 className="mb-4 font-display text-xl font-bold">Roster</h2>
+          <ul className="panel divide-y divide-line">
+            {team.players.length === 0 && <li className="p-4 text-sm text-muted">Roster not published yet.</li>}
+            {team.players.map((p) => (
+              <li key={p.ign} className="flex items-center justify-between gap-3 px-4 py-3">
+                <div className="min-w-0">
+                  <p className="truncate font-medium">
+                    {p.ign}
+                    {team.captain === p.ign && <span className="ml-2 text-[10px] font-semibold uppercase tracking-wider text-cyan">Captain</span>}
+                  </p>
+                  {p.codmUid && <p className="tnum font-mono text-xs text-faint">UID {p.codmUid}</p>}
+                </div>
+                {p.role === "sub" && (
+                  <span className="rounded border border-line px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted">Sub</span>
+                )}
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        <section className="flex flex-col gap-8">
+          <div>
+            <h2 className="mb-4 font-display text-xl font-bold">Upcoming</h2>
+            {upcoming.length === 0 ? (
+              <p className="text-sm text-muted">No scheduled matches.</p>
+            ) : (
+              <div className="grid gap-4 sm:grid-cols-2">
+                {upcoming.map((m) => <MatchCard key={m.id} match={m} teams={teams} />)}
+              </div>
+            )}
+          </div>
+          <div>
+            <h2 className="mb-4 font-display text-xl font-bold">Match history</h2>
+            {played.length === 0 ? (
+              <p className="text-sm text-muted">No results yet.</p>
+            ) : (
+              <div className="grid gap-4 sm:grid-cols-2">
+                {played.map((m) => <MatchCard key={m.id} match={m} teams={teams} />)}
+              </div>
+            )}
+          </div>
+        </section>
+      </div>
+
+      <p className="mt-10">
+        <Link href="/teams" className="text-sm text-violet-soft hover:underline">← All teams</Link>
+      </p>
+    </>
+  );
+}
+
+export default function TeamPage(props: PageProps<"/teams/[id]">) {
+  return (
+    <Suspense fallback={<div className="panel mt-10 h-64 animate-pulse" />}>
+      <TeamDetail params={props.params} />
+    </Suspense>
+  );
+}

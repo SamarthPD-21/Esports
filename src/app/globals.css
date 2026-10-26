@@ -1,0 +1,86 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #07070d;
+  --surface: #0e0f1c;
+  --surface-2: #151628;
+  --line: #24253d;
+  --line-strong: #34365a;
+  --text: #ecedf7;
+  --muted: #8d8fab;
+  --faint: #5d5f7c;
+  --violet: #8b5cf6;
+  --violet-soft: #a78bfa;
+  --cyan: #22d3ee;
+  --live: #f43f5e;
+  --win: #34d399;
+  --warn: #fbbf24;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-text: var(--text);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+  --color-violet: var(--violet);
+  --color-violet-soft: var(--violet-soft);
+  --color-cyan: var(--cyan);
+  --color-live: var(--live);
+  --color-win: var(--win);
+  --color-warn: var(--warn);
+  --font-sans: var(--font-inter);
+  --font-display: var(--font-chakra);
+  --font-mono: var(--font-jetbrains);
+}
+
+html {
+  color-scheme: dark;
+  background: var(--bg);
+}
+
+body {
+  background:
+    radial-gradient(1200px 600px at 85% -10%, rgb(139 92 246 / 0.16), transparent 60%),
+    radial-gradient(900px 500px at -10% 10%, rgb(34 211 238 / 0.08), transparent 60%),
+    var(--bg);
+  background-attachment: fixed;
+  color: var(--text);
+}
+
+.rift-text {
+  background: linear-gradient(100deg, var(--violet-soft) 10%, var(--cyan) 90%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.rift-line {
+  background: linear-gradient(90deg, transparent, var(--violet), var(--cyan), transparent);
+  height: 1px;
+}
+
+.panel {
+  background: linear-gradient(180deg, rgb(255 255 255 / 0.025), transparent 40%), var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+}
+
+.tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+.live-dot {
+  animation: pulse-dot 1.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .live-dot { animation: none; }
+}

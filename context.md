@@ -1,0 +1,134 @@
+# CODM Carnage 2.0 — Rift Ops · Project Context
+
+Running log for the tournament site. Update the **Status** and **Changelog** sections as work happens.
+
+- Event: Yugaantar 2026 (Theme: Game Verse) presents CODM Carnage 2.0 — Rift Ops
+- Rulebook: `docs/rulebook.pdf` (copy served at `/rulebook.pdf`)
+- Repo: https://github.com/SamarthPD-21/CODM (remote is still empty; nothing pushed yet)
+- Hosting: Vercel
+
+---
+
+## Branch plan
+
+| Branch | What it is | State |
+|---|---|---|
+| `main` | Public site. No database or login. Data is filled and tallied by hand in a **Google Sheet**. | Built locally; not committed or pushed yet |
+| `backend` | Same site plus a database, logins, player dashboards and a referee/admin panel. | Planned; not started |
+
+**Rule shared by both branches:** they use the same `src/lib/types.ts` and the same UI components. Only `src/lib/data.ts` changes (Sheet → Postgres). Nobody types standings or bracket results; they are always computed from map scores.
+
+---
+
+## Decisions made
+
+| Topic | Decision |
+|---|---|
+| Framework | Next.js 16.4 (App Router, `cacheComponents` + `partialPrefetching`), Tailwind v4 |
+| Static data source | Google Sheet shared as "Anyone with link → Viewer", read as CSV through the gviz endpoint |
+| Freshness | `'use cache'` + custom `cacheLife('sheet')` (revalidates every 60 s). `POST /api/revalidate?secret=…` forces an immediate refresh |
+| Group structure | **Not decided yet.** Built to be configurable (any number of groups, `qualifiers_per_group` in the Config tab). Sample data uses 4 groups × 4 teams with the top 2 advancing |
+| Points | 1 point per map won (rulebook §9) |
+| Tiebreakers | Head-to-head → score diff → total score → coin toss (flagged ⚑ in the UI). The order can be changed in the Config tab |
+| Seeding | Group winners first, then runners-up, each ordered by points, then diff, then score |
+| SF Veto Power | Goes to the higher overall seed; shown as a `VETO` badge on SF cards |
+| Hosting | Vercel |
+
+---
+
+## Architecture (main branch)
+
+```
+Google Sheet ──(CSV per tab)──► src/lib/sheet.ts      fetch + tab-header sanity check
+                                src/lib/parse.ts      CSV → typed RawTournament (+ warnings)
+                                src/lib/tournament.ts series scoring, standings, seeds, slot refs (pure, unit-tested)
+                                src/lib/data.ts       getTournament(): 'use cache', falls back to sample data
+                                        ▼
+                     pages: / · /teams · /teams/[id] · /groups · /schedule · /bracket · /rules
+```
+
+Other files:
+- `src/content/event.ts`: fixed rulebook content (prizes, stage formats, penalties, banned items)
+- `src/lib/sample-data.ts`: 16-team placeholder tournament, built as CSV tabs so it runs through the real parser
+- `src/components/*`: MatchCard, GroupTable, TeamBadge, StatusChip, Nav, Footer, UpNext (client-side countdown)
+
+### Scripts
+- `npm test`: engine and parser unit tests (`node --test`, 8 passing)
+- `npm run check-sheet`: fetches the live sheet and prints standings and every data problem (needs `GOOGLE_SHEET_ID` in `.env.local`)
+- `npm run export-template`: writes `sheet-template/*.csv` for importing into Google Sheets
+- `npx next typegen`: run once before `tsc` if route types are missing
+
+### Env vars (`.env.example`)
+- `GOOGLE_SHEET_ID`: empty means sample data, and a "Preview mode" banner shows
+- `REVALIDATE_SECRET`
+
+---
+
+## Google Sheet schema (tab names must match exactly)
+
+| Tab | Columns |
+|---|---|
+| Teams | team_id, name, tag, group, logo_url, captain |
+| Players | team_id, ign, codm_uid, role (main/sub) |
+| Matches | match_id, stage (group/qf/sf/third/final), group, round, best_of, team_a, team_b, date (YYYY-MM-DD or DD/MM/YYYY), time (18:00 or 6:00 PM, IST), status (blank, or live/forfeit/cancelled), forfeit_winner (A/B/team_id), veto_note, notes |
+| Maps | match_id, game, mode (HP/SND/CTRL), map, score_a, score_b |
+| Config | key, value (qualifiers_per_group, tiebreakers, perspective, event_dates, registration_deadline, registration_url) |
+| Announcements | date, title, body |
+| MapPool | mode, map |
+
+Knockout `team_a`/`team_b` can be a slot reference instead of a team: `A1` (group A, 1st), `S3` (seed 3), `W:QF1` (winner of QF1), `L:SF2` (loser of SF2). These fill in automatically.
+
+On match day, organisers only fill **Maps** rows. Match status, standings, seeds and the bracket are all derived from them.
+
+Sheet gotchas:
+- Set the whole sheet to **Format → Number → Plain text**. gviz drops values in columns with mixed types.
+- Set the sheet locale to **India** so dates come out as DD/MM.
+- A missing tab is detected (gviz would otherwise silently return the first tab).
+
+---
+
+## Status
+
+**Done (main)**
+- Data engine, parser and sample data, with 8 unit tests passing
+- All 7 pages built in the Rift theme (dark, violet/cyan)
+- `npm run build` passes and every page is static, revalidating every 1 minute
+- Checked in headless Chromium: home, groups, bracket and mobile home look correct
+
+**Not done / to verify**
+- [ ] Nothing committed yet. `git init -b main` has run, but there are no commits and no remote
+- [ ] Push to GitHub (waiting on user approval)
+- [ ] Connect a Vercel project and set env vars
+- [ ] Create the real Google Sheet from `sheet-template/` and run `npm run check-sheet`
+- [ ] The UpNext countdown appeared as a blank skeleton in the mobile headless screenshot (probably captured before hydration). Check in a real browser
+- [ ] Teams, schedule, rules and team-detail pages haven't been screenshot-checked yet
+- [ ] No 3rd-place match is described in the rulebook, but there is a ₹1,000 prize. Sample data includes a `THIRD` match. Confirm with organisers or delete the row
+
+## Open questions for organisers
+1. How many teams, how many groups, and how many qualify per group?
+2. Is there a 3rd-place match, or how is 3rd place decided?
+3. Tiebreaker order: confirm h2h → score diff. Note that raw score diff mixes HP points (out of 250) with S&D rounds (out of 6), so HP results dominate it. A per-mode normalisation may be needed.
+4. Event dates, registration deadline and link.
+5. Map pool per stage, and TPP vs FPP per stage.
+
+---
+
+## Backend branch plan (not started)
+
+**Stack:** Next.js + Supabase (Postgres, Auth, Storage for screenshots), Drizzle or Prisma, on Vercel.
+
+**Pipeline:**
+1. **Registration:** Google Form or CSV, then admin "Import CSV", which creates Teams and Players.
+2. **Accounts:** players claim their profile using the email from registration (magic link) or a one-time code. No open signup.
+3. **Fixtures:** admin generates the group round robin. Knockout slots use the same slot refs as the sheet.
+4. **Match day:** referee panel for check-in (late-penalty tier computed automatically), veto record, and room ID (shown only to the two teams, 15 minutes before the match).
+5. **Results:** referee enters per-map scores plus a screenshot, which sets status to *pending*. A head referee approves it to *final*. A dispute puts it on hold (the 10-minute window is enforced).
+6. **Derived data:** the same `tournament.ts` engine recomputes standings, seeds and the bracket.
+7. **Surfaces:** the public site (same pages, now live) and a player dashboard (my team, next match with countdown, room ID, match history, map stats).
+
+**Roles:** Public · Player · Captain (SF veto submission, sub swap ≥10 min before) · Referee · Admin.
+
+---
+
+## Changelog
+- **2026-10-26:** Project scaffolded (Next 16.4). Rulebook parsed. Planned two branches. Decided on Google Sheet for `main`, Vercel hosting, h2h-first tiebreak, configurable groups. Built the full static site with sample data. Build and tests pass. Paused before the first commit or push.

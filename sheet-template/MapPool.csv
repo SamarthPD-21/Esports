@@ -1,0 +1,12 @@
+mode,map
+HP,Summit
+HP,Raid
+HP,Standoff
+HP,Firing Range
+SND,Standoff
+SND,Crossfire
+SND,Tunisia
+SND,Firing Range
+CTRL,Raid
+CTRL,Hacienda
+CTRL,Terminal
