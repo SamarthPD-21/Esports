@@ -3,6 +3,7 @@
 // Usage: npm run seed-sql   (then `npx supabase db reset` to apply)
 
 import { writeFileSync } from "node:fs";
+import { dayKey } from "../src/lib/format.ts";
 import { parseTournament } from "../src/lib/parse.ts";
 import { SAMPLE_TABS } from "../src/lib/sample-data.ts";
 
@@ -47,6 +48,13 @@ const cfg: [string, string | number | undefined][] = [
 for (const [k, v] of cfg) out.push(`insert into config (key, value) values (${q(k)}, ${q(String(v ?? ""))});`);
 for (const a of raw.announcements) out.push(`insert into announcements (date, title, body) values (${q(a.date)}, ${q(a.title)}, ${q(a.body)});`);
 for (const m of raw.mapPool) out.push(`insert into map_pool (mode, map) values (${q(m.mode)}, ${q(m.map)});`);
+
+// Group-stage match days take the mode their played maps used.
+const dayModes = new Map<string, string>();
+for (const m of raw.matches) {
+  if (m.stage === "group" && m.scheduledAt && m.maps[0]) dayModes.set(dayKey(m.scheduledAt), m.maps[0].mode);
+}
+for (const [day, mode] of dayModes) out.push(`insert into match_days (day, mode) values (${q(day)}, ${q(mode)});`);
 
 writeFileSync("supabase/seed.sql", out.join("\n") + "\n");
 console.log(`supabase/seed.sql: ${raw.teams.length} teams, ${raw.matches.length} matches`);

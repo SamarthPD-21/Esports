@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { startTransition, useActionState } from "react";
 
 interface State {
   ok?: string;
@@ -25,7 +25,15 @@ export function ActionForm({
   const btn =
     tone === "primary" ? "bg-violet text-white" : tone === "danger" ? "border border-live/40 text-live" : "border border-line-strong text-muted hover:text-text";
   return (
-    <form action={run} className={className}>
+    <form
+      className={className}
+      onSubmit={(e) => {
+        // Submit without React's automatic form reset, so a rejected entry isn't wiped.
+        e.preventDefault();
+        const data = new FormData(e.currentTarget);
+        startTransition(() => run(data));
+      }}
+    >
       {children}
       <div className="flex flex-wrap items-center gap-3">
         <button disabled={pending} className={`rounded-lg px-4 py-2 text-sm font-semibold disabled:opacity-60 ${btn}`}>

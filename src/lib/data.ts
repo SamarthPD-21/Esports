@@ -4,12 +4,13 @@
 
 import { cacheLife, cacheTag } from "next/cache";
 import { loadRawTournament } from "./db/load";
+import { dayKey } from "./format";
 import { parseTournament } from "./parse";
 import { SAMPLE_TABS } from "./sample-data";
 import { supabaseConfigured } from "./supabase/env";
 import { createPublicClient } from "./supabase/server";
 import { buildTournament } from "./tournament";
-import type { Match, Team, Tournament } from "./types";
+import type { Match, MatchDay, Team, Tournament } from "./types";
 
 /** Invalidated with updateTag() by every staff write, so results appear immediately. */
 export const TOURNAMENT_TAG = "tournament";
@@ -39,4 +40,11 @@ export function teamMap(t: Tournament): Map<string, Team> {
 
 export function matchesForTeam(t: Tournament, teamId: string): Match[] {
   return t.matches.filter((m) => m.a.teamId === teamId || m.b.teamId === teamId);
+}
+
+/** The mode announced for a group match's day (§3.1), if it has been announced. */
+export function matchDayFor(t: Tournament, m: Match): MatchDay | undefined {
+  if (m.stage !== "group" || !m.scheduledAt) return undefined;
+  const day = dayKey(m.scheduledAt);
+  return t.matchDays?.find((d) => d.day === day);
 }

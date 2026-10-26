@@ -4,6 +4,7 @@ import { refresh, updateTag } from "next/cache";
 import { requireAdmin, requireStaff } from "@/lib/auth";
 import { TOURNAMENT_TAG } from "@/lib/data";
 import { roundRobin, knockoutSkeleton } from "@/lib/fixtures";
+import { resolveVeto, VETO_SEQUENCE } from "@/lib/rules";
 import { csvToRows, parseMode, parseTournament, toCsv } from "@/lib/parse";
 import { createClient } from "@/lib/supabase/server";
 
@@ -78,11 +79,50 @@ export const toggleCheckIn = staff(async (form, { db, email }) => {
   const matchId = str(form, "id");
   const teamId = str(form, "team");
   if (form.get("undo")) {
-    check(await db.from("check_ins").delete().eq("match_id", matchId).eq("team_id", teamId));
+    check(await db.from("check_ins").update({ checked_in_at: null }).eq("match_id", matchId).eq("team_id", teamId));
     return "Check-in removed.";
   }
   check(await db.from("check_ins").upsert({ match_id: matchId, team_id: teamId, checked_in_at: new Date().toISOString(), recorded_by: email }));
   return "Checked in.";
+});
+
+export const toggleJoined = staff(async (form, { db }) => {
+  const matchId = str(form, "id");
+  const teamId = str(form, "team");
+  const joinedAt = form.get("undo") ? null : new Date().toISOString();
+  check(await db.from("check_ins").upsert({ match_id: matchId, team_id: teamId, joined_at: joinedAt }));
+  return joinedAt ? "Marked as joined." : "Join removed.";
+});
+
+export const toggleInvite = staff(async (form, { db }) => {
+  const invitedAt = form.get("undo") ? null : new Date().toISOString();
+  check(await db.from("match_rooms").upsert({ match_id: str(form, "id"), invited_at: invitedAt }));
+  return invitedAt ? "Lobby invite logged. Teams have 10 minutes to join." : "Invite time cleared.";
+});
+
+export const saveVeto = staff(async (form, { db, email }) => {
+  const matchId = str(form, "id");
+  const mode = parseMode(str(form, "mode"));
+  const first = str(form, "first_side");
+  const coin = str(form, "coin_toss");
+  if (!mode) throw new Error("Pick the mode.");
+  if (first !== "A" && first !== "B") throw new Error("Pick who bans first.");
+  const match = check<{ best_of: 1 | 3 | 5 }>(await db.from("matches").select("best_of").eq("id", matchId).single());
+  const steps = VETO_SEQUENCE[match.best_of].map((_, i) => str(form, `step${i + 1}`));
+  const pool = check<{ map: string }[]>(await db.from("map_pool").select("map").eq("mode", mode)).map((r) => r.map);
+  const result = resolveVeto(pool, match.best_of, steps);
+  if (!result.ok) throw new Error(result.error);
+
+  check(await db.from("map_vetoes").upsert({
+    match_id: matchId, mode, first_side: first, steps, decider: result.decider,
+    coin_toss: coin === "A" || coin === "B" ? coin : null,
+    screenshot_url: str(form, "screenshot") || null,
+    recorded_by: email, recorded_at: new Date().toISOString(),
+  }));
+  if (match.best_of === 1) {
+    check(await db.from("matches").update({ veto_note: `Bans: ${result.bans.join(", ")} · Map: ${result.decider}` }).eq("id", matchId));
+  }
+  return `Veto saved. Map: ${result.decider}.`;
 });
 
 export const saveMaps = staff(async (form, { db, email, isAdmin }) => {
@@ -245,6 +285,21 @@ export const saveConfig = staff(async (form, { db }) => {
   const keys = ["qualifiers_per_group", "tiebreakers", "perspective", "event_dates", "registration_deadline", "registration_url"];
   check(await db.from("config").upsert(keys.map((key) => ({ key, value: str(form, key) }))));
   return "Settings saved.";
+}, { admin: true });
+
+export const saveMatchDays = staff(async (form, { db }) => {
+  const days = str(form, "days").split(",").filter((d) => /^\d{4}-\d{2}-\d{2}$/.test(d));
+  let set = 0;
+  for (const day of days) {
+    const mode = parseMode(str(form, `mode_${day}`));
+    if (!mode) {
+      check(await db.from("match_days").delete().eq("day", day));
+      continue;
+    }
+    check(await db.from("match_days").upsert({ day, mode, note: str(form, `note_${day}`) || null }));
+    set++;
+  }
+  return `${set} match day(s) announced.`;
 }, { admin: true });
 
 export const saveMapPool = staff(async (form, { db }) => {

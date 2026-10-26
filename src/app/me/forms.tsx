@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { raiseDispute, requestSub, submitVeto, type ActionState } from "./actions";
+import { checkIn, raiseDispute, requestSub, submitVeto, type ActionState } from "./actions";
 
 const input = "rounded-lg border border-line-strong bg-surface-2 px-3 py-2 text-sm text-text outline-none placeholder:text-faint focus:border-violet";
 const button = "rounded-lg bg-violet px-4 py-2 text-sm font-semibold text-white disabled:opacity-60";
@@ -22,6 +22,17 @@ export function DisputeForm({ matchId }: { matchId: string }) {
       <input name="evidence" type="url" placeholder="Evidence link (optional)" className={input} />
       <Result state={state} />
       <button disabled={pending} className={`${button} self-start bg-live`}>{pending ? "Sending…" : "Raise dispute"}</button>
+    </form>
+  );
+}
+
+export function CheckInForm({ matchId }: { matchId: string }) {
+  const [state, action, pending] = useActionState<ActionState, FormData>(checkIn, {});
+  return (
+    <form action={action} className="flex flex-wrap items-center gap-3">
+      <input type="hidden" name="matchId" value={matchId} />
+      <button disabled={pending} className={button}>{pending ? "Checking in…" : "Check in my team"}</button>
+      <Result state={state} />
     </form>
   );
 }

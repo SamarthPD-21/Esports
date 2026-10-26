@@ -4,7 +4,9 @@ import { ActionForm, inputClass } from "@/components/ActionForm";
 import { getAdminOverview } from "@/lib/admin";
 import { requireAdmin } from "@/lib/auth";
 import { getTournament } from "@/lib/data";
-import { addAnnouncement, addStaff, deleteAnnouncement, removeStaff, saveConfig, saveMapPool } from "../actions";
+import { MODE_NAME } from "@/content/event";
+import { dayKey, fmtDay } from "@/lib/format";
+import { addAnnouncement, addStaff, deleteAnnouncement, removeStaff, saveConfig, saveMapPool, saveMatchDays } from "../actions";
 
 export const metadata: Metadata = { title: "Content & staff" };
 
@@ -20,6 +22,8 @@ async function Content() {
   const viewer = await requireAdmin();
   const [t, o] = await Promise.all([getTournament(), getAdminOverview()]);
   const c = t.config;
+  const groupDays = [...new Set(t.matches.filter((m) => m.stage === "group" && m.scheduledAt).map((m) => dayKey(m.scheduledAt!)))].sort();
+  const dayIso = (day: string) => `${day}T12:00:00+05:30`;
   const field = (name: string, label: string, value?: string | number, placeholder?: string) => (
     <label className="flex flex-col gap-1 text-xs text-muted">{label}<input name={name} defaultValue={value ?? ""} placeholder={placeholder} className={inputClass} /></label>
   );
@@ -41,8 +45,33 @@ async function Content() {
         </section>
 
         <section className="panel p-5">
+          <h2 className="font-display text-lg font-bold">Group stage match days</h2>
+          <p className="mt-1 text-xs text-muted">One decisive mode per match day. Setting a mode publishes it on the schedule and players&apos; dashboards.</p>
+          {groupDays.length === 0 ? (
+            <p className="mt-4 text-sm text-muted">Generate group fixtures first.</p>
+          ) : (
+            <ActionForm action={saveMatchDays} submit="Save match days" className="mt-4 flex flex-col gap-2">
+              <input type="hidden" name="days" value={groupDays.join(",")} />
+              {groupDays.map((day) => {
+                const current = t.matchDays?.find((d) => d.day === day);
+                return (
+                  <div key={day} className="grid grid-cols-[6.5rem_8rem_1fr] items-center gap-2 text-sm">
+                    <span>{fmtDay(dayIso(day))}</span>
+                    <select name={`mode_${day}`} defaultValue={current?.mode ?? ""} className={inputClass}>
+                      <option value="">Not announced</option>
+                      {(["HP", "SND", "CTRL"] as const).map((mode) => <option key={mode} value={mode}>{MODE_NAME[mode]}</option>)}
+                    </select>
+                    <input name={`note_${day}`} defaultValue={current?.note ?? ""} placeholder="Note (optional)" className={inputClass} />
+                  </div>
+                );
+              })}
+            </ActionForm>
+          )}
+        </section>
+
+        <section className="panel p-5">
           <h2 className="font-display text-lg font-bold">Map pool</h2>
-          <p className="mt-1 text-xs text-muted">One map per line. Announce ≥48 hours before each stage.</p>
+          <p className="mt-1 text-xs text-muted">One map per line. Announce ≥48 hours before each stage. The group-stage veto bans 4, so each mode needs exactly 5 maps then.</p>
           <ActionForm action={saveMapPool} submit="Save map pool" className="mt-4 grid gap-3 sm:grid-cols-3">
             {(["HP", "SND", "CTRL"] as const).map((mode) => (
               <label key={mode} className="flex flex-col gap-1 text-xs text-muted">

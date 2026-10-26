@@ -4,7 +4,7 @@ import type { MatchInput, Mode, RawTournament, Stage, Team, Tiebreaker } from ".
 
 /** Reads the public tables (RLS hides pending results) into the shape the engine expects. */
 export async function loadRawTournament(db: PostgrestClient): Promise<{ raw: RawTournament; warnings: string[] }> {
-  const [teams, players, matches, maps, config, announcements, pool] = await Promise.all([
+  const [teams, players, matches, maps, config, announcements, pool, days] = await Promise.all([
     db.from("teams").select("id, name, tag, group_name, logo_url").order("name"),
     db.from("players").select("id, team_id, ign, codm_uid, role, is_captain").order("role").order("ign"),
     db.from("matches").select("*").order("scheduled_at", { nullsFirst: false }).order("id"),
@@ -12,8 +12,9 @@ export async function loadRawTournament(db: PostgrestClient): Promise<{ raw: Raw
     db.from("config").select("key, value"),
     db.from("announcements").select("date, title, body").order("date", { ascending: false }),
     db.from("map_pool").select("mode, map").order("map"),
+    db.from("match_days").select("day, mode, note").order("day"),
   ]);
-  const failed = [teams, players, matches, maps, config, announcements, pool].find((r) => r.error);
+  const failed = [teams, players, matches, maps, config, announcements, pool, days].find((r) => r.error);
   if (failed?.error) throw new Error(`Database read failed: ${failed.error.message}`);
 
   const warnings: string[] = [];
@@ -69,6 +70,7 @@ export async function loadRawTournament(db: PostgrestClient): Promise<{ raw: Raw
       matches: matchList,
       announcements: (announcements.data ?? []).map((a) => ({ date: a.date, title: a.title, body: a.body })),
       mapPool: (pool.data ?? []).map((p) => ({ mode: p.mode as Mode, map: p.map })),
+      matchDays: (days.data ?? []).map((d) => ({ day: d.day, mode: d.mode as Mode, note: d.note ?? undefined })),
     },
     warnings,
   };

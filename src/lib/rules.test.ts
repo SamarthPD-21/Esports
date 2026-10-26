@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { disputeOpen, lateTier, roomReleased, validVeto, vetoOpen } from "./rules.ts";
+import { disputeOpen, lateTier, resolveVeto, roomOverdue, roomReleased, selfCheckInOpen, validVeto, vetoOpen, vetoTurns } from "./rules.ts";
 import type { Match } from "./types.ts";
 
 const T = "2026-11-14T15:00:00+05:30";
@@ -44,4 +44,39 @@ test("veto: reorder or swap exactly one mode", () => {
   assert.equal(validVeto(["HP", "SND", "HP"]), true); // swap Control for HP
   assert.equal(validVeto(["SND", "SND", "SND"]), false); // two swaps
   assert.equal(validVeto(["HP", "SND"]), false);
+});
+
+test("lobby join counts as a second late window", () => {
+  const onTime = new Date(t(-35)).toISOString();
+  const invitedAt = new Date(t(-3)).toISOString();
+  assert.equal(lateTier(T, onTime, t(0), { invitedAt }).penalty, "on time"); // still inside the 10 min
+  assert.deepEqual(lateTier(T, onTime, t(13), { invitedAt }), { minutesLate: 6, penalty: "forfeit first map", window: "lobby" });
+  assert.equal(lateTier(T, onTime, 0, { invitedAt, joinedAt: new Date(t(5)).toISOString() }).penalty, "on time");
+  // Late on both: the worse one decides.
+  const lateCheckIn = new Date(t(-18)).toISOString(); // 12 min late
+  assert.deepEqual(lateTier(T, lateCheckIn, 0, { invitedAt, joinedAt: new Date(t(9)).toISOString() }), { minutesLate: 12, penalty: "forfeit match", window: "check-in" });
+});
+
+test("self check-in window and overdue room", () => {
+  assert.equal(selfCheckInOpen(match(), t(-61)), false);
+  assert.equal(selfCheckInOpen(match(), t(-60)), true);
+  assert.equal(selfCheckInOpen(match(), t(16)), false);
+  assert.equal(roomOverdue(match(), false, t(-6)), false);
+  assert.equal(roomOverdue(match(), false, t(-5)), true);
+  assert.equal(roomOverdue(match(), true, t(-5)), false);
+});
+
+test("BO1 veto: four alternating bans leave the played map", () => {
+  const pool = ["Summit", "Raid", "Standoff", "Firing Range", "Takeoff"];
+  assert.deepEqual(vetoTurns(1, "B").map((x) => x.side), ["B", "A", "B", "A"]);
+  const r = resolveVeto(pool, 1, ["Raid", "Summit", "Takeoff", "Standoff"]);
+  assert.deepEqual(r, { ok: true, decider: "Firing Range", picks: [], bans: ["Raid", "Summit", "Takeoff", "Standoff"] });
+  assert.equal(resolveVeto(pool, 1, ["Raid", "Raid", "Takeoff", "Standoff"]).ok, false);
+  assert.equal(resolveVeto(pool.slice(0, 4), 1, ["Raid", "Summit", "Takeoff"]).ok, false);
+});
+
+test("BO3 veto keeps picks in order", () => {
+  const pool = ["M1", "M2", "M3", "M4", "M5", "M6", "M7"];
+  const r = resolveVeto(pool, 3, ["M1", "M2", "M3", "M4", "M5", "M6"]);
+  assert.deepEqual(r, { ok: true, decider: "M7", picks: ["M3", "M4"], bans: ["M1", "M2", "M5", "M6"] });
 });

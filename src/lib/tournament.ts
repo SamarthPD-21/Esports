@@ -336,6 +336,7 @@ export function buildTournament(
     teams: raw.teams,
     announcements: raw.announcements,
     mapPool: raw.mapPool,
+    matchDays: raw.matchDays ?? [],
     matches,
     groups,
     seeds,

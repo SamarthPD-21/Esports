@@ -6,19 +6,22 @@ import { TeamBadge } from "@/components/TeamBadge";
 import { Countdown } from "@/components/UpNext";
 import { MODE_NAME } from "@/content/event";
 import { requestNow, requireViewer, type Viewer } from "@/lib/auth";
-import { teamMap } from "@/lib/data";
+import { matchDayFor, teamMap } from "@/lib/data";
 import { fmtTime } from "@/lib/format";
 import { getDashboard, modeStats } from "@/lib/player";
 import {
   CHECK_IN_BEFORE_MIN,
+  LOBBY_JOIN_MIN,
   ROOM_RELEASE_BEFORE_MIN,
   disputeOpen,
   roomReleased,
+  selfCheckInOpen,
   sideOf,
   subOpen,
   vetoOpen,
+  vetoTurns,
 } from "@/lib/rules";
-import { DisputeForm, SubForm, VetoForm } from "./forms";
+import { CheckInForm, DisputeForm, SubForm, VetoForm } from "./forms";
 
 export const metadata: Metadata = { title: "My matches" };
 
@@ -71,6 +74,11 @@ async function Dashboard() {
   const next = d.upcoming[0];
   const stats = modeStats(d.history, d.teamId);
   const seriesWon = d.history.filter((m) => m.winner === sideOf(m, d.teamId)).length;
+  const nextDay = next ? matchDayFor(t, next) : undefined;
+  const nextCheckIn = next ? d.checkIns[next.id] : undefined;
+  const invitedAt = next ? d.rooms[next.id]?.invitedAt : null;
+  const nextVeto = next ? d.mapVetoes[next.id]?.[0] : undefined;
+  const sideName = (m: typeof next, s: "A" | "B") => teams.get((s === "A" ? m!.a : m!.b).teamId ?? "")?.name ?? s;
 
   return (
     <>
@@ -101,14 +109,44 @@ async function Dashboard() {
               {next.scheduledAt && <Countdown to={next.scheduledAt} className="tnum font-mono text-2xl font-semibold rift-text" />}
             </div>
             <MatchCard match={next} teams={teams} />
+            {next.stage === "group" && (
+              <p className="text-sm text-muted">
+                Mode for this match day: {nextDay ? <span className="font-semibold text-cyan">{MODE_NAME[nextDay.mode]}</span> : "not announced yet"}
+                {nextDay?.note && <span> · {nextDay.note}</span>}
+              </p>
+            )}
             {next.scheduledAt && (
-              <ul className="flex flex-col gap-1 text-sm text-muted">
+              <ul className="flex flex-col gap-2 text-sm text-muted">
                 <li>
-                  Check in with the referee by <span className="text-text">{fmtTime(new Date(Date.parse(next.scheduledAt) - CHECK_IN_BEFORE_MIN * 60_000).toISOString())}</span>
-                  {d.checkIns[next.id] ? <span className="ml-2 text-win">✓ checked in at {fmtTime(d.checkIns[next.id])}</span> : <span className="ml-2 text-warn">not checked in yet</span>}
+                  Check in by <span className="text-text">{fmtTime(new Date(Date.parse(next.scheduledAt) - CHECK_IN_BEFORE_MIN * 60_000).toISOString())}</span>
+                  {nextCheckIn?.checkedInAt ? <span className="ml-2 text-win">Checked in at {fmtTime(nextCheckIn.checkedInAt)}</span> : <span className="ml-2 text-warn">Not checked in yet</span>}
                 </li>
-                <li>Join the lobby within 10 minutes of the invite. Late arrivals trigger the penalty tiers on the Rules page.</li>
+                {!nextCheckIn?.checkedInAt && selfCheckInOpen(next, now) && <li><CheckInForm matchId={next.id} /></li>}
+                <li>
+                  {invitedAt ? (
+                    <>
+                      Lobby invite sent at {fmtTime(invitedAt)}. Join by <span className="text-text">{fmtTime(new Date(Date.parse(invitedAt) + LOBBY_JOIN_MIN * 60_000).toISOString())}</span>
+                      {nextCheckIn?.joinedAt && <span className="ml-2 text-win">Joined</span>}
+                    </>
+                  ) : (
+                    `Join the lobby within ${LOBBY_JOIN_MIN} minutes of the invite.`
+                  )}{" "}
+                  Missing either window triggers the late penalties on the Rules page.
+                </li>
+                {next.stage === "group" && <li>Screen recording is recommended in the group stage. Disconnects must be reported within 2 minutes.</li>}
               </ul>
+            )}
+            {nextVeto && (
+              <div className="rounded-lg border border-line p-3 text-sm">
+                <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-faint">Map veto</p>
+                <p className="text-muted">
+                  {vetoTurns(1, nextVeto.firstSide).map((turn, i) => `${nextVeto.steps[i]} (${sideName(next, turn.side)})`).join(" · ")}
+                </p>
+                <p className="mt-1">
+                  Map: <span className="font-semibold text-cyan">{nextVeto.decider}</span>
+                  {nextVeto.coinToss && <span className="text-muted"> · {sideName(next, nextVeto.coinToss)} picks side</span>}
+                </p>
+              </div>
             )}
           </div>
 

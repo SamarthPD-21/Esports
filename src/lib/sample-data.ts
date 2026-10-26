@@ -11,7 +11,12 @@ const TEAMS: [string, string, string][] = [
   ["Apex Fracture", "AF", "D"], ["Shadow Relay", "SR", "D"], ["Titan Pulse", "TP", "D"], ["Last Light", "LL", "D"],
 ];
 const CALLSIGNS = ["Viper", "Nyx", "Blaze", "Kairo", "Specter", "Rook", "Jinx", "Atlas", "Cipher", "Raze", "Onyx", "Flux"];
-const MAPS = { HP: ["Summit", "Raid", "Standoff", "Firing Range"], SND: ["Standoff", "Crossfire", "Tunisia", "Firing Range"], CTRL: ["Raid", "Hacienda", "Terminal"] };
+// Five per mode: the BO1 veto bans four (§7).
+const MAPS = {
+  HP: ["Summit", "Raid", "Standoff", "Firing Range", "Takeoff"],
+  SND: ["Standoff", "Crossfire", "Tunisia", "Firing Range", "Summit"],
+  CTRL: ["Raid", "Hacienda", "Terminal", "Standoff", "Summit"],
+};
 
 /** Deterministic pseudo-random so the sample never changes between builds. */
 function rng(seed: number) {

@@ -126,12 +126,21 @@ export interface MapPoolEntry {
   map: string;
 }
 
+/** Group stage: the one mode announced for a match day (§3.1). */
+export interface MatchDay {
+  /** YYYY-MM-DD in IST */
+  day: string;
+  mode: Mode;
+  note?: string;
+}
+
 export interface RawTournament {
   config: TournamentConfig;
   teams: Team[];
   matches: MatchInput[];
   announcements: Announcement[];
   mapPool: MapPoolEntry[];
+  matchDays?: MatchDay[];
 }
 
 export interface Tournament extends Omit<RawTournament, "matches"> {

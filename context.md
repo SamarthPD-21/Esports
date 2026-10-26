@@ -4,7 +4,8 @@ Running log for the tournament site. Update the **Status** and **Changelog** sec
 
 - Event: Yugaantar 2026 (Theme: Game Verse) presents CODM Carnage 2.0 — Rift Ops
 - Rulebook: `docs/rulebook.pdf` (copy served at `/rulebook.pdf`)
-- Repo: https://github.com/SamarthPD-21/CODM (`main` pushed; `backend` committed locally)
+- Repo: https://github.com/SamarthPD-21/CODM (`main` and `backend` pushed)
+- Rules source: **only** `docs/rulebook.pdf`. Where the PDF is silent, it's listed under open questions instead of borrowing outside conventions.
 - Hosting: Vercel
 
 ---
@@ -14,7 +15,7 @@ Running log for the tournament site. Update the **Status** and **Changelog** sec
 | Branch | What it is | State |
 |---|---|---|
 | `main` | Public site. No database or login. Data is filled and tallied by hand in a **Google Sheet**. | Done and pushed (`aa2dfbe`) |
-| `backend` | Same site plus a database, logins, player dashboards and a referee/admin panel. | Built and tested end to end against local Supabase; committed, not pushed |
+| `backend` | Same site plus a database, logins, player dashboards and a referee/admin panel. | Built and tested end to end against local Supabase; pushed |
 
 **Rule shared by both branches:** they use the same `src/lib/types.ts` and the same UI components. Only `src/lib/data.ts` changes (Sheet → Postgres). Nobody types standings or bracket results; they are always computed from map scores.
 
@@ -104,8 +105,21 @@ Sheet gotchas:
 - Public and service DB reads use a bare `PostgrestClient`, because supabase-js's auth bootstrap reads the clock and can't run inside `'use cache'`. `getViewer()` calls `connection()` first for the same reason.
 - "Match end" for the 10-minute dispute window is the newest `maps.updated_at` for that match.
 
+**Online group stage (backend)**, from rulebook §3.1, §3.2, §6, §7, §8.2, §12:
+
+| Rule | How the site handles it |
+|---|---|
+| One decisive mode per match day | Admin → Content → "Group stage match days". Shown on /schedule and in players' dashboards; it is the default mode for that day's score entry and veto. Table `match_days`. |
+| Check in 30 min before | Captain or any player taps "Check in my team" on /me (open from 60 min before to 15 min after match time), or the referee checks the team in. |
+| Join lobby within 10 min of invite | Referee taps "Invite sent now" in the room panel, then "Joined" per team. Players see the join-by time. |
+| Late penalty tiers | Worked out from whichever window was missed by more (check-in or lobby) and shown to the referee. Applying it is still a manual status override. |
+| Room ID 15–5 min before | Released to both teams at T−15; the editor flags it as overdue from T−5. |
+| BO1 veto Ban–Ban–Ban–Ban | Referee records who bans first, the coin-toss winner (picks side) and the 4 bans, plus a screenshot link. The site checks it against the 5-map pool, works out the map, writes the public veto note and pre-fills the map in score entry. Table `map_vetoes`. Players see the result on /me. |
+| No tied maps (overtime) | Score entry rejects ties. |
+| Disputes 10 min, ruling in 30 | Already built. |
+
 **Backend: still to do**
-- [ ] Push the `backend` branch (waiting on approval)
+- [x] Push the `backend` branch
 - [ ] Create the hosted Supabase project, set custom SMTP (required for magic links at scale) and Vercel env vars (see README)
 - [ ] Screenshot uploads go through links today; Supabase Storage upload is optional
 - [ ] Realtime push for live scores (pages currently refresh on navigation; staff writes invalidate the cache instantly)
@@ -125,7 +139,13 @@ Sheet gotchas:
 - [x] All pages screenshot-checked
 - [ ] No 3rd-place match is described in the rulebook, but there is a ₹1,000 prize. Sample data includes a `THIRD` match. Confirm with organisers or delete the row
 
-## Open questions for organisers
+## Open questions for organisers (the PDF doesn't say)
+- **BO1 late tier "Forfeit first map/round":** in a one-map match, does this mean losing the match, or round 1 (S&D/Control only)? The site shows the tier; the referee applies it.
+- **Standings tiebreakers:** the PDF only says 1 point per map won. h2h → score diff is our default. Raw score diff mixes HP points with S&D rounds across match days.
+- **Group-stage "higher seed bans first":** there are no seeds during the group stage, so in practice it's the coin toss. Confirm.
+- **Online check-in:** is a team's own "Check in" on the site acceptable as "checking in with the referee"? The referee can still check them in or undo it.
+- **BO3/BO5 map veto:** the PDF says per mode, but a 6-step veto per mode needs 7 maps per mode. Knockout vetoes are free text for now.
+
 1. How many teams, how many groups, and how many qualify per group?
 2. Is there a 3rd-place match, or how is 3rd place decided?
 3. Tiebreaker order: confirm h2h → score diff. Note that raw score diff mixes HP points (out of 250) with S&D rounds (out of 6), so HP results dominate it. A per-mode normalisation may be needed.
@@ -151,6 +171,15 @@ Sheet gotchas:
 
 ---
 
+## Login hardening (researched, not built yet)
+- PKCE magic links fail if opened in a different browser (e.g. Gmail's in-app browser). College Microsoft 365 "Safe Links" scanners can use up the link before the student clicks it.
+- Plan: put a 6-digit code in the email (typed on the site) plus a link to a page with a "Sign in" button that verifies on click (`verifyOtp` with `token_hash`).
+- Before the event:
+  - Custom SMTP is required. The built-in mailer only sends to the Supabase org's own members.
+  - Raise the per-IP OTP limits (default 30 per 5 min).
+  - The free-tier project pauses after 7 days idle.
+
 ## Changelog
+- **2026-10-26 (evening):** Online group stage: match-day modes, BO1 veto recorder, lobby invite/join window, self check-in, room-overdue flag. Admin forms keep values after a rejected save. 4 new unit tests, a 19-check group-stage browser test, and the earlier 19 checks still pass. Pushed `backend`. Removed AI attribution from commit messages; `AGENTS.md` untracked.
 - **2026-10-26 (later):** Pushed `main`. Built the `backend` branch with Supabase: schema and RLS, magic-link auth, player dashboard, referee/admin panel, CSV import, fixture and bracket generators. Fixed a dispute window that opened for future-dated results, and a clock read during runtime prefetch. Unit and e2e tests pass.
 - **2026-10-26:** Project scaffolded (Next 16.4). Rulebook parsed. Planned two branches. Decided on Google Sheet for `main`, Vercel hosting, h2h-first tiebreak, configurable groups. Built the full static site with sample data. Build and tests pass. Paused before the first commit or push.

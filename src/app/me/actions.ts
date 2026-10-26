@@ -3,7 +3,7 @@
 import { refresh } from "next/cache";
 import { requireViewer } from "@/lib/auth";
 import { getTournament } from "@/lib/data";
-import { DISPUTE_WINDOW_MIN, disputeOpen, sideOf, subOpen, validVeto, vetoOpen } from "@/lib/rules";
+import { DISPUTE_WINDOW_MIN, disputeOpen, selfCheckInOpen, sideOf, subOpen, validVeto, vetoOpen } from "@/lib/rules";
 import { createServiceClient } from "@/lib/supabase/server";
 import type { Mode } from "@/lib/types";
 
@@ -85,6 +85,24 @@ export async function requestSub(_: ActionState, form: FormData): Promise<Action
     if (error) throw error;
     refresh();
     return { ok: "Substitution reported to the referees." };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function checkIn(_: ActionState, form: FormData): Promise<ActionState> {
+  try {
+    const { viewer, player, match } = await myMatch(String(form.get("matchId")));
+    if (!selfCheckInOpen(match, Date.now())) return { error: "Check-in opens 60 minutes before match time." };
+    const db = createServiceClient();
+    const { data: existing } = await db.from("check_ins").select("checked_in_at").eq("match_id", match.id).eq("team_id", player.teamId).maybeSingle();
+    if (existing?.checked_in_at) return { ok: "Your team is already checked in." };
+    const { error } = await db.from("check_ins").upsert({
+      match_id: match.id, team_id: player.teamId, checked_in_at: new Date().toISOString(), recorded_by: viewer.email,
+    });
+    if (error) throw error;
+    refresh();
+    return { ok: "Checked in." };
   } catch (e) {
     return fail(e);
   }

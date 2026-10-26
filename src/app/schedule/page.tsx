@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { MatchCard } from "@/components/MatchCard";
 import { PageHeader } from "@/components/SectionHeading";
 import { getTournament, teamMap } from "@/lib/data";
+import { MODE_NAME } from "@/content/event";
 import { dayKey, fmtDay } from "@/lib/format";
 import type { Match } from "@/lib/types";
 
@@ -33,17 +34,25 @@ export default async function SchedulePage() {
       </nav>
 
       <div className="flex flex-col gap-12">
-        {[...days.entries()].map(([k, ms]) => (
-          <section key={k} id={`d-${k}`} className="scroll-mt-20">
-            <h2 className="mb-4 flex items-baseline gap-3 font-display text-xl font-bold">
-              {k === "tba" ? "Date TBA" : fmtDay(ms[0].scheduledAt!)}
-              <span className="text-xs font-normal text-faint">{ms.length} matches</span>
-            </h2>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {ms.map((m) => <MatchCard key={m.id} match={m} teams={teams} />)}
-            </div>
-          </section>
-        ))}
+        {[...days.entries()].map(([k, ms]) => {
+          const matchDay = t.matchDays?.find((d) => d.day === k);
+          return (
+            <section key={k} id={`d-${k}`} className="scroll-mt-20">
+              <h2 className="mb-4 flex flex-wrap items-baseline gap-3 font-display text-xl font-bold">
+                {k === "tba" ? "Date TBA" : fmtDay(ms[0].scheduledAt!)}
+                <span className="text-xs font-normal text-faint">{ms.length} matches</span>
+                {matchDay && (
+                  <span className="rounded-full border border-cyan/40 px-2.5 py-0.5 font-sans text-xs font-semibold text-cyan">
+                    Mode: {MODE_NAME[matchDay.mode]}{matchDay.note ? ` · ${matchDay.note}` : ""}
+                  </span>
+                )}
+              </h2>
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {ms.map((m) => <MatchCard key={m.id} match={m} teams={teams} />)}
+              </div>
+            </section>
+          );
+        })}
       </div>
     </>
   );

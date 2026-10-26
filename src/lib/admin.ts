@@ -4,13 +4,14 @@ import { createClient } from "./supabase/server";
 /** Staff-only reads. Uses the signed-in client, so RLS enforces staff access. */
 export async function getMatchPrivate(matchId: string) {
   const db = await createClient();
-  const [maps, room, checkIns, disputes, veto, subs] = await Promise.all([
+  const [maps, room, checkIns, disputes, veto, subs, mapVetoes] = await Promise.all([
     db.from("maps").select("*").eq("match_id", matchId).order("game"),
     db.from("match_rooms").select("*").eq("match_id", matchId).maybeSingle(),
     db.from("check_ins").select("*").eq("match_id", matchId),
     db.from("disputes").select("*").eq("match_id", matchId).order("created_at", { ascending: false }),
     db.from("veto_choices").select("*").eq("match_id", matchId).maybeSingle(),
     db.from("sub_requests").select("*, out:players!sub_requests_player_out_fkey(ign), in:players!sub_requests_player_in_fkey(ign)").eq("match_id", matchId),
+    db.from("map_vetoes").select("*").eq("match_id", matchId),
   ]);
   return {
     maps: maps.data ?? [],
@@ -19,6 +20,7 @@ export async function getMatchPrivate(matchId: string) {
     disputes: disputes.data ?? [],
     veto: veto.data,
     subs: subs.data ?? [],
+    mapVetoes: mapVetoes.data ?? [],
   };
 }
 

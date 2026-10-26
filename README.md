@@ -54,6 +54,16 @@ Security:
 - Player actions are authorised in server code (own team, deadlines, captain-only) before the service role writes them.
 - Only emails that are imported (players) or added as staff can receive a login link. The login form responds the same way for unknown emails.
 
+## Match day (online group stage)
+
+1. **Before the day:** Admin → Content → *Group stage match days*, set the day's mode. Keep exactly 5 maps per mode in the map pool, since the BO1 veto bans 4.
+2. **T−60 to T−30:** teams tap *Check in my team* on /me, or the referee checks them in from the match page.
+3. **Before the lobby:** the referee records the veto (who bans first, the coin-toss winner, 4 bans, a screenshot link). The played map is filled in for score entry and shown publicly.
+4. **T−15 to T−5:** enter the room ID and password. Both teams see them from T−15. Tap *Invite sent now* when the in-game invite goes out, then *Joined* for each team as they arrive (they have 10 minutes).
+5. **After the map:** enter the score. An admin publishes it. Teams have 10 minutes to dispute.
+
+The match page shows each team's late-penalty tier, based on whichever window it missed by more.
+
 ## Production setup
 
 1. **Supabase:** create a project, then `npx supabase link --project-ref <ref>` and `npx supabase db push`.
