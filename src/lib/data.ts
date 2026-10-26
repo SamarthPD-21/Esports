@@ -1,38 +1,34 @@
 // The single place pages get tournament data from.
-// main branch: Google Sheet (or the bundled sample). backend branch swaps this for Postgres.
+// backend branch: Supabase (public tables, approved results only). Falls back to the
+// bundled sample when Supabase isn't configured so the site still builds.
 
 import { cacheLife, cacheTag } from "next/cache";
+import { loadRawTournament } from "./db/load";
 import { parseTournament } from "./parse";
 import { SAMPLE_TABS } from "./sample-data";
-import { fetchSheetTabs } from "./sheet";
+import { supabaseConfigured } from "./supabase/env";
+import { createPublicClient } from "./supabase/server";
 import { buildTournament } from "./tournament";
 import type { Match, Team, Tournament } from "./types";
 
-export const SHEET_TAG = "sheet";
+/** Invalidated with updateTag() by every staff write, so results appear immediately. */
+export const TOURNAMENT_TAG = "tournament";
 
 export async function getTournament(): Promise<Tournament> {
   "use cache";
-  cacheLife("sheet");
-  cacheTag(SHEET_TAG);
+  cacheLife("tournament");
+  cacheTag(TOURNAMENT_TAG);
 
   const fetchedAt = new Date().toISOString();
-  const sheetId = process.env.GOOGLE_SHEET_ID?.trim();
-
-  if (sheetId) {
-    const { tabs, warnings: fetchWarnings } = await fetchSheetTabs(sheetId);
-    if (tabs.Teams && tabs.Matches) {
-      const { raw, warnings } = parseTournament(tabs);
-      return buildTournament(raw, { source: "sheet", fetchedAt, warnings: [...fetchWarnings, ...warnings] });
+  if (supabaseConfigured()) {
+    try {
+      const { raw, warnings } = await loadRawTournament(createPublicClient());
+      return buildTournament(raw, { source: "database", fetchedAt, warnings });
+    } catch (e) {
+      const { raw } = parseTournament(SAMPLE_TABS);
+      return buildTournament(raw, { source: "sample", fetchedAt, warnings: [(e as Error).message] });
     }
-    // Sheet unreachable: show sample data rather than an empty site, and say so.
-    const { raw, warnings } = parseTournament(SAMPLE_TABS);
-    return buildTournament(raw, {
-      source: "sample",
-      fetchedAt,
-      warnings: ["Google Sheet could not be read — showing sample data.", ...fetchWarnings, ...warnings],
-    });
   }
-
   const { raw, warnings } = parseTournament(SAMPLE_TABS);
   return buildTournament(raw, { source: "sample", fetchedAt, warnings });
 }

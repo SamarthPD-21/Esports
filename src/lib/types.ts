@@ -139,7 +139,7 @@ export interface Tournament extends Omit<RawTournament, "matches"> {
   groups: GroupTable[];
   /** Overall seed order of qualified teams (index 0 = seed 1). */
   seeds: string[];
-  source: "sheet" | "sample";
+  source: "database" | "sheet" | "sample";
   warnings: string[];
   fetchedAt: string;
 }

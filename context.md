@@ -4,7 +4,7 @@ Running log for the tournament site. Update the **Status** and **Changelog** sec
 
 - Event: Yugaantar 2026 (Theme: Game Verse) presents CODM Carnage 2.0 — Rift Ops
 - Rulebook: `docs/rulebook.pdf` (copy served at `/rulebook.pdf`)
-- Repo: https://github.com/SamarthPD-21/CODM (remote is still empty; nothing pushed yet)
+- Repo: https://github.com/SamarthPD-21/CODM (`main` pushed; `backend` committed locally)
 - Hosting: Vercel
 
 ---
@@ -13,8 +13,8 @@ Running log for the tournament site. Update the **Status** and **Changelog** sec
 
 | Branch | What it is | State |
 |---|---|---|
-| `main` | Public site. No database or login. Data is filled and tallied by hand in a **Google Sheet**. | Built locally; not committed or pushed yet |
-| `backend` | Same site plus a database, logins, player dashboards and a referee/admin panel. | Planned; not started |
+| `main` | Public site. No database or login. Data is filled and tallied by hand in a **Google Sheet**. | Done and pushed (`aa2dfbe`) |
+| `backend` | Same site plus a database, logins, player dashboards and a referee/admin panel. | Built and tested end to end against local Supabase; committed, not pushed |
 
 **Rule shared by both branches:** they use the same `src/lib/types.ts` and the same UI components. Only `src/lib/data.ts` changes (Sheet → Postgres). Nobody types standings or bracket results; they are always computed from map scores.
 
@@ -89,6 +89,28 @@ Sheet gotchas:
 
 ## Status
 
+**Done (backend)**
+- Supabase schema and RLS: `supabase/migrations/20261026000000_init.sql`
+- Seed generated from the sample data: `npm run seed-sql` / `npm run db:reset`
+- Email magic-link login, limited to registered emails and staff, with no enumeration
+- `/me` player dashboard: room release, check-in, history, mode stats, disputes, captain veto and sub reports
+- `/admin`: matches, match editor (maps with pending/publish, room, check-in with late tiers, details, disputes), setup (CSV import, round-robin, bracket), content and staff
+- Tests: 16 unit tests (engine, rulebook timing, fixtures) plus a 19-check browser test (scratchpad `e2e/flow.mjs`), all passing
+- Public pages are still statically prerendered; staff writes call `updateTag("tournament")` so results appear immediately
+
+**Backend decisions**
+- Login: email magic link (Supabase Auth). Players claim their profile automatically when the login email matches `player_contacts.email`.
+- Staff are keyed by email in the `staff` table (roles: referee or admin). Referee results are *pending* until an admin publishes them; an admin can publish directly.
+- Public and service DB reads use a bare `PostgrestClient`, because supabase-js's auth bootstrap reads the clock and can't run inside `'use cache'`. `getViewer()` calls `connection()` first for the same reason.
+- "Match end" for the 10-minute dispute window is the newest `maps.updated_at` for that match.
+
+**Backend: still to do**
+- [ ] Push the `backend` branch (waiting on approval)
+- [ ] Create the hosted Supabase project, set custom SMTP (required for magic links at scale) and Vercel env vars (see README)
+- [ ] Screenshot uploads go through links today; Supabase Storage upload is optional
+- [ ] Realtime push for live scores (pages currently refresh on navigation; staff writes invalidate the cache instantly)
+- [ ] Map score sanity checks per mode (e.g. HP 250 cap, S&D round counts)
+
 **Done (main)**
 - Data engine, parser and sample data, with 8 unit tests passing
 - All 7 pages built in the Rift theme (dark, violet/cyan)
@@ -96,12 +118,11 @@ Sheet gotchas:
 - Checked in headless Chromium: home, groups, bracket and mobile home look correct
 
 **Not done / to verify**
-- [ ] Nothing committed yet. `git init -b main` has run, but there are no commits and no remote
-- [ ] Push to GitHub (waiting on user approval)
+- [x] Committed and pushed to GitHub (`main`)
 - [ ] Connect a Vercel project and set env vars
 - [ ] Create the real Google Sheet from `sheet-template/` and run `npm run check-sheet`
-- [ ] The UpNext countdown appeared as a blank skeleton in the mobile headless screenshot (probably captured before hydration). Check in a real browser
-- [ ] Teams, schedule, rules and team-detail pages haven't been screenshot-checked yet
+- [x] UpNext countdown verified (the earlier blank was just pre-hydration)
+- [x] All pages screenshot-checked
 - [ ] No 3rd-place match is described in the rulebook, but there is a ₹1,000 prize. Sample data includes a `THIRD` match. Confirm with organisers or delete the row
 
 ## Open questions for organisers
@@ -113,7 +134,7 @@ Sheet gotchas:
 
 ---
 
-## Backend branch plan (not started)
+## Backend branch plan (original; now implemented except the items above)
 
 **Stack:** Next.js + Supabase (Postgres, Auth, Storage for screenshots), Drizzle or Prisma, on Vercel.
 
@@ -131,4 +152,5 @@ Sheet gotchas:
 ---
 
 ## Changelog
+- **2026-10-26 (later):** Pushed `main`. Built the `backend` branch with Supabase: schema and RLS, magic-link auth, player dashboard, referee/admin panel, CSV import, fixture and bracket generators. Fixed a dispute window that opened for future-dated results, and a clock read during runtime prefetch. Unit and e2e tests pass.
 - **2026-10-26:** Project scaffolded (Next 16.4). Rulebook parsed. Planned two branches. Decided on Google Sheet for `main`, Vercel hosting, h2h-first tiebreak, configurable groups. Built the full static site with sample data. Build and tests pass. Paused before the first commit or push.

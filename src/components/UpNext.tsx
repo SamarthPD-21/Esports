@@ -89,3 +89,11 @@ export function UpNext({ items }: { items: UpNextItem[] }) {
     </div>
   );
 }
+
+/** Live countdown to a timestamp; renders nothing until hydrated. */
+export function Countdown({ to, className }: { to: string; className?: string }) {
+  const t = useSyncExternalStore(subscribe, () => now, () => null);
+  if (t === null) return <span className={className}>&nbsp;</span>;
+  const ms = Date.parse(to) - t;
+  return <span className={className}>{ms > 0 ? countdown(ms) : "Starting"}</span>;
+}

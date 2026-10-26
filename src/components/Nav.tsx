@@ -13,8 +13,12 @@ const LINKS = [
   { href: "/rules", label: "Rules" },
 ];
 
+/** Active-link-aware nav. Reads the URL, so render it inside <Suspense> with <NavShell /> as fallback. */
 export function Nav() {
-  const pathname = usePathname();
+  return <NavShell pathname={usePathname()} />;
+}
+
+export function NavShell({ pathname }: { pathname: string }) {
   const [open, setOpen] = useState(false);
   const active = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
 
@@ -43,6 +47,13 @@ export function Nav() {
               {l.label}
             </Link>
           ))}
+          <Link
+            href="/me"
+            aria-current={pathname.startsWith("/me") || pathname.startsWith("/admin") ? "page" : undefined}
+            className="ml-2 rounded-md border border-violet/40 px-3 py-1.5 text-sm font-medium text-violet-soft hover:bg-violet/10"
+          >
+            My matches
+          </Link>
         </nav>
 
         <button
@@ -72,6 +83,9 @@ export function Nav() {
               {l.label}
             </Link>
           ))}
+          <Link href="/me" onClick={() => setOpen(false)} className="mt-1 block rounded-md px-3 py-2.5 text-sm font-medium text-violet-soft">
+            My matches · Log in
+          </Link>
         </nav>
       )}
     </header>

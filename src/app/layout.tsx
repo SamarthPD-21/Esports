@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Chakra_Petch, Inter, JetBrains_Mono } from "next/font/google";
 import { Suspense } from "react";
 import { DataNotice, Footer } from "@/components/Footer";
-import { Nav } from "@/components/Nav";
+import { Nav, NavShell } from "@/components/Nav";
 import { EVENT } from "@/content/event";
 import "./globals.css";
 
@@ -22,7 +22,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <Suspense fallback={null}>
           <DataNotice />
         </Suspense>
-        <Nav />
+        <Suspense fallback={<NavShell pathname="" />}>
+          <Nav />
+        </Suspense>
         <main className="mx-auto w-full max-w-6xl flex-1 px-4">{children}</main>
         <Suspense fallback={null}>
           <Footer />
