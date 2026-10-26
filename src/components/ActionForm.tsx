@@ -1,6 +1,7 @@
 "use client";
 
 import { startTransition, useActionState } from "react";
+import { useHydrated } from "@/lib/use-hydrated";
 
 interface State {
   ok?: string;
@@ -22,13 +23,16 @@ export function ActionForm({
   tone?: "primary" | "quiet" | "danger";
 }) {
   const [state, run, pending] = useActionState(action, {});
+  const hydrated = useHydrated();
   const btn =
     tone === "primary" ? "bg-violet text-white" : tone === "danger" ? "border border-live/40 text-live" : "border border-line-strong text-muted hover:text-text";
   return (
     <form
+      action={run}
       className={className}
       onSubmit={(e) => {
-        // Submit without React's automatic form reset, so a rejected entry isn't wiped.
+        // Once hydrated, submit without React's automatic form reset so a rejected
+        // entry isn't wiped. Before hydration `action` still posts the form.
         e.preventDefault();
         const data = new FormData(e.currentTarget);
         startTransition(() => run(data));
@@ -36,7 +40,7 @@ export function ActionForm({
     >
       {children}
       <div className="flex flex-wrap items-center gap-3">
-        <button disabled={pending} className={`rounded-lg px-4 py-2 text-sm font-semibold disabled:opacity-60 ${btn}`}>
+        <button disabled={pending || !hydrated} className={`rounded-lg px-4 py-2 text-sm font-semibold disabled:opacity-60 ${btn}`}>
           {pending ? "Working…" : submit}
         </button>
         {state.error && <span className="text-sm text-live" role="alert">{state.error}</span>}

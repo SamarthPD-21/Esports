@@ -205,9 +205,9 @@ anonymous_users = 30
 # Number of sessions that can be refreshed in a 5 minute interval per IP address.
 token_refresh = 150
 # Number of sign up and sign-in requests that can be made in a 5 minute interval per IP address (excludes anonymous users).
-sign_in_sign_ups = 30
+sign_in_sign_ups = 150
 # Number of OTP / Magic link verifications that can be made in a 5 minute interval per IP address.
-token_verifications = 30
+token_verifications = 150
 # Number of Web3 logins that can be made in a 5 minute interval per IP address.
 web3 = 30
 
@@ -243,6 +243,15 @@ otp_expiry = 3600
 # pass = "env(SENDGRID_API_KEY)"
 # admin_email = "admin@email.com"
 # sender_name = "Admin"
+
+# Login emails carry a 6-digit code and a link to a confirm page (see README).
+[auth.email.template.magic_link]
+subject = "Your CODM Carnage 2.0 login code"
+content_path = "./supabase/templates/login.html"
+
+[auth.email.template.confirmation]
+subject = "Your CODM Carnage 2.0 login code"
+content_path = "./supabase/templates/login.html"
 
 # Uncomment to customize email template
 # [auth.email.template.invite]

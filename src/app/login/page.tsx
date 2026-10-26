@@ -8,7 +8,7 @@ export default function LoginPage() {
   return (
     <div className="mx-auto max-w-md">
       <PageHeader kicker="Players & staff" title="Log in">
-        No password needed. We&apos;ll email you a one-time link.
+        No password needed. We&apos;ll email you a one-time code.
       </PageHeader>
       <LoginForm />
       <p className="mt-4 text-xs text-faint">

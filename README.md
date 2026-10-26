@@ -69,7 +69,14 @@ The match page shows each team's late-penalty tier, based on whichever window it
 1. **Supabase:** create a project, then `npx supabase link --project-ref <ref>` and `npx supabase db push`.
 2. **Staff:** in the SQL editor, run `insert into staff (email, role) values ('you@college.edu', 'admin');`. Add everyone else from /admin/content.
 3. **Auth → URL Configuration:** set Site URL to `https://<your-domain>`. Add `https://<your-domain>/auth/confirm` (and the Vercel preview domain) to Redirect URLs.
-4. **Auth → SMTP: required.** Supabase's built-in mailer is for testing only and won't deliver to ~100 players. Use a provider such as Resend, Brevo or Postmark (free tiers are enough), and raise the email rate limit under Auth → Rate Limits.
+4. **Auth → SMTP: required.** Supabase's built-in mailer only sends to members of your Supabase organisation. Use a provider such as Resend or Brevo; the free tiers are enough. Send from your own domain with SPF and DKIM set up, or the emails land in spam.
+   - **Auth → Email Templates:** paste `supabase/templates/login.html` into both *Magic Link* and *Confirm signup*, with the subject "Your CODM Carnage 2.0 login code".
+     - Each email then carries a 6-digit code plus a link to `/auth/confirm`.
+     - The default template's link breaks when opened in Gmail's in-app browser, and college mail scanners can use it up before the player clicks.
+   - **Auth → Rate Limits:**
+     - Raise the email limit (custom SMTP starts at 30 per hour).
+     - Raise sign-ins and verifications per IP to about 150 per 5 minutes, since a venue on one Wi-Fi shares an IP.
+   - **Free plan:** projects pause after 7 days without traffic. Open the site in the days before each match day.
 5. **Vercel:** set `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` and `NEXT_PUBLIC_SITE_URL`.
 6. In /admin/setup, import Teams, then Players (with emails), generate fixtures, then generate the bracket.
 

@@ -1,42 +1,67 @@
 "use client";
 
-import { useActionState } from "react";
-import { sendMagicLink, type LoginState } from "./actions";
+import { useActionState, useState } from "react";
+import { useHydrated } from "@/lib/use-hydrated";
+import { sendLoginCode, verifyLoginCode, type LoginState } from "./actions";
+
+const input =
+  "rounded-lg border border-line-strong bg-surface-2 px-3 py-2.5 text-text outline-none placeholder:text-faint focus:border-violet";
+const button = "rounded-lg bg-gradient-to-r from-violet to-cyan px-5 py-2.5 text-sm font-semibold text-bg disabled:opacity-60";
 
 export function LoginForm() {
-  const [state, action, pending] = useActionState<LoginState, FormData>(sendMagicLink, {});
+  // Bumping the key starts over with an empty email form.
+  const [attempt, setAttempt] = useState(0);
+  return <EmailStep key={attempt} onReset={() => setAttempt((n) => n + 1)} />;
+}
 
-  if (state.sent) {
-    return (
-      <div className="panel p-6" role="status">
-        <p className="font-display text-xl font-bold">Check your inbox</p>
-        <p className="mt-2 text-sm text-muted">
-          If that email is registered for the tournament, a login link is on its way. Open it in this browser. It expires in 1 hour.
-        </p>
-      </div>
-    );
-  }
+// Bound straight to the server action so a tap before hydration still submits.
+function EmailStep({ onReset }: { onReset: () => void }) {
+  const [state, action, pending] = useActionState<LoginState, FormData>(sendLoginCode, {});
+  const hydrated = useHydrated();
+  if (state.email && !state.error) return <CodeForm email={state.email} onBack={onReset} />;
 
   return (
     <form action={action} className="panel flex flex-col gap-4 p-6">
       <label className="flex flex-col gap-2">
         <span className="text-sm font-medium">Email used at registration</span>
+        <input type="email" name="email" required autoComplete="email" defaultValue={state.email} placeholder="you@example.com" className={input} />
+      </label>
+      {state.error && <p className="text-sm text-live" role="alert">{state.error}</p>}
+      <button disabled={pending || !hydrated} className={button}>{pending ? "Sending…" : "Email me a login code"}</button>
+    </form>
+  );
+}
+
+function CodeForm({ email, onBack }: { email: string; onBack: () => void }) {
+  const [state, action, pending] = useActionState<LoginState, FormData>(verifyLoginCode, { email });
+  const hydrated = useHydrated();
+  return (
+    <form action={action} className="panel flex flex-col gap-4 p-6">
+      <div role="status">
+        <p className="font-display text-xl font-bold">Check your inbox</p>
+        <p className="mt-2 text-sm text-muted">
+          If <span className="text-text">{email}</span> is registered for the tournament, a login code is on its way. Check Spam and Promotions too.
+        </p>
+      </div>
+      <label className="flex flex-col gap-2">
+        <span className="text-sm font-medium">Login code</span>
         <input
-          type="email"
-          name="email"
+          name="code"
           required
-          autoComplete="email"
-          placeholder="you@example.com"
-          className="rounded-lg border border-line-strong bg-surface-2 px-3 py-2.5 text-text outline-none placeholder:text-faint focus:border-violet"
+          inputMode="numeric"
+          autoComplete="one-time-code"
+          pattern="[0-9 ]{6,12}"
+          maxLength={12}
+          placeholder="123456"
+          className={`${input} tnum font-mono text-xl tracking-[0.3em]`}
         />
       </label>
       {state.error && <p className="text-sm text-live" role="alert">{state.error}</p>}
-      <button
-        disabled={pending}
-        className="rounded-lg bg-gradient-to-r from-violet to-cyan px-5 py-2.5 text-sm font-semibold text-bg disabled:opacity-60"
-      >
-        {pending ? "Sending…" : "Send login link"}
-      </button>
+      <button disabled={pending || !hydrated} className={button}>{pending ? "Checking…" : "Log in"}</button>
+      <p className="text-xs text-faint">
+        You can also tap the link in the email. Wrong address?{" "}
+        <button type="button" onClick={onBack} className="text-violet-soft underline">Use a different email</button>
+      </p>
     </form>
   );
 }

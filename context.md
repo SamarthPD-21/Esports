@@ -171,15 +171,37 @@ Sheet gotchas:
 
 ---
 
-## Login hardening (researched, not built yet)
+## Login (code + confirm page): done
 - PKCE magic links fail if opened in a different browser (e.g. Gmail's in-app browser). College Microsoft 365 "Safe Links" scanners can use up the link before the student clicks it.
-- Plan: put a 6-digit code in the email (typed on the site) plus a link to a page with a "Sign in" button that verifies on click (`verifyOtp` with `token_hash`).
+- Built:
+  - The email (`supabase/templates/login.html`) carries a 6-digit code, typed on /login, plus a link to /auth/confirm.
+  - That page only logs in on a "Continue" press, so a scanner opening the link doesn't use it up, and it works in any browser.
+- Found and fixed while testing:
+  - With `cacheComponents`, a form submitted before the page hydrates comes back blank. Submit buttons now stay disabled until hydration (`useHydrated`).
+  - The login page used to swap a placeholder form for the real one while loading, which could eat a fast tap. It is now a single form.
 - Before the event:
   - Custom SMTP is required. The built-in mailer only sends to the Supabase org's own members.
   - Raise the per-IP OTP limits (default 30 per 5 min).
   - The free-tier project pauses after 7 days idle.
 
+## Format and timing (organiser decision)
+- The bracket starts at the Quarterfinals, so the format needs **8 qualifiers**: 4 groups × top 2, or 8 groups × top 1.
+- Slots assume 45 minutes per BO1: veto, a lobby join of up to 10 min, the map, 1 pause and score entry.
+- Setup now previews matches, match days and finish times before generating. Teams always get at least one free slot between matches.
+
+| Teams | Format | Matches | 4 lobbies, all rounds in 1 day | 1 round per day |
+|---|---|---|---|---|
+| 16 | 4×4, top 2 | 24 | 4:00 to about 8:30 pm | 3 days of about 1.5 h |
+| 24 | 8×3, top 1 | 24 | about 4.5 h | 3 days |
+| 24 | 4×6, top 2 | 60 | too long (6 lobbies → 2 days to about 8:30 pm) | 5 days of about 2.25 h |
+| 32 | 8×4, top 1 | 48 | 6 lobbies → 4:00–10:00 pm; 8 lobbies → about 8:30 pm | 3 days of about 3 h |
+
 ## Changelog
+- **2026-10-26 (night):**
+  - Login by emailed code, plus a link page with a button.
+  - Fixture generator now leaves per-team rest between matches, and setup shows a format preview.
+  - Fixed: the blank page after a pre-hydration submit, and a lost tap on the login form.
+  - All browser suites pass twice in a row: auth 9, flow 19, group stage 19.
 - **2026-10-26 (evening):** Online group stage: match-day modes, BO1 veto recorder, lobby invite/join window, self check-in, room-overdue flag. Admin forms keep values after a rejected save. 4 new unit tests, a 19-check group-stage browser test, and the earlier 19 checks still pass. Pushed `backend`. Removed AI attribution from commit messages; `AGENTS.md` untracked.
 - **2026-10-26 (later):** Pushed `main`. Built the `backend` branch with Supabase: schema and RLS, magic-link auth, player dashboard, referee/admin panel, CSV import, fixture and bracket generators. Fixed a dispute window that opened for future-dated results, and a clock read during runtime prefetch. Unit and e2e tests pass.
 - **2026-10-26:** Project scaffolded (Next 16.4). Rulebook parsed. Planned two branches. Decided on Google Sheet for `main`, Vercel hosting, h2h-first tiebreak, configurable groups. Built the full static site with sample data. Build and tests pass. Paused before the first commit or push.
