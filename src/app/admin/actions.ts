@@ -243,10 +243,13 @@ export const importCsv = staff(async (form, { db }) => {
 export const generateGroupFixtures = staff(async (form, { db }) => {
   const teams = check<{ id: string; group_name: string | null }[]>(await db.from("teams").select("id, group_name").order("name"));
   const existing = check<{ id: string; stage: string; side_a: string; side_b: string }[]>(await db.from("matches").select("id, stage, side_a, side_b"));
+  if (!teams.length) throw new Error("Import teams first.");
   const start = toIso(str(form, "date"), str(form, "time"));
   if (!start) throw new Error("Pick a start date and time.");
+  const rest = intOrNull(str(form, "rest"));
   const fixtures = roundRobin(teams.map((t) => ({ id: t.id, group: t.group_name ?? "" })), existing, {
-    start, gapMinutes: Number(str(form, "gap")) || 60, roundsPerDay: Number(str(form, "per_day")) || 1, parallel: Number(str(form, "parallel")) || 2,
+    start, gapMinutes: Number(str(form, "gap")) || 45, roundsPerDay: Number(str(form, "per_day")) || 1, parallel: Number(str(form, "parallel")) || 4,
+    restSlots: rest ?? 1,
   });
   if (!fixtures.length) return "No new fixtures needed — every pair already has a match.";
   check(await db.from("matches").insert(fixtures.map((f) => ({ id: f.id, stage: "group", group_name: f.group, round: f.round, best_of: 1, side_a: f.a, side_b: f.b, scheduled_at: f.scheduledAt }))));

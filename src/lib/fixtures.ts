@@ -13,13 +13,15 @@ export interface Fixture {
 
 /**
  * Round robin inside each group (circle method), skipping pairs that already
- * have a group match. One round per `roundsPerDay` day; within a round,
- * `parallel` matches run at once and the next batch starts `gapMinutes` later.
+ * have a group match. `roundsPerDay` rounds share a day (and so a mode, §3.1).
+ * Matches go into time slots `gapMinutes` apart, at most `parallel` per slot,
+ * earliest first, and a team's next match starts at least `restSlots` + 1
+ * slots after its previous one, so it isn't still playing when check-in opens.
  */
 export function roundRobin(
   teams: { id: string; group: string }[],
   existing: { id: string; stage: string; side_a: string; side_b: string }[],
-  opts: { start: string; gapMinutes: number; roundsPerDay: number; parallel: number },
+  opts: { start: string; gapMinutes: number; roundsPerDay: number; parallel: number; restSlots?: number },
 ): Fixture[] {
   const played = new Set(
     existing.filter((m) => m.stage === "group").map((m) => [m.side_a, m.side_b].sort().join("|")),
@@ -45,15 +47,24 @@ export function roundRobin(
   }
 
   const start = Date.parse(opts.start);
+  const restSlots = opts.restSlots ?? 1;
   const out: Fixture[] = [];
+  let used: number[] = []; // matches per slot, for the current day
+  let last = new Map<string, number>(); // team → slot of its latest match today
   rounds.forEach((pairs, r) => {
     const day = Math.floor(r / opts.roundsPerDay);
-    const slotInDay = r % opts.roundsPerDay;
-    const batches = Math.ceil(pairs.length / opts.parallel);
-    pairs.forEach((p, i) => {
-      if (played.has([p.a, p.b].sort().join("|"))) return;
-      const batch = slotInDay * batches + Math.floor(i / opts.parallel);
-      const t = start + day * 86_400_000 + batch * opts.gapMinutes * 60_000;
+    if (r % opts.roundsPerDay === 0) {
+      used = [];
+      last = new Map();
+    }
+    for (const p of pairs) {
+      if (played.has([p.a, p.b].sort().join("|"))) continue;
+      const free = (team: string) => (last.has(team) ? last.get(team)! + restSlots + 1 : 0);
+      let slot = Math.max(free(p.a), free(p.b));
+      while ((used[slot] ?? 0) >= opts.parallel) slot++;
+      used[slot] = (used[slot] ?? 0) + 1;
+      last.set(p.a, slot);
+      last.set(p.b, slot);
       n++;
       out.push({
         id: `G${String(n).padStart(2, "0")}`,
@@ -61,11 +72,41 @@ export function roundRobin(
         round: r + 1,
         a: p.a,
         b: p.b,
-        scheduledAt: new Date(t).toISOString(),
+        scheduledAt: new Date(start + day * 86_400_000 + slot * opts.gapMinutes * 60_000).toISOString(),
       });
-    });
+    }
   });
   return out;
+}
+
+export interface DayPlan {
+  day: number;
+  rounds: number[];
+  matches: number;
+  firstStart: string;
+  lastStart: string;
+  /** Last start plus one slot. */
+  estimatedEnd: string;
+}
+
+/** Per-match-day summary of generated fixtures, for the setup preview. */
+export function summariseFixtures(fixtures: Fixture[], gapMinutes: number, roundsPerDay: number): DayPlan[] {
+  const byDay = new Map<number, Fixture[]>();
+  for (const f of fixtures) {
+    const day = Math.floor((f.round - 1) / roundsPerDay);
+    byDay.set(day, [...(byDay.get(day) ?? []), f]);
+  }
+  return [...byDay.entries()].sort(([x], [y]) => x - y).map(([, fs], i) => {
+    const times = fs.map((f) => Date.parse(f.scheduledAt)).sort((x, y) => x - y);
+    return {
+      day: i + 1,
+      rounds: [...new Set(fs.map((f) => f.round))].sort((x, y) => x - y),
+      matches: fs.length,
+      firstStart: new Date(times[0]).toISOString(),
+      lastStart: new Date(times[times.length - 1]).toISOString(),
+      estimatedEnd: new Date(times[times.length - 1] + gapMinutes * 60_000).toISOString(),
+    };
+  });
 }
 
 /** Knockout bracket from overall seeds: 8 → QF/SF/F, 4 → SF/F, 2 → F. */

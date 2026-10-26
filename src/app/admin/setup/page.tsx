@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { ActionForm, inputClass } from "@/components/ActionForm";
 import { requireAdmin } from "@/lib/auth";
+import { getTournament } from "@/lib/data";
 import { generateBracket, generateGroupFixtures, importCsv } from "../actions";
+import { FixturePlanner } from "./FixturePlanner";
 
 export const metadata: Metadata = { title: "Setup" };
 
@@ -23,6 +25,9 @@ const FORMATS = [
 
 async function Setup() {
   await requireAdmin();
+  const t = await getTournament();
+  const teams = t.teams.map((x) => ({ id: x.id, group: x.group }));
+  const existing = t.matches.map((m) => ({ id: m.id, stage: m.stage, side_a: m.a.ref, side_b: m.b.ref }));
   return (
     <>
       <h1 className="font-display text-3xl font-bold">Setup</h1>
@@ -47,14 +52,8 @@ async function Setup() {
 
         <section className="panel p-5">
           <h2 className="font-display text-lg font-bold">2 · Generate group fixtures</h2>
-          <p className="mt-1 text-xs text-muted">Round robin inside each group, BO1. Pairs that already have a match are skipped.</p>
-          <ActionForm action={generateGroupFixtures} submit="Generate fixtures" className="mt-4 grid grid-cols-2 gap-3">
-            <label className="flex flex-col gap-1 text-xs text-muted">First day<input type="date" name="date" required className={inputClass} /></label>
-            <label className="flex flex-col gap-1 text-xs text-muted">First match (IST)<input type="time" name="time" defaultValue="17:00" required className={inputClass} /></label>
-            <label className="flex flex-col gap-1 text-xs text-muted">Matches at once<input type="number" name="parallel" min={1} defaultValue={2} className={inputClass} /></label>
-            <label className="flex flex-col gap-1 text-xs text-muted">Minutes between slots<input type="number" name="gap" min={15} step={5} defaultValue={60} className={inputClass} /></label>
-            <label className="col-span-2 flex flex-col gap-1 text-xs text-muted">Rounds per day<input type="number" name="per_day" min={1} defaultValue={1} className={inputClass} /></label>
-          </ActionForm>
+          <p className="mt-1 text-xs text-muted">Round robin inside each group, BO1. Pairs that already have a match are skipped. A slot covers veto, lobby join (up to 10 min), the map, one pause and score entry.</p>
+          <FixturePlanner action={generateGroupFixtures} teams={teams} existing={existing} qualifiersPerGroup={t.config.qualifiersPerGroup} />
         </section>
 
         <section className="panel p-5">
