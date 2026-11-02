@@ -5,6 +5,7 @@
 
 import type {
   GroupTable,
+  GroupTie,
   Match,
   MatchInput,
   MatchStatus,
@@ -84,75 +85,97 @@ function partitionDesc(ids: string[], key: (id: string) => number): string[][] {
   return [...buckets.entries()].sort((x, y) => y[0] - x[0]).map(([, v]) => v);
 }
 
+interface TieContext {
+  stats: Map<string, Stats>;
+  results: GroupResult[];
+  /** Tiebreaker matches (stage "tiebreak") between teams of this group, in play order. */
+  playoffs: (GroupResult & { at: number })[];
+  coinToss: string[][];
+  names: Map<string, string>;
+  unresolved: string[][];
+}
+
+/** Coin-toss order for a cluster, if one recorded toss covers all of it. */
+function byCoinToss(cluster: string[], coinToss: string[][]): string[] | undefined {
+  const order = coinToss.find((o) => cluster.every((id) => o.includes(id)));
+  return order && [...cluster].sort((x, y) => order.indexOf(x) - order.indexOf(y));
+}
+
 /**
  * Orders a cluster of teams tied on points. Each tiebreaker splits the cluster;
  * any smaller sub-cluster that is still tied starts again from the first
  * tiebreaker (so a 3-way tie broken to 1+2 re-applies head-to-head to the 2).
+ * Clusters split by tiebreaker matches restart there instead: once teams have
+ * played off, the group-stage result between them no longer counts.
  */
-function breakTie(
-  cluster: string[],
-  tiebreakers: Tiebreaker[],
-  stats: Map<string, Stats>,
-  results: GroupResult[],
-  names: Map<string, string>,
-  unresolved: Set<string>,
-  from = 0,
-): string[] {
+function breakTie(cluster: string[], tiebreakers: Tiebreaker[], ctx: TieContext, from = 0): string[] {
   if (cluster.length <= 1) return cluster;
   if (from >= tiebreakers.length) {
-    cluster.forEach((id) => unresolved.add(id));
-    return [...cluster].sort((x, y) => (names.get(x) ?? x).localeCompare(names.get(y) ?? y));
+    const tossed = byCoinToss(cluster, ctx.coinToss);
+    if (tossed) return tossed;
+    ctx.unresolved.push(cluster);
+    return [...cluster].sort((x, y) => (ctx.names.get(x) ?? x).localeCompare(ctx.names.get(y) ?? y));
   }
 
   const tb = tiebreakers[from];
+  const inCluster = new Set(cluster);
   let key: (id: string) => number;
-  if (tb === "h2h") {
-    const inCluster = new Set(cluster);
+  if (tb === "h2h" || tb === "playoff") {
     const mini = new Map<string, number>(cluster.map((id) => [id, 0]));
-    for (const r of results) {
+    const last = new Map<string, number>(cluster.map((id) => [id, 0]));
+    const games: (GroupResult & { at?: number })[] = tb === "h2h" ? ctx.results : ctx.playoffs;
+    for (const r of games) {
       if (!inCluster.has(r.a) || !inCluster.has(r.b)) continue;
       mini.set(r.a, mini.get(r.a)! + r.mapWinsA);
       mini.set(r.b, mini.get(r.b)! + r.mapWinsB);
+      last.set(r.a, Math.max(last.get(r.a)!, r.at ?? 0));
+      last.set(r.b, Math.max(last.get(r.b)!, r.at ?? 0));
     }
-    key = (id) => mini.get(id)!;
+    // In a play-off, of two teams on the same wins the one knocked out later ranks higher.
+    key = tb === "h2h" ? (id) => mini.get(id)! : (id) => mini.get(id)! * 1e13 + last.get(id)!;
   } else if (tb === "diff") {
-    key = (id) => stats.get(id)!.diff;
+    key = (id) => ctx.stats.get(id)!.diff;
   } else {
-    key = (id) => stats.get(id)!.scoreFor;
+    key = (id) => ctx.stats.get(id)!.scoreFor;
   }
 
   const parts = partitionDesc(cluster, key);
-  if (parts.length === 1) return breakTie(cluster, tiebreakers, stats, results, names, unresolved, from + 1);
-  return parts.flatMap((p) => breakTie(p, tiebreakers, stats, results, names, unresolved, 0));
+  if (parts.length === 1) return breakTie(cluster, tiebreakers, ctx, from + 1);
+  const restart = tb === "playoff" ? from : 0;
+  return parts.flatMap((p) => breakTie(p, tiebreakers, ctx, restart));
+}
+
+function toResult(m: MatchInput, s: SeriesResult): GroupResult | undefined {
+  if (!s.winner || (s.status !== "completed" && s.status !== "forfeit")) return undefined;
+  const forfeit = s.status === "forfeit";
+  const need = winsNeeded(m.bestOf);
+  return {
+    a: m.sideA,
+    b: m.sideB,
+    winner: s.winner,
+    mapWinsA: forfeit ? (s.winner === "A" ? need : 0) : s.mapWinsA,
+    mapWinsB: forfeit ? (s.winner === "B" ? need : 0) : s.mapWinsB,
+    scoreA: forfeit ? 0 : m.maps.reduce((n, x) => n + x.scoreA, 0),
+    scoreB: forfeit ? 0 : m.maps.reduce((n, x) => n + x.scoreB, 0),
+  };
 }
 
 export function computeGroups(raw: RawTournament, series: Map<string, SeriesResult>): GroupTable[] {
   const { teams, matches, config } = raw;
   const names = new Map(teams.map((t) => [t.id, t.name]));
   const groupIds = [...new Set(teams.map((t) => t.group).filter(Boolean))].sort();
+  const byTime = (x: MatchInput, y: MatchInput) => (x.scheduledAt ?? "").localeCompare(y.scheduledAt ?? "") || x.id.localeCompare(y.id);
 
   return groupIds.map((group) => {
     const members = teams.filter((t) => t.group === group).map((t) => t.id);
     const stats = new Map(members.map((id) => [id, emptyStats(id, group)]));
-    const groupMatches = matches
-      .filter((m) => m.stage === "group" && stats.has(m.sideA) && stats.has(m.sideB))
-      .sort((x, y) => (x.scheduledAt ?? "").localeCompare(y.scheduledAt ?? ""));
+    const inGroup = (m: MatchInput) => stats.has(m.sideA) && stats.has(m.sideB);
+    const groupMatches = matches.filter((m) => m.stage === "group" && inGroup(m)).sort(byTime);
     const results: GroupResult[] = [];
 
     for (const m of groupMatches) {
-      const s = series.get(m.id)!;
-      if (!s.winner || (s.status !== "completed" && s.status !== "forfeit")) continue;
-      const forfeit = s.status === "forfeit";
-      const need = winsNeeded(m.bestOf);
-      const r: GroupResult = {
-        a: m.sideA,
-        b: m.sideB,
-        winner: s.winner,
-        mapWinsA: forfeit ? (s.winner === "A" ? need : 0) : s.mapWinsA,
-        mapWinsB: forfeit ? (s.winner === "B" ? need : 0) : s.mapWinsB,
-        scoreA: forfeit ? 0 : m.maps.reduce((n, x) => n + x.scoreA, 0),
-        scoreB: forfeit ? 0 : m.maps.reduce((n, x) => n + x.scoreB, 0),
-      };
+      const r = toResult(m, series.get(m.id)!);
+      if (!r) continue;
       results.push(r);
 
       const sa = stats.get(r.a)!;
@@ -173,39 +196,98 @@ export function computeGroups(raw: RawTournament, series: Map<string, SeriesResu
     }
     for (const s of stats.values()) s.diff = s.scoreFor - s.scoreAgainst;
 
-    const unresolved = new Set<string>();
+    const playoffs = matches
+      .filter((m) => m.stage === "tiebreak" && inGroup(m))
+      .sort(byTime)
+      .flatMap((m, i) => {
+        const r = toResult(m, series.get(m.id)!);
+        return r ? [{ ...r, at: m.scheduledAt ? Date.parse(m.scheduledAt) : i + 1 }] : [];
+      });
+
+    const ctx: TieContext = { stats, results, playoffs, coinToss: config.coinToss ?? [], names, unresolved: [] };
     const ordered = partitionDesc(members, (id) => stats.get(id)!.points).flatMap((cluster) =>
-      breakTie(cluster, config.tiebreakers, stats, results, names, unresolved),
+      breakTie(cluster, config.tiebreakers, ctx),
     );
+
+    // Only ties that decide who qualifies, or a qualifier's position, need settling.
+    const position = (id: string) => ordered.indexOf(id) + 1;
+    const ties: GroupTie[] = ctx.unresolved
+      .filter((c) => Math.min(...c.map(position)) <= config.qualifiersPerGroup)
+      .map((c) => {
+        const tie: GroupTie = { teams: c };
+        if (c.length >= 3) {
+          const [top, next] = [...c].sort((x, y) => stats.get(y)!.scoreFor - stats.get(x)!.scoreFor);
+          if (stats.get(top)!.scoreFor > stats.get(next)!.scoreFor) tie.bye = top;
+        }
+        return tie;
+      });
+    const tied = new Set(ties.flatMap((x) => x.teams));
 
     const complete = groupMatches.length > 0 && groupMatches.every((m) => isDone(series.get(m.id)!.status));
     return {
       group,
       complete,
+      ties,
       rows: ordered.map((id, i) => ({
         ...stats.get(id)!,
         form: stats.get(id)!.form.slice(-5),
         position: i + 1,
         qualified: i < config.qualifiersPerGroup,
-        unresolvedTie: unresolved.has(id),
+        unresolvedTie: tied.has(id),
       })),
     };
   });
 }
 
-/** Qualified teams ranked across groups: all group winners first, then runners-up, … */
-export function computeSeeds(groups: GroupTable[], names: Map<string, string>): string[] {
-  return groups
-    .flatMap((g) => g.rows.filter((r) => r.qualified))
-    .sort(
-      (x, y) =>
-        x.position - y.position ||
-        y.points - x.points ||
-        y.diff - x.diff ||
-        y.scoreFor - x.scoreFor ||
-        (names.get(x.teamId) ?? "").localeCompare(names.get(y.teamId) ?? ""),
-    )
-    .map((r) => r.teamId);
+/**
+ * Qualified teams ranked across groups: all group winners first, then
+ * runners-up, … Inside each set: wins, then rounds/points won across the
+ * group stage, then a referee coin toss.
+ */
+export function computeSeeds(groups: GroupTable[], coinToss: string[][] = []): { seeds: string[]; ties: string[][] } {
+  const rows = groups.flatMap((g) => g.rows.filter((r) => r.qualified));
+  const ties: string[][] = [];
+  const seeds: string[] = [];
+  for (const pos of [...new Set(rows.map((r) => r.position))].sort((x, y) => x - y)) {
+    const set = rows.filter((r) => r.position === pos);
+    for (const byWins of partitionDesc(set.map((r) => r.teamId), (id) => set.find((r) => r.teamId === id)!.points)) {
+      for (const level of partitionDesc(byWins, (id) => set.find((r) => r.teamId === id)!.scoreFor)) {
+        const tossed = level.length > 1 ? byCoinToss(level, coinToss) : level;
+        if (!tossed) ties.push(level);
+        seeds.push(...(tossed ?? [...level].sort()));
+      }
+    }
+  }
+  return { seeds, ties };
+}
+
+/** Quarterfinal pairs as seed numbers, top seed first. */
+export const QF_PAIRS: [number, number][] = [[1, 8], [4, 5], [2, 7], [3, 6]];
+
+/**
+ * Bracket slot order for the Quarterfinals. If a pair would be two teams from
+ * one group, the lower seed swaps with the next runner-up seed down (or, for
+ * the last seed, the next one up) that doesn't create another clash.
+ */
+export function quarterfinalSlots(seeds: string[], groupOf: (id: string) => string): { slots: string[]; swaps: [number, number][] } {
+  const slots = [...seeds];
+  const swaps: [number, number][] = [];
+  if (slots.length < 8) return { slots, swaps };
+  const opponent = (seed: number) => QF_PAIRS.flatMap(([a, b]) => (a === seed ? [b] : b === seed ? [a] : []))[0];
+  const clash = (seed: number) => groupOf(slots[seed - 1]) === groupOf(slots[opponent(seed) - 1]);
+  for (const [, low] of QF_PAIRS) {
+    if (!clash(low)) continue;
+    const candidates = [...Array.from({ length: 8 - low }, (_, i) => low + 1 + i), ...Array.from({ length: low - 5 }, (_, i) => low - 1 - i)];
+    for (const other of candidates) {
+      [slots[low - 1], slots[other - 1]] = [slots[other - 1], slots[low - 1]];
+      if (!clash(low) && !clash(other)) {
+        swaps.push([low, other]);
+        break;
+      }
+      [slots[low - 1], slots[other - 1]] = [slots[other - 1], slots[low - 1]];
+    }
+  }
+  return { slots, swaps };
 }
 
 // ---------------------------------------------------------------------------
@@ -214,6 +296,7 @@ export function computeSeeds(groups: GroupTable[], names: Map<string, string>): 
 
 export const STAGE_LABEL: Record<string, string> = {
   group: "Group Stage",
+  tiebreak: "Tiebreaker",
   qf: "Quarterfinal",
   sf: "Semifinal",
   third: "3rd Place",
@@ -227,7 +310,6 @@ export function buildTournament(
   const warnings = [...(meta.warnings ?? [])];
   const warn = (msg: string) => warnings.push(msg);
   const teamById = new Map<string, Team>(raw.teams.map((t) => [t.id, t]));
-  const names = new Map(raw.teams.map((t) => [t.id, t.name]));
 
   const seenTeams = new Set<string>();
   for (const t of raw.teams) {
@@ -243,7 +325,7 @@ export function buildTournament(
 
   const series = new Map(inputs.map((m) => [m.id, scoreSeries(m, warn)]));
 
-  for (const m of inputs.filter((x) => x.stage === "group")) {
+  for (const m of inputs.filter((x) => x.stage === "group" || x.stage === "tiebreak")) {
     const a = teamById.get(m.sideA);
     const b = teamById.get(m.sideB);
     if (!a || !b) warn(`${m.id}: group matches need real team_ids (got "${m.sideA}" vs "${m.sideB}")`);
@@ -252,7 +334,8 @@ export function buildTournament(
 
   const groups = computeGroups({ ...raw, matches: inputs }, series);
   const groupByName = new Map(groups.map((g) => [g.group, g]));
-  const seeds = computeSeeds(groups, names);
+  const { seeds, ties: seedTies } = computeSeeds(groups, raw.config.coinToss);
+  const { slots: qfSlots, swaps: qfSwaps } = quarterfinalSlots(seeds, (id) => teamById.get(id)?.group ?? "");
   const allGroupsDone = groups.length > 0 && groups.every((g) => g.complete);
 
   const resolved = new Map<string, Match>();
@@ -294,7 +377,7 @@ export function buildTournament(
     const seed = /^S(?:EED)?(\d+)$/i.exec(ref);
     if (seed) {
       const n = Number(seed[1]);
-      const teamId = seeds[n - 1];
+      const teamId = qfSlots[n - 1];
       const anyPlayed = groups.some((g) => g.rows.some((r) => r.played > 0));
       return { ref, teamId: anyPlayed ? teamId : undefined, label: `Seed ${n}`, projected: !allGroupsDone };
     }
@@ -316,14 +399,15 @@ export function buildTournament(
     const a = resolveSide(sideA, id);
     const b = resolveSide(sideB, id);
 
-    let vetoHolder: Match["vetoHolder"];
-    if (m.stage === "sf" && a.teamId && b.teamId) {
+    let higherSeed: Match["higherSeed"];
+    if (m.stage !== "group" && m.stage !== "tiebreak" && a.teamId && b.teamId) {
       const ia = seeds.indexOf(a.teamId);
       const ib = seeds.indexOf(b.teamId);
-      if (ia >= 0 && ib >= 0) vetoHolder = ia < ib ? "A" : "B";
+      if (ia >= 0 && ib >= 0) higherSeed = ia < ib ? "A" : "B";
     }
+    const vetoHolder = m.stage === "sf" ? higherSeed : undefined;
 
-    const match: Match = { ...rest, a, b, ...s, vetoHolder };
+    const match: Match = { ...rest, a, b, ...s, higherSeed, vetoHolder };
     resolving.delete(id);
     resolved.set(id, match);
     return match;
@@ -340,6 +424,8 @@ export function buildTournament(
     matches,
     groups,
     seeds,
+    seedTies,
+    qfSwaps,
     source: meta.source,
     warnings,
     fetchedAt: meta.fetchedAt,

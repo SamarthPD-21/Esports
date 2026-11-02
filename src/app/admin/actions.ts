@@ -285,7 +285,7 @@ export const deleteAnnouncement = staff(async (form, { db }) => {
 }, { admin: true });
 
 export const saveConfig = staff(async (form, { db }) => {
-  const keys = ["qualifiers_per_group", "tiebreakers", "perspective", "event_dates", "registration_deadline", "registration_url"];
+  const keys = ["qualifiers_per_group", "tiebreakers", "coin_toss", "perspective", "event_dates", "registration_deadline", "registration_url"];
   check(await db.from("config").upsert(keys.map((key) => ({ key, value: str(form, key) }))));
   return "Settings saved.";
 }, { admin: true });

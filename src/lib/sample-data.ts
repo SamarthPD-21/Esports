@@ -96,7 +96,7 @@ function build(): Record<TabName, string> {
     Config: toCsv([
       COLUMNS.Config,
       ["qualifiers_per_group", 2],
-      ["tiebreakers", "h2h, diff, scored"],
+      ["tiebreakers", "h2h, playoff"],
       ["perspective", "TPP"],
       ["event_dates", "6–15 Nov 2026"],
       ["registration_deadline", "To be announced"],

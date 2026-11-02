@@ -36,7 +36,8 @@ async function Content() {
           <h2 className="font-display text-lg font-bold">Settings</h2>
           <ActionForm action={saveConfig} submit="Save settings" className="mt-4 grid gap-3 sm:grid-cols-2">
             {field("qualifiers_per_group", "Qualifiers per group", c.qualifiersPerGroup)}
-            {field("tiebreakers", "Tiebreakers (h2h, diff, scored)", c.tiebreakers.join(", "))}
+            {field("tiebreakers", "Tiebreakers (h2h, playoff, diff, scored)", c.tiebreakers.join(", "))}
+            {field("coin_toss", "Coin tosses (winner first: t03 > t07; t01 > t05)", (c.coinToss ?? []).map((o) => o.join(" > ")).join("; "))}
             {field("perspective", "Perspective", c.perspective, "TPP")}
             {field("event_dates", "Event dates", c.eventDates, "6–15 Nov 2026")}
             {field("registration_deadline", "Registration deadline", c.registrationDeadline)}

@@ -1,6 +1,6 @@
 import type { PostgrestClient } from "@supabase/postgrest-js";
-import { DEFAULT_CONFIG } from "../parse";
-import type { MatchInput, Mode, RawTournament, Stage, Team, Tiebreaker } from "../types";
+import { DEFAULT_CONFIG, parseCoinToss, parseTiebreakers } from "../parse";
+import type { MatchInput, Mode, RawTournament, Stage, Team } from "../types";
 
 /** Reads the public tables (RLS hides pending results) into the shape the engine expects. */
 export async function loadRawTournament(db: PostgrestClient): Promise<{ raw: RawTournament; warnings: string[] }> {
@@ -19,9 +19,7 @@ export async function loadRawTournament(db: PostgrestClient): Promise<{ raw: Raw
 
   const warnings: string[] = [];
   const cfg = new Map((config.data ?? []).map((r) => [r.key as string, r.value as string]));
-  const tiebreakers = (cfg.get("tiebreakers") ?? "")
-    .split(/[,>\s]+/)
-    .filter((x): x is Tiebreaker => x === "h2h" || x === "diff" || x === "scored");
+  const tiebreakers = parseTiebreakers(cfg.get("tiebreakers") ?? "").valid;
 
   const teamList: Team[] = (teams.data ?? []).map((t) => {
     const ps = (players.data ?? []).filter((p) => p.team_id === t.id);
@@ -61,6 +59,7 @@ export async function loadRawTournament(db: PostgrestClient): Promise<{ raw: Raw
         ...DEFAULT_CONFIG,
         qualifiersPerGroup: qpg > 0 ? qpg : DEFAULT_CONFIG.qualifiersPerGroup,
         tiebreakers: tiebreakers.length ? tiebreakers : DEFAULT_CONFIG.tiebreakers,
+        coinToss: parseCoinToss(cfg.get("coin_toss") ?? ""),
         perspective: cfg.get("perspective") || undefined,
         eventDates: cfg.get("event_dates") || undefined,
         registrationDeadline: cfg.get("registration_deadline") || undefined,

@@ -118,13 +118,14 @@ export function parseMode(s: string): Mode | undefined {
 
 const STAGE_ALIASES: Record<string, Stage> = {
   group: "group", groups: "group", "group stage": "group", gs: "group",
+  tiebreak: "tiebreak", tiebreaker: "tiebreak", tb: "tiebreak", playoff: "tiebreak",
   qf: "qf", quarterfinal: "qf", quarterfinals: "qf", quarter: "qf",
   sf: "sf", semifinal: "sf", semifinals: "sf", semi: "sf",
   third: "third", "3rd": "third", "3rd place": "third", "third place": "third",
   final: "final", finals: "final", "grand final": "final", gf: "final",
 };
 
-const DEFAULT_BEST_OF: Record<Stage, 1 | 3 | 5> = { group: 1, qf: 3, sf: 3, third: 3, final: 5 };
+const DEFAULT_BEST_OF: Record<Stage, 1 | 3 | 5> = { group: 1, tiebreak: 1, qf: 3, sf: 3, third: 3, final: 5 };
 
 function parseDate(s: string): string | undefined {
   let m = /^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(s);
@@ -153,10 +154,29 @@ const slug = (s: string) => s.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").r
 // Tabs → RawTournament
 // ---------------------------------------------------------------------------
 
+// Wins → head-to-head → tiebreaker match on the buffer day (format doc, "Standings and tiebreakers").
 export const DEFAULT_CONFIG: TournamentConfig = {
   qualifiersPerGroup: 2,
-  tiebreakers: ["h2h", "diff", "scored"],
+  tiebreakers: ["h2h", "playoff"],
 };
+
+const TIEBREAKERS = ["h2h", "playoff", "diff", "scored"] as const;
+
+export function parseTiebreakers(value: string): { valid: Tiebreaker[]; invalid: string[] } {
+  const tbs = value.split(/[,>\s]+/).map((x) => x.trim().toLowerCase()).filter(Boolean);
+  return {
+    valid: tbs.filter((x): x is Tiebreaker => (TIEBREAKERS as readonly string[]).includes(x)),
+    invalid: tbs.filter((x) => !(TIEBREAKERS as readonly string[]).includes(x)),
+  };
+}
+
+/** "a>b; c>d>e" → [["a","b"],["c","d","e"]]. Each entry is one coin toss, winner first. */
+export function parseCoinToss(value: string): string[][] {
+  return value
+    .split(/[;\n]+/)
+    .map((o) => o.split(/[>,]/).map((x) => x.trim().toLowerCase()).filter(Boolean))
+    .filter((o) => o.length >= 2);
+}
 
 export function parseTournament(tabs: Partial<Record<TabName, string>>): {
   raw: RawTournament;
@@ -176,11 +196,11 @@ export function parseTournament(tabs: Partial<Record<TabName, string>>): {
       if (n && n > 0) config.qualifiersPerGroup = n;
       else warn(`${r.__line}: qualifiers_per_group must be a positive number`);
     } else if (key === "tiebreakers") {
-      const tbs = value.split(/[,>\s]+/).map((x) => x.trim().toLowerCase()).filter(Boolean);
-      const valid = tbs.filter((x): x is Tiebreaker => x === "h2h" || x === "diff" || x === "scored");
-      if (valid.length !== tbs.length) warn(`${r.__line}: tiebreakers can only be h2h, diff, scored`);
+      const { valid, invalid } = parseTiebreakers(value);
+      if (invalid.length) warn(`${r.__line}: tiebreakers can only be ${TIEBREAKERS.join(", ")}`);
       if (valid.length) config.tiebreakers = valid;
-    } else if (key === "perspective") config.perspective = value;
+    } else if (key === "coin_toss") config.coinToss = parseCoinToss(value);
+    else if (key === "perspective") config.perspective = value;
     else if (key === "event_dates") config.eventDates = value;
     else if (key === "registration_deadline") config.registrationDeadline = value;
     else if (key === "registration_url") config.registrationUrl = value;

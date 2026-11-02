@@ -3,7 +3,8 @@
 // file free of runtime code so scripts can import it under plain Node.
 
 export type Mode = "HP" | "SND" | "CTRL";
-export type Stage = "group" | "qf" | "sf" | "third" | "final";
+/** "tiebreak" = a BO1 played on the buffer day between teams level on wins and head-to-head. */
+export type Stage = "group" | "tiebreak" | "qf" | "sf" | "third" | "final";
 export type PlayerRole = "main" | "sub";
 
 export interface Player {
@@ -77,7 +78,9 @@ export interface Match extends Omit<MatchInput, "sideA" | "sideB"> {
   mapWinsA: number;
   mapWinsB: number;
   winner?: "A" | "B";
-  /** Semifinal veto power holder (higher group-stage seed), if known. */
+  /** Knockouts: the higher group-stage seed, who bans/picks first. */
+  higherSeed?: "A" | "B";
+  /** Semifinal veto power holder (the higher seed), if known. */
   vetoHolder?: "A" | "B";
 }
 
@@ -93,22 +96,33 @@ export interface StandingRow {
   scoreAgainst: number;
   diff: number;
   qualified: boolean;
-  /** Set when every configured tiebreaker failed; referee coin toss decides. */
+  /** Level on every tiebreaker in a position that matters (qualifying or seeding). */
   unresolvedTie: boolean;
   form: ("W" | "L")[];
+}
+
+export interface GroupTie {
+  teams: string[];
+  /** 3+ teams: most rounds/points won across the group, who waits for the final tiebreaker. */
+  bye?: string;
 }
 
 export interface GroupTable {
   group: string;
   rows: StandingRow[];
   complete: boolean;
+  /** Clusters still level after every tiebreaker, where the order affects qualifying or seeding. */
+  ties: GroupTie[];
 }
 
-export type Tiebreaker = "h2h" | "diff" | "scored";
+/** playoff = results of tiebreaker matches between the level teams. */
+export type Tiebreaker = "h2h" | "playoff" | "diff" | "scored";
 
 export interface TournamentConfig {
   qualifiersPerGroup: number;
   tiebreakers: Tiebreaker[];
+  /** Referee coin tosses, each an order of team ids (winner first). Used when everything else is level. */
+  coinToss?: string[][];
   perspective?: string;
   eventDates?: string;
   registrationDeadline?: string;
@@ -148,6 +162,10 @@ export interface Tournament extends Omit<RawTournament, "matches"> {
   groups: GroupTable[];
   /** Overall seed order of qualified teams (index 0 = seed 1). */
   seeds: string[];
+  /** Teams level on wins and points won within a seeding set; coin toss needed. */
+  seedTies: string[][];
+  /** Seeds swapped so two teams from one group don't meet in a Quarterfinal. */
+  qfSwaps: [number, number][];
   source: "database" | "sheet" | "sample";
   warnings: string[];
   fetchedAt: string;

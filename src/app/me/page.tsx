@@ -133,7 +133,7 @@ async function Dashboard() {
                   )}{" "}
                   Missing either window triggers the late penalties on the Rules page.
                 </li>
-                {next.stage === "group" && <li>Screen recording is recommended in the group stage. Disconnects must be reported within 2 minutes.</li>}
+                {next.bestOf === 1 && <li>Screen recording is recommended in the group stage. Disconnects must be reported within 2 minutes.</li>}
               </ul>
             )}
             {nextVeto && (

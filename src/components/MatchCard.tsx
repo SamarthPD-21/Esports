@@ -62,7 +62,7 @@ export function MatchCard({ match, teams, showStage = true }: { match: Match; te
   const scoreB = !started ? undefined : bo1 && only ? only.scoreB : match.mapWinsB;
 
   const meta = [
-    showStage && (match.stage === "group" ? `Group ${match.group ?? ""}`.trim() : STAGE_LABEL[match.stage]),
+    showStage && (match.stage === "group" ? `Group ${match.group ?? ""}`.trim() : `${STAGE_LABEL[match.stage]}${match.stage === "tiebreak" && match.group ? ` · Group ${match.group}` : ""}`),
     match.round && match.stage === "group" ? `R${match.round}` : null,
     `BO${match.bestOf}`,
     match.id,

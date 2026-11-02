@@ -140,3 +140,76 @@ test("sample data parses and builds without warnings", () => {
   assert.equal(t.seeds.length, 8);
   assert.ok(t.matches.find((m) => m.id === "QF1")!.a.projected);
 });
+
+// Format doc: wins → head-to-head → buffer-day tiebreaker match; seeds by set, then wins, points won, coin toss.
+function docRaw(teams: Team[], matches: MatchInput[], coinToss?: string[][]): RawTournament {
+  return { config: { qualifiersPerGroup: 2, tiebreakers: ["h2h", "playoff"], coinToss }, teams, matches, announcements: [], mapPool: [] };
+}
+
+// a, b, c beat each other in a circle and all beat d: three-way tie for two spots.
+const circle = [
+  bo1("G1", "a", "b", 250, 200),
+  bo1("G2", "b", "c", 250, 100),
+  bo1("G3", "c", "a", 250, 240),
+  bo1("G4", "a", "d", 250, 0),
+  bo1("G5", "b", "d", 250, 0),
+  bo1("G6", "c", "d", 250, 0),
+];
+const tb = (id: string, a: string, b: string, at: string, sa: number, sb: number): MatchInput => ({
+  ...bo1(id, a, b, sa, sb), stage: "tiebreak", group: "A", scheduledAt: `2026-11-22T${at}:00+05:30`,
+});
+
+test("tiebreak: three-way tie needs a play-off, most points won gets the bye", () => {
+  const t = buildTournament(docRaw([team("a"), team("b"), team("c"), team("d")], circle), meta);
+  const g = t.groups[0];
+  assert.equal(g.ties.length, 1);
+  assert.deepEqual([...g.ties[0].teams].sort(), ["a", "b", "c"]);
+  assert.equal(g.ties[0].bye, "a"); // points won: a 740, b 700, c 600
+  assert.ok(!g.rows.find((r) => r.teamId === "d")!.unresolvedTie);
+});
+
+test("tiebreak: play-off results order the level teams without adding group wins", () => {
+  const teams = [team("a"), team("b"), team("c"), team("d")];
+  // b beats c, then the bye team a beats b in the final tiebreaker.
+  let t = buildTournament(docRaw(teams, [...circle, tb("T1", "b", "c", "20:00", 250, 100), tb("T2", "a", "b", "20:40", 250, 200)]), meta);
+  assert.deepEqual(t.groups[0].rows.map((r) => r.teamId), ["a", "b", "c", "d"]);
+  assert.deepEqual(t.groups[0].ties, []);
+  assert.equal(t.groups[0].rows[0].won, 2);
+  // b wins the final instead: a lost later than c, so a is second even though c beat a in the group.
+  t = buildTournament(docRaw(teams, [...circle, tb("T1", "b", "c", "20:00", 250, 100), tb("T2", "a", "b", "20:40", 200, 250)]), meta);
+  assert.deepEqual(t.groups[0].rows.map((r) => r.teamId), ["b", "a", "c", "d"]);
+});
+
+test("tiebreak: a tie outside the qualifying places isn't flagged; coin toss settles one", () => {
+  const teams = [team("a"), team("b"), team("c"), team("d")];
+  const games = [bo1("G1", "a", "c", 250, 0), bo1("G2", "a", "d", 250, 0), bo1("G3", "b", "c", 250, 0), bo1("G4", "b", "d", 250, 0)];
+  let t = buildTournament(docRaw(teams, games), meta);
+  // a and b level for 1st (matters for seeding); c and d level for 3rd (doesn't).
+  assert.deepEqual(t.groups[0].ties.map((x) => [...x.teams].sort()), [["a", "b"]]);
+  t = buildTournament(docRaw(teams, games, [["b", "a"]]), meta);
+  assert.deepEqual(t.groups[0].rows.map((r) => r.teamId).slice(0, 2), ["b", "a"]);
+  assert.deepEqual(t.groups[0].ties, []);
+});
+
+test("seeding: winners then runners-up, by wins then points won; level teams need a coin toss", () => {
+  const teams = ["A", "B"].flatMap((g) => [team(`${g.toLowerCase()}1`, g), team(`${g.toLowerCase()}2`, g), team(`${g.toLowerCase()}3`, g)]);
+  const games = (g: string, s: number) => [
+    bo1(`${g}1`, `${g}1`, `${g}2`, s, 100), bo1(`${g}2`, `${g}1`, `${g}3`, s, 100), bo1(`${g}3`, `${g}2`, `${g}3`, 250, 100),
+  ];
+  let t = buildTournament(docRaw(teams, [...games("a", 250), ...games("b", 240)]), meta);
+  assert.deepEqual(t.seeds, ["a1", "b1", "a2", "b2"]);
+  assert.deepEqual(t.seedTies, [["a2", "b2"]]); // both 1 win, 350 points won
+  t = buildTournament(docRaw(teams, [...games("a", 250), ...games("b", 240)], [["b2", "a2"]]), meta);
+  assert.deepEqual(t.seeds, ["a1", "b1", "b2", "a2"]);
+  assert.deepEqual(t.seedTies, []);
+});
+
+test("bracket: teams from one group don't meet in a Quarterfinal", async () => {
+  const { quarterfinalSlots } = await import("./tournament.ts");
+  const group: Record<string, string> = { w1: "A", w2: "B", w3: "C", w4: "D", r1: "B", r2: "A", r3: "D", r4: "A" };
+  // seeds 1–4 winners, 5–8 runners-up; S1 (A) v S8 (r4, A) clashes.
+  const { slots, swaps } = quarterfinalSlots(["w1", "w2", "w3", "w4", "r1", "r2", "r3", "r4"], (id) => group[id]);
+  assert.deepEqual(swaps, [[8, 7]]);
+  const pairs = [[1, 8], [4, 5], [2, 7], [3, 6]].map(([x, y]) => [slots[x - 1], slots[y - 1]]);
+  assert.ok(pairs.every(([x, y]) => group[x] !== group[y]));
+});
