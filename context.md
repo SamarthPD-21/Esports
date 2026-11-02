@@ -5,7 +5,7 @@ Running log for the tournament site. Update the **Status** and **Changelog** sec
 - Event: Yugaantar 2026 (Theme: Game Verse) presents CODM Carnage 2.0 — Rift Ops
 - Rulebook: `docs/rulebook.pdf` (copy served at `/rulebook.pdf`)
 - Repo: https://github.com/SamarthPD-21/CODM (`main` and `backend` pushed)
-- Rules source: **only** `docs/rulebook.pdf`, plus the organisers' *Tournament Format & Schedule* doc (docx, 30 Oct 2026) for format, dates, tiebreakers and seeding. Where both are silent, it's listed under open questions instead of borrowing outside conventions.
+- Rules source: **only** `docs/rulebook.pdf`, plus the organisers' *Tournament Format & Schedule* doc (`docs/format-and-schedule.docx`, 30 Oct 2026) for format, dates, tiebreakers and seeding. Where both are silent, it's listed under open questions instead of borrowing outside conventions.
 - Online window: **8–10 PM IST**, about **5 referees**, so 5 lobbies at once (organiser, 2 Nov). This replaces the doc's 6 PM–10:30 PM slot table.
 - Hosting: Vercel
 
