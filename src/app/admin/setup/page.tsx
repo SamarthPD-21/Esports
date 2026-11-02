@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { ActionForm, inputClass } from "@/components/ActionForm";
 import { requireAdmin } from "@/lib/auth";
-import { getTournament } from "@/lib/data";
-import { generateBracket, generateGroupFixtures, importCsv } from "../actions";
+import { loadTournament } from "@/lib/data";
+import { groupFormat } from "@/lib/fixtures";
+import { drawTeamGroups, generateBracket, generateGroupFixtures, importCsv } from "../actions";
 import { FixturePlanner } from "./FixturePlanner";
 
 export const metadata: Metadata = { title: "Setup" };
@@ -25,13 +26,16 @@ const FORMATS = [
 
 async function Setup() {
   await requireAdmin();
-  const t = await getTournament();
+  const t = await loadTournament();
   const teams = t.teams.map((x) => ({ id: x.id, group: x.group }));
   const existing = t.matches.map((m) => ({ id: m.id, stage: m.stage, side_a: m.a.ref, side_b: m.b.ref }));
+  const fmt = groupFormat(teams.length);
+  const drawn = teams.some((x) => x.group);
+  const hasGroupMatches = t.matches.some((m) => m.stage === "group");
   return (
     <>
       <h1 className="font-display text-3xl font-bold">Setup</h1>
-      <p className="mt-1 text-sm text-muted">Run these once, in order: import teams → import players → generate fixtures → generate bracket. Re-importing updates existing rows.</p>
+      <p className="mt-1 text-sm text-muted">Run these once, in order: import teams → import players → draw groups → generate fixtures → generate bracket. Re-importing updates existing rows.</p>
 
       <div className="mt-6 grid gap-5 lg:grid-cols-2">
         <section className="panel p-5 lg:row-span-2">
@@ -51,16 +55,34 @@ async function Setup() {
         </section>
 
         <section className="panel p-5">
-          <h2 className="font-display text-lg font-bold">2 · Generate group fixtures</h2>
+          <h2 className="font-display text-lg font-bold">2 · Draw groups</h2>
+          <p className="mt-1 text-xs text-muted">
+            Random draw by the registration count: up to 8 teams play one group, 9–24 play 4 groups (top 2 qualify), 25–48 play 8 groups (winners qualify).
+            Extra teams go to Group A, then B. Run it on the recorded call or stream so the draw is verifiable.
+          </p>
+          <p className="mt-3 text-sm">
+            {teams.length ? <>{teams.length} teams → {fmt.groups} group{fmt.groups === 1 ? "" : "s"}, top {fmt.qualifiersPerGroup} qualify.</> : "No teams imported yet."}
+            {drawn && <span className="text-muted"> Groups are set{hasGroupMatches ? " and fixtures exist" : ""}.</span>}
+          </p>
+          {!hasGroupMatches && (
+            <ActionForm action={drawTeamGroups} submit={drawn ? "Redraw groups" : "Draw groups"} tone={drawn ? "quiet" : "primary"} className="mt-3 flex flex-col gap-3" />
+          )}
+        </section>
+
+        <section className="panel p-5">
+          <h2 className="font-display text-lg font-bold">3 · Generate group fixtures</h2>
           <p className="mt-1 text-xs text-muted">Round robin inside each group, BO1. Pairs that already have a match are skipped. A slot covers veto, lobby join (up to 10 min), the map, one pause and score entry.</p>
           <FixturePlanner action={generateGroupFixtures} teams={teams} existing={existing} qualifiersPerGroup={t.config.qualifiersPerGroup} />
         </section>
 
         <section className="panel p-5">
-          <h2 className="font-display text-lg font-bold">3 · Generate knockout bracket</h2>
-          <p className="mt-1 text-xs text-muted">Creates QF/SF/Final from overall seeds (S1 v S8, S4 v S5, S2 v S7, S3 v S6). Slots fill automatically as results come in. Set times per match afterwards.</p>
+          <h2 className="font-display text-lg font-bold">4 · Generate knockout bracket</h2>
+          <p className="mt-1 text-xs text-muted">
+            Creates QF/SF/3rd place/Final from overall seeds (S1 v S8, S4 v S5, S2 v S7, S3 v S6) at the offline schedule times: QFs Fri 27 Nov from 10:30 AM,
+            SFs Sat 28 Nov at 11 AM and 2 PM, 3rd place and Grand Final Sun 29 Nov at 11:30 AM and 3 PM. Slots fill automatically as results come in.
+          </p>
           <ActionForm action={generateBracket} submit="Generate bracket" className="mt-4 flex flex-col gap-3">
-            <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="third" className="accent-violet" /> Include a 3rd-place match</label>
+            <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="third" defaultChecked className="accent-violet" /> Include a 3rd-place match</label>
           </ActionForm>
         </section>
       </div>

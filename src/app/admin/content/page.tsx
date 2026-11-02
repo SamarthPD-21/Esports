@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import { ActionForm, inputClass } from "@/components/ActionForm";
 import { getAdminOverview } from "@/lib/admin";
 import { requireAdmin } from "@/lib/auth";
-import { getTournament } from "@/lib/data";
+import { loadTournament } from "@/lib/data";
 import { MODE_NAME } from "@/content/event";
 import { dayKey, fmtDay } from "@/lib/format";
 import { addAnnouncement, addStaff, deleteAnnouncement, removeStaff, saveConfig, saveMapPool, saveMatchDays } from "../actions";
@@ -20,7 +20,7 @@ export default function ContentPage() {
 
 async function Content() {
   const viewer = await requireAdmin();
-  const [t, o] = await Promise.all([getTournament(), getAdminOverview()]);
+  const [t, o] = await Promise.all([loadTournament(), getAdminOverview()]);
   const c = t.config;
   const groupDays = [...new Set(t.matches.filter((m) => m.stage === "group" && m.scheduledAt).map((m) => dayKey(m.scheduledAt!)))].sort();
   const dayIso = (day: string) => `${day}T12:00:00+05:30`;

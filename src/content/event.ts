@@ -1,5 +1,6 @@
-// Fixed event facts from the official rulebook (docs/rulebook.pdf).
-// Results and teams come from the sheet; this is the stuff that doesn't change.
+// Fixed event facts from the official rulebook (docs/rulebook.pdf) and the
+// organisers' format & schedule doc. Results and teams come from the data;
+// this is the stuff that doesn't change.
 
 export const EVENT = {
   festival: "Yugaantar 2026",
@@ -22,6 +23,64 @@ export const PRIZE_TOTAL = PRIZES.reduce((n, p) => n + p.amount, 0);
 
 export const MODE_NAME = { HP: "Hardpoint", SND: "Search & Destroy", CTRL: "Control" } as const;
 
+export const KEY_DATES = [
+  { when: "Sat 14 Nov, 11:59 PM", what: "Registration closes", where: "Online" },
+  { when: "Sun 15 Nov, by 6 PM", what: "Groups drawn; fixtures, map pool, perspective and mode of the day published", where: "Online" },
+  { when: "Mon 16 Nov", what: "Captains' briefing, CODM ID check, test lobby", where: "Online" },
+  { when: "Tue 17 – Sat 21 Nov", what: "Group Stage, BO1, 8–10 PM", where: "Online" },
+  { when: "Sun 22 Nov", what: "Buffer day: tiebreakers and rescheduled matches only", where: "Online" },
+  { when: "Mon 23 Nov", what: "Final standings, seeds and Quarterfinal bracket", where: "Online" },
+  { when: "Tue 24 – Wed 25 Nov", what: "Qualified teams confirm attendance and final roster", where: "Online" },
+  { when: "Fri 27 Nov", what: "Quarterfinals, 4 × BO3", where: "Gaming Arena" },
+  { when: "Sat 28 Nov", what: "Semifinals, 2 × BO3", where: "Gaming Arena" },
+  { when: "Sun 29 Nov", what: "3rd-place match (BO3), Grand Final (BO5), prizes", where: "Gaming Arena" },
+] as const;
+
+/** Mode of the day for the online group stage; announced as match days in the admin panel. */
+export const GROUP_DAY_MODES = [
+  { day: "2026-11-17", mode: "HP" },
+  { day: "2026-11-18", mode: "SND" },
+  { day: "2026-11-19", mode: "CTRL" },
+  { day: "2026-11-20", mode: "HP" },
+  { day: "2026-11-21", mode: "SND" },
+] as const;
+
+/** Online evenings: three slots of 40 minutes between 8 and 10 PM, one referee per lobby. */
+export const ONLINE_WINDOW = { firstDay: "2026-11-17", days: 5, firstMatch: "20:00", slotMinutes: 40, slots: 3, lobbies: 5, maxPerTeamPerDay: 2 };
+
+/** Format doc, "Group formation": every row sends 8 teams to the Quarterfinals. */
+export const GROUP_FORMATS = [
+  { teams: "8 or fewer", groups: "1 group, round robin (seeding only)", qualify: "All teams" },
+  { teams: "9–24", groups: "4 groups of 3–6, round robin", qualify: "Top 2 per group" },
+  { teams: "25–48", groups: "8 groups of 4–6, round robin", qualify: "Group winner" },
+];
+
+export const TIEBREAK_RULES = [
+  "Each match win is 1 point.",
+  "Level on wins: head-to-head result between the tied teams.",
+  "Still level, or three or more teams: a BO1 tiebreaker match on Sun 22 Nov. With three teams, the one with the most rounds/points won across the group gets a bye to the final tiebreaker.",
+  "Standings are updated by 11 PM every match day. Disputes for the stage close at 11 PM on Sun 22 Nov.",
+];
+
+export const SEEDING_RULES = [
+  "4 groups: group winners take seeds 1–4, runners-up seeds 5–8. 8 groups: all winners are ranked together.",
+  "Inside each set: total wins, then total rounds/points won across the Group Stage, then a referee coin toss.",
+  "Two teams from the same group don't meet in a Quarterfinal; the lower seed swaps with the next runner-up seed down.",
+  "The higher seed bans/picks first in every knockout veto and holds Veto Power in its Semifinal.",
+];
+
+/** Offline series start times (IST). Check-in is 30 min before. */
+export const KNOCKOUT_TIMES: Record<string, string> = {
+  QF1: "2026-11-27T10:30:00+05:30",
+  QF2: "2026-11-27T12:30:00+05:30",
+  QF3: "2026-11-27T14:30:00+05:30",
+  QF4: "2026-11-27T16:30:00+05:30",
+  SF1: "2026-11-28T11:00:00+05:30",
+  SF2: "2026-11-28T14:00:00+05:30",
+  THIRD: "2026-11-29T11:30:00+05:30",
+  FINAL: "2026-11-29T15:00:00+05:30",
+};
+
 export const STAGES = [
   {
     key: "group",
@@ -36,6 +95,8 @@ export const STAGES = [
       "Room ID/password shared 15–5 min before match time.",
       "Coin toss winner picks side.",
       "Screen recording recommended.",
+      "Matches run 8–10 PM, Tue 17 – Sat 21 Nov; at most 2 per team per day.",
+      "Winning captain posts the scoreboard screenshot in the results group within 10 min.",
       "Standings decide seeding — the higher-placed team earns Veto Power for its Semifinal.",
     ],
   },

@@ -3,7 +3,7 @@ import { GroupTable } from "@/components/GroupTable";
 import { MatchCard } from "@/components/MatchCard";
 import { SectionHeading } from "@/components/SectionHeading";
 import { UpNext, type UpNextItem } from "@/components/UpNext";
-import { EVENT, PRIZES, PRIZE_TOTAL, STAGES } from "@/content/event";
+import { EVENT, KEY_DATES, PRIZES, PRIZE_TOTAL, STAGES } from "@/content/event";
 import { getTournament, teamMap } from "@/lib/data";
 import { inr } from "@/lib/format";
 import { STAGE_LABEL } from "@/lib/tournament";
@@ -105,6 +105,22 @@ export default async function Home() {
               </li>
             );
           })}
+        </ol>
+      </section>
+
+      {/* Key dates */}
+      <section className="mt-16">
+        <SectionHeading kicker="All times IST" title="Key dates">
+          <Link href="/rules#schedule" className="text-sm text-violet-soft hover:underline">Full schedule →</Link>
+        </SectionHeading>
+        <ol className="panel divide-y divide-line">
+          {KEY_DATES.map((d) => (
+            <li key={d.when} className="grid gap-1 px-5 py-3 sm:grid-cols-[200px_1fr_auto] sm:items-baseline sm:gap-4">
+              <span className="tnum font-mono text-sm text-violet-soft">{d.when}</span>
+              <span className="text-sm">{d.what}</span>
+              <span className={`text-xs font-semibold uppercase tracking-wider ${d.where === "Online" ? "text-faint" : "text-cyan"}`}>{d.where}</span>
+            </li>
+          ))}
         </ol>
       </section>
 

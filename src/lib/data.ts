@@ -19,7 +19,15 @@ export async function getTournament(): Promise<Tournament> {
   "use cache";
   cacheLife("tournament");
   cacheTag(TOURNAMENT_TAG);
+  return loadTournament();
+}
 
+/**
+ * Uncached read, for staff pages: their forms are filled from it, and saving
+ * a form filled from a stale copy would write old values back (e.g. after an
+ * edit made straight in the database).
+ */
+export async function loadTournament(): Promise<Tournament> {
   const fetchedAt = new Date().toISOString();
   if (supabaseConfigured()) {
     try {

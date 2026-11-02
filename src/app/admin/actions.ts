@@ -3,7 +3,8 @@
 import { refresh, updateTag } from "next/cache";
 import { requireAdmin, requireStaff } from "@/lib/auth";
 import { TOURNAMENT_TAG } from "@/lib/data";
-import { roundRobin, knockoutSkeleton } from "@/lib/fixtures";
+import { drawGroups, groupFormat, knockoutSkeleton, roundRobin } from "@/lib/fixtures";
+import { KNOCKOUT_TIMES } from "@/content/event";
 import { resolveVeto, VETO_SEQUENCE } from "@/lib/rules";
 import { csvToRows, parseMode, parseTournament, toCsv } from "@/lib/parse";
 import { createClient } from "@/lib/supabase/server";
@@ -240,16 +241,32 @@ export const importCsv = staff(async (form, { db }) => {
   throw new Error("Pick what you're importing.");
 }, { admin: true });
 
+export const drawTeamGroups = staff(async (_form, { db }) => {
+  const teams = check<{ id: string }[]>(await db.from("teams").select("id"));
+  if (!teams.length) throw new Error("Import teams first.");
+  const groupMatches = check<{ id: string }[]>(await db.from("matches").select("id").eq("stage", "group").limit(1));
+  if (groupMatches.length) throw new Error("Group fixtures already exist. Delete them before drawing again.");
+  const fmt = groupFormat(teams.length);
+  if (fmt.openingRound) throw new Error(`${teams.length} teams needs an opening knockout round, which doesn't fit the online evenings. Cap registrations at 48.`);
+  const draw = drawGroups(teams.map((t) => t.id), fmt.groups);
+  for (const g of new Set(draw.values())) {
+    check(await db.from("teams").update({ group_name: g }).in("id", [...draw].filter(([, x]) => x === g).map(([id]) => id)));
+  }
+  check(await db.from("config").upsert({ key: "qualifiers_per_group", value: String(fmt.qualifiersPerGroup) }));
+  return `${teams.length} teams drawn into ${fmt.groups} group(s); top ${fmt.qualifiersPerGroup} of each qualify.`;
+}, { admin: true });
+
 export const generateGroupFixtures = staff(async (form, { db }) => {
   const teams = check<{ id: string; group_name: string | null }[]>(await db.from("teams").select("id, group_name").order("name"));
   const existing = check<{ id: string; stage: string; side_a: string; side_b: string }[]>(await db.from("matches").select("id, stage, side_a, side_b"));
   if (!teams.length) throw new Error("Import teams first.");
+  if (!teams.some((t) => t.group_name)) throw new Error("Draw the groups first.");
   const start = toIso(str(form, "date"), str(form, "time"));
   if (!start) throw new Error("Pick a start date and time.");
-  const rest = intOrNull(str(form, "rest"));
+  const num = (key: string, fallback: number) => intOrNull(str(form, key)) ?? fallback;
   const fixtures = roundRobin(teams.map((t) => ({ id: t.id, group: t.group_name ?? "" })), existing, {
-    start, gapMinutes: Number(str(form, "gap")) || 45, roundsPerDay: Number(str(form, "per_day")) || 1, parallel: Number(str(form, "parallel")) || 4,
-    restSlots: rest ?? 1,
+    start, days: num("days", 5), slotsPerDay: num("slots", 3), gapMinutes: num("gap", 40) || 40, parallel: num("parallel", 5),
+    restSlots: num("rest", 1), maxPerTeamPerDay: num("per_team", 2),
   });
   if (!fixtures.length) return "No new fixtures needed — every pair already has a match.";
   check(await db.from("matches").insert(fixtures.map((f) => ({ id: f.id, stage: "group", group_name: f.group, round: f.round, best_of: 1, side_a: f.a, side_b: f.b, scheduled_at: f.scheduledAt }))));
@@ -264,8 +281,8 @@ export const generateBracket = staff(async (form, { db }) => {
   const existing = new Set(check<{ id: string }[]>(await db.from("matches").select("id")).map((m) => m.id));
   const skeleton = knockoutSkeleton(qualifiers, form.get("third") === "on").filter((m) => !existing.has(m.id));
   if (!skeleton.length) return "Bracket already exists.";
-  check(await db.from("matches").insert(skeleton.map((m) => ({ id: m.id, stage: m.stage, best_of: m.bestOf, side_a: m.a, side_b: m.b }))));
-  return `${skeleton.length} knockout match(es) created for ${qualifiers} qualifiers. Set their times in each match.`;
+  check(await db.from("matches").insert(skeleton.map((m) => ({ id: m.id, stage: m.stage, best_of: m.bestOf, side_a: m.a, side_b: m.b, scheduled_at: KNOCKOUT_TIMES[m.id] ?? null }))));
+  return `${skeleton.length} knockout match(es) created for ${qualifiers} qualifiers, at the offline schedule times.`;
 }, { admin: true });
 
 // ---------------------------------------------------------------------------

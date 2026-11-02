@@ -6,18 +6,28 @@ import {
   DISQUALIFICATION,
   EVENT,
   GAME_SETUP,
+  GROUP_DAY_MODES,
+  GROUP_FORMATS,
+  KNOCKOUT_TIMES,
+  ONLINE_WINDOW,
+  SEEDING_RULES,
+  TIEBREAK_RULES,
   LATE_PENALTIES,
   MODE_NAME,
   OVERTIME,
   STAGES,
 } from "@/content/event";
+import { CHECK_IN_BEFORE_MIN, ROOM_RELEASE_BEFORE_MIN, ROOM_LATEST_BEFORE_MIN } from "@/lib/rules";
 import { getTournament } from "@/lib/data";
+import { fmtDay, fmtTime } from "@/lib/format";
 import type { Mode } from "@/lib/types";
 
 export const metadata: Metadata = { title: "Rules" };
 
 const TOC = [
   ["format", "Format"],
+  ["schedule", "Schedule"],
+  ["standings", "Standings"],
   ["setup", "Setup"],
   ["conduct", "Conduct"],
   ["penalties", "Penalties"],
@@ -33,8 +43,29 @@ function H2({ id, children }: { id: string; children: React.ReactNode }) {
   );
 }
 
+const KO_LABEL: Record<string, string> = { QF1: "QF1 · Seed 1 v 8", QF2: "QF2 · Seed 4 v 5", QF3: "QF3 · Seed 2 v 7", QF4: "QF4 · Seed 3 v 6", SF1: "SF1 · Winners QF1 v QF2", SF2: "SF2 · Winners QF3 v QF4", THIRD: "3rd place · BO3", FINAL: "Grand Final · BO5" };
+
+function Bullets({ items }: { items: readonly string[] }) {
+  return (
+    <ul className="flex flex-col gap-1.5 text-sm">
+      {items.map((r) => (
+        <li key={r} className="flex gap-2">
+          <span className="text-violet" aria-hidden>▸</span>
+          {r}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 export default async function RulesPage() {
   const t = await getTournament();
+  const w = ONLINE_WINDOW;
+  const slots = Array.from({ length: w.slots }, (_, i) => {
+    const at = Date.parse(`${w.firstDay}T${w.firstMatch}:00+05:30`) + i * w.slotMinutes * 60_000;
+    const t = (before: number) => fmtTime(new Date(at - before * 60_000).toISOString());
+    return { n: i + 1, checkIn: t(CHECK_IN_BEFORE_MIN), room: `${t(ROOM_RELEASE_BEFORE_MIN)}–${t(ROOM_LATEST_BEFORE_MIN)}`, start: t(0) };
+  });
   const pool = (["HP", "SND", "CTRL"] as Mode[]).map((mode) => ({ mode, maps: t.mapPool.filter((m) => m.mode === mode).map((m) => m.map) }));
 
   return (
@@ -87,6 +118,62 @@ export default async function RulesPage() {
                 </div>
               ))}
             </dl>
+          </div>
+        </section>
+
+        <section>
+          <H2 id="schedule">Groups &amp; schedule</H2>
+          <div className="grid gap-4 lg:grid-cols-2">
+            <div className="panel overflow-x-auto p-5">
+              <h3 className="mb-3 font-display text-lg font-bold">How groups are formed</h3>
+              <table className="w-full text-sm">
+                <thead className="text-left text-xs text-faint"><tr><th className="pb-2 font-medium">Teams</th><th className="pb-2 font-medium">Groups</th><th className="pb-2 font-medium">Qualify</th></tr></thead>
+                <tbody>
+                  {GROUP_FORMATS.map((g) => (
+                    <tr key={g.teams} className="border-t border-line"><td className="py-2 pr-3 font-semibold">{g.teams}</td><td className="py-2 pr-3 text-muted">{g.groups}</td><td className="py-2 text-muted">{g.qualify}</td></tr>
+                  ))}
+                </tbody>
+              </table>
+              <p className="mt-3 text-xs text-faint">Random draw on Sun 15 Nov on a recorded call. Uneven extras go to Group A, then B, and so on.</p>
+            </div>
+            <div className="panel p-5">
+              <h3 className="mb-3 font-display text-lg font-bold">Mode of the day</h3>
+              <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-sm">
+                {GROUP_DAY_MODES.map((d) => (
+                  <div key={d.day} className="contents"><dt className="text-muted">{fmtDay(`${d.day}T12:00:00+05:30`)}</dt><dd className="font-semibold">{MODE_NAME[d.mode]}</dd></div>
+                ))}
+                <dt className="text-muted">Sun 22 Nov</dt><dd>Tiebreakers only (mode by referee coin toss)</dd>
+              </dl>
+            </div>
+            <div className="panel overflow-x-auto p-5">
+              <h3 className="mb-3 font-display text-lg font-bold">Each online evening</h3>
+              <table className="w-full text-sm">
+                <thead className="text-left text-xs text-faint"><tr><th className="pb-2 font-medium">Slot</th><th className="pb-2 font-medium">Check in by</th><th className="pb-2 font-medium">Room ID shared</th><th className="pb-2 font-medium">Starts</th></tr></thead>
+                <tbody>
+                  {slots.map((s) => (
+                    <tr key={s.n} className="tnum border-t border-line"><td className="py-2">{s.n}</td><td className="py-2 text-muted">{s.checkIn}</td><td className="py-2 text-muted">{s.room}</td><td className="py-2 font-semibold">{s.start}</td></tr>
+                  ))}
+                </tbody>
+              </table>
+              <p className="mt-3 text-xs text-faint">Several lobbies run side by side, one referee each. A team plays at most {w.maxPerTeamPerDay} matches a day, with a free slot in between. Your exact times are on the Schedule page.</p>
+            </div>
+            <div className="panel p-5">
+              <h3 className="mb-3 font-display text-lg font-bold">Offline at the {EVENT.venue}</h3>
+              <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-sm">
+                {Object.entries(KNOCKOUT_TIMES).map(([id, at]) => (
+                  <div key={id} className="contents"><dt className="tnum text-muted">{fmtDay(at)} · {fmtTime(at)}</dt><dd>{KO_LABEL[id]}</dd></div>
+                ))}
+              </dl>
+              <p className="mt-3 text-xs text-faint">Check in 30 min before each series with a valid government/school ID. Thu 26 Nov is setup day; the reporting desk is open 2–6 PM for early ID checks.</p>
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <H2 id="standings">Standings &amp; seeding</H2>
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="panel p-5"><h3 className="mb-3 font-display text-lg font-bold">Group positions</h3><Bullets items={TIEBREAK_RULES} /></div>
+            <div className="panel p-5"><h3 className="mb-3 font-display text-lg font-bold">Seeds 1–8</h3><Bullets items={SEEDING_RULES} /></div>
           </div>
         </section>
 

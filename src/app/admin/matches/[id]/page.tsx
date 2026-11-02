@@ -7,7 +7,7 @@ import { StatusChip } from "@/components/StatusChip";
 import { MODE_NAME } from "@/content/event";
 import { getMatchPrivate } from "@/lib/admin";
 import { requestNow, requireStaff } from "@/lib/auth";
-import { getTournament, matchDayFor } from "@/lib/data";
+import { loadTournament, matchDayFor } from "@/lib/data";
 import { dayKey, fmtTime } from "@/lib/format";
 import { lateTier, roomOverdue, vetoTurns, DEFAULT_BO3_ORDER, LOBBY_JOIN_MIN } from "@/lib/rules";
 import { STAGE_LABEL } from "@/lib/tournament";
@@ -45,7 +45,7 @@ function Panel({ title, children, note }: { title: string; children: React.React
 async function Editor({ params }: Pick<PageProps<"/admin/matches/[id]">, "params">) {
   const viewer = await requireStaff();
   const { id } = await params;
-  const t = await getTournament();
+  const t = await loadTournament();
   const m = t.matches.find((x) => x.id === id.toUpperCase());
   if (!m) notFound();
   const p = await getMatchPrivate(m.id);

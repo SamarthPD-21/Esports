@@ -4,7 +4,7 @@ import { Suspense } from "react";
 import { StatusChip } from "@/components/StatusChip";
 import { getAdminOverview } from "@/lib/admin";
 import { requireStaff } from "@/lib/auth";
-import { getTournament } from "@/lib/data";
+import { loadTournament } from "@/lib/data";
 import { fmtDateTime } from "@/lib/format";
 import { STAGE_LABEL } from "@/lib/tournament";
 
@@ -20,7 +20,7 @@ export default function AdminPage() {
 
 async function Overview() {
   const viewer = await requireStaff();
-  const [t, o] = await Promise.all([getTournament(), getAdminOverview()]);
+  const [t, o] = await Promise.all([loadTournament(), getAdminOverview()]);
   const name = (id?: string, label?: string) => (id ? t.teams.find((x) => x.id === id)?.name ?? id : label ?? "TBD");
   const open = o.disputes.filter((d) => d.status === "open").length;
   const pending = Object.values(o.pendingByMatch).reduce((a, b) => a + b, 0);
