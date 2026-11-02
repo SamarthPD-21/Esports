@@ -36,7 +36,7 @@ export function GroupTable({ table, teams, compact = false }: { table: Table; te
                   <Link href={`/teams/${r.teamId}`} className="flex min-w-0 items-center gap-2.5 hover:text-violet-soft">
                     <TeamBadge team={team} size="sm" />
                     <span className="truncate font-medium">{team?.name ?? r.teamId}</span>
-                    {r.unresolvedTie && r.played > 0 && (
+                    {r.unresolvedTie && table.complete && (
                       <span title="Level on wins and head-to-head — tiebreaker match decides" className="shrink-0 text-warn">⚑</span>
                     )}
                   </Link>

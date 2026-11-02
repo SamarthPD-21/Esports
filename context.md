@@ -204,6 +204,7 @@ Sheet gotchas:
 | 48 | 8 × 6 | 120 | doesn't fit (45 over) |
 
 ## Changelog
+- **2026-11-02 (later):** README rewritten with screenshots (`docs/screenshots/`, taken from the local stack in a staged match-day state). Fixed while reviewing them: tie flags showed on groups still in progress; "1 matches" on the schedule; a missing full stop on the dashboard; a truncated mode select in Content; the planner said "0 matches" once fixtures existed; the seed didn't set the registration deadline.
 - **2026-11-02:** Applied the organisers' format doc and the 8–10 PM / 5-referee window. Standings: wins → h2h → tiebreaker matches → coin toss. Seeding sets and the same-group QF swap. Scheduler rewritten for fixed evening slots, with a per-team daily cap and spill detection. Group draw by registration count. Bracket at the offline times with the 3rd-place match. Key dates on home; schedule, standings and seeding sections on Rules. Sample data moved to 17–29 Nov. Found and fixed: admin forms were filled from the cached tournament, so saving after an out-of-band DB edit wrote old teams back; staff pages now read uncached. 30 unit tests. New browser suites (match day 13, format 15, draw/fixtures 9) pass on a fresh DB. Pushed `backend`.
 - **2026-10-26 (night):**
   - Login by emailed code, plus a link page with a button.

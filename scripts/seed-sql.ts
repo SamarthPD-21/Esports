@@ -44,6 +44,7 @@ const cfg: [string, string | number | undefined][] = [
   ["tiebreakers", raw.config.tiebreakers.join(", ")],
   ["perspective", raw.config.perspective],
   ["event_dates", raw.config.eventDates],
+  ["registration_deadline", raw.config.registrationDeadline],
 ];
 for (const [k, v] of cfg) out.push(`insert into config (key, value) values (${q(k)}, ${q(String(v ?? ""))});`);
 for (const a of raw.announcements) out.push(`insert into announcements (date, title, body) values (${q(a.date)}, ${q(a.title)}, ${q(a.body)});`);

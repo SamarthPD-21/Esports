@@ -171,6 +171,7 @@ insert into config (key, value) values ('qualifiers_per_group', '2');
 insert into config (key, value) values ('tiebreakers', 'h2h, playoff');
 insert into config (key, value) values ('perspective', 'TPP');
 insert into config (key, value) values ('event_dates', '17–29 Nov 2026');
+insert into config (key, value) values ('registration_deadline', 'Sat 14 Nov 2026, 11:59 PM');
 insert into announcements (date, title, body) values ('2026-11-16', 'Captains'' briefing tonight', 'Briefing, CODM ID check and a test lobby. Group Stage starts Tue 17 Nov at 8 PM with Hardpoint.');
 insert into announcements (date, title, body) values ('2026-11-15', 'Groups drawn, fixtures live', '16 squads in 4 groups. Fixtures, map pool, perspective (TPP) and the mode of each day are up.');
 insert into map_pool (mode, map) values ('HP', 'Summit');

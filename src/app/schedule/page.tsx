@@ -40,7 +40,7 @@ export default async function SchedulePage() {
             <section key={k} id={`d-${k}`} className="scroll-mt-20">
               <h2 className="mb-4 flex flex-wrap items-baseline gap-3 font-display text-xl font-bold">
                 {k === "tba" ? "Date TBA" : fmtDay(ms[0].scheduledAt!)}
-                <span className="text-xs font-normal text-faint">{ms.length} matches</span>
+                <span className="text-xs font-normal text-faint">{ms.length} match{ms.length === 1 ? "" : "es"}</span>
                 {matchDay && (
                   <span className="rounded-full border border-cyan/40 px-2.5 py-0.5 font-sans text-xs font-semibold text-cyan">
                     Mode: {MODE_NAME[matchDay.mode]}{matchDay.note ? ` · ${matchDay.note}` : ""}

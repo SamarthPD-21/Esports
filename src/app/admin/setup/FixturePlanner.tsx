@@ -81,10 +81,14 @@ export function FixturePlanner({ action, teams, existing, qualifiersPerGroup }: 
       </div>
 
       <div className="rounded-lg border border-line bg-surface-2/50 p-3 text-sm">
-        <p>
-          {count} teams → <span className="font-semibold">{groups}</span> group{groups === 1 ? "" : "s"} × top {drawn ? qualifiersPerGroup : fmt.qualifiersPerGroup} = {qualifiers} qualifiers
-          {" · "}<span className="font-semibold">{fixtures.length}</span> matches, up to {perTeam} per team · room for {capacity} in {opts.days} evening{opts.days === 1 ? "" : "s"}
-        </p>
+        {drawn && fixtures.length === 0 ? (
+          <p>Every pair already has a group match ({existing.filter((m) => m.stage === "group").length} scheduled). Edit times on each match page.</p>
+        ) : (
+          <p>
+            {count} teams → <span className="font-semibold">{groups}</span> group{groups === 1 ? "" : "s"} × top {drawn ? qualifiersPerGroup : fmt.qualifiersPerGroup} = {qualifiers} qualifiers
+            {" · "}<span className="font-semibold">{fixtures.length}</span> matches, up to {perTeam} per team · room for {capacity} in {opts.days} evening{opts.days === 1 ? "" : "s"}
+          </p>
+        )}
         {fmt.openingRound && <p className="mt-1 text-xs text-warn">49+ teams needs an opening knockout round to cut the field to 32. That&apos;s {count - 32} extra matches on the first evening, more than fits. Cap registrations at 48.</p>}
         {qualifiers !== 8 && !fmt.openingRound && <p className="mt-1 text-xs text-warn">The bracket starts at the Quarterfinals, which needs 8 qualifiers.</p>}
         {spilled > 0 && <p className="mt-1 text-xs text-warn">{spilled} match{spilled === 1 ? "" : "es"} don&apos;t fit in {opts.days} evenings and spill into the buffer day or later. Add lobbies, add a slot, or cap registrations.</p>}

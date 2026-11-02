@@ -56,7 +56,7 @@ async function Content() {
               {groupDays.map((day) => {
                 const current = t.matchDays?.find((d) => d.day === day);
                 return (
-                  <div key={day} className="grid grid-cols-[6.5rem_8rem_1fr] items-center gap-2 text-sm">
+                  <div key={day} className="grid grid-cols-[6.5rem_11rem_1fr] items-center gap-2 text-sm">
                     <span>{fmtDay(dayIso(day))}</span>
                     <select name={`mode_${day}`} defaultValue={current?.mode ?? ""} className={inputClass}>
                       <option value="">Not announced</option>

@@ -125,7 +125,7 @@ async function Dashboard() {
                 <li>
                   {invitedAt ? (
                     <>
-                      Lobby invite sent at {fmtTime(invitedAt)}. Join by <span className="text-text">{fmtTime(new Date(Date.parse(invitedAt) + LOBBY_JOIN_MIN * 60_000).toISOString())}</span>
+                      Lobby invite sent at {fmtTime(invitedAt)}. Join by <span className="text-text">{fmtTime(new Date(Date.parse(invitedAt) + LOBBY_JOIN_MIN * 60_000).toISOString())}</span>.
                       {nextCheckIn?.joinedAt && <span className="ml-2 text-win">Joined</span>}
                     </>
                   ) : (
