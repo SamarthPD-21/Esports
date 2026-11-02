@@ -5,7 +5,8 @@ Running log for the tournament site. Update the **Status** and **Changelog** sec
 - Event: Yugaantar 2026 (Theme: Game Verse) presents CODM Carnage 2.0 — Rift Ops
 - Rulebook: `docs/rulebook.pdf` (copy served at `/rulebook.pdf`)
 - Repo: https://github.com/SamarthPD-21/CODM (`main` and `backend` pushed)
-- Rules source: **only** `docs/rulebook.pdf`. Where the PDF is silent, it's listed under open questions instead of borrowing outside conventions.
+- Rules source: **only** `docs/rulebook.pdf`, plus the organisers' *Tournament Format & Schedule* doc (docx, 30 Oct 2026) for format, dates, tiebreakers and seeding. Where both are silent, it's listed under open questions instead of borrowing outside conventions.
+- Online window: **8–10 PM IST**, about **5 referees**, so 5 lobbies at once (organiser, 2 Nov). This replaces the doc's 6 PM–10:30 PM slot table.
 - Hosting: Vercel
 
 ---
@@ -137,20 +138,18 @@ Sheet gotchas:
 - [ ] Create the real Google Sheet from `sheet-template/` and run `npm run check-sheet`
 - [x] UpNext countdown verified (the earlier blank was just pre-hydration)
 - [x] All pages screenshot-checked
-- [ ] No 3rd-place match is described in the rulebook, but there is a ₹1,000 prize. Sample data includes a `THIRD` match. Confirm with organisers or delete the row
+- [x] 3rd-place match: confirmed by the format doc (BO3, Sun 29 Nov 11:30 AM). The bracket generator includes it by default.
 
-## Open questions for organisers (the PDF doesn't say)
+## Open questions for organisers (the PDF and format doc don't say)
 - **BO1 late tier "Forfeit first map/round":** in a one-map match, does this mean losing the match, or round 1 (S&D/Control only)? The site shows the tier; the referee applies it.
-- **Standings tiebreakers:** the PDF only says 1 point per map won. h2h → score diff is our default. Raw score diff mixes HP points with S&D rounds across match days.
 - **Group-stage "higher seed bans first":** there are no seeds during the group stage, so in practice it's the coin toss. Confirm.
 - **Online check-in:** is a team's own "Check in" on the site acceptable as "checking in with the referee"? The referee can still check them in or undo it.
 - **BO3/BO5 map veto:** the PDF says per mode, but a 6-step veto per mode needs 7 maps per mode. Knockout vetoes are free text for now.
-
-1. How many teams, how many groups, and how many qualify per group?
-2. Is there a 3rd-place match, or how is 3rd place decided?
-3. Tiebreaker order: confirm h2h → score diff. Note that raw score diff mixes HP points (out of 250) with S&D rounds (out of 6), so HP results dominate it. A per-mode normalisation may be needed.
-4. Event dates, registration deadline and link.
-5. Map pool per stage, and TPP vs FPP per stage.
+- **3-way tiebreaker when two places are at stake:** the doc gives the bye to the team with most points won and says the final decides. If the bye team loses the final, who is 2nd: the final's loser or the semi's loser? The site ranks a team knocked out later higher (final loser 2nd). Confirm.
+- **QF same-group swap for seed 8:** "the lower seed swaps with the next runner-up seed down" has no seed below 8. The site then swaps with the next one up (7, 6, 5), choosing the first that removes the clash.
+- **Registration cap:** with 5 lobbies × 3 slots, Tue–Sat holds 75 matches. Up to **38 teams** fits. 39–48 teams spill into Sun 22 (the tiebreaker day), and 49+ (opening round) can't fit at all. Suggest capping registrations at **36** to leave slack for reschedules, or adding a 4th slot (start 7:20 PM).
+- **Still to provide:** registration link, the group-stage map pool (5 per mode for the BO1 veto) and TPP/FPP. All are due Sun 15 Nov.
+- **Doc slot table vs 8–10 PM:** the doc's capacity check (4 lobbies × 6 slots = 120 matches) no longer holds. Update the doc to the 3-slot evening below before it goes to teams.
 
 ---
 
@@ -184,19 +183,28 @@ Sheet gotchas:
   - Raise the per-IP OTP limits (default 30 per 5 min).
   - The free-tier project pauses after 7 days idle.
 
-## Format and timing (organiser decision)
-- The bracket starts at the Quarterfinals, so the format needs **8 qualifiers**: 4 groups × top 2, or 8 groups × top 1.
-- Slots assume 45 minutes per BO1: veto, a lobby join of up to 10 min, the map, 1 pause and score entry.
-- Setup now previews matches, match days and finish times before generating. Teams always get at least one free slot between matches.
+## Format and timing (from the format doc + 8–10 PM window)
+- Groups by registration count: ≤8 → 1 group (seeding only), 9–24 → 4 groups (top 2), 25–48 → 8 groups (winners). Always 8 qualifiers. Admin → Setup → "Draw groups" does the random draw (extras go to Group A first). Run it on the recorded call.
+- Evenings: slots at **8:00, 8:40 and 9:20 PM** (40 min each: veto, lobby join ≤10 min, map, score entry). Check-in is 30 min before each slot, so the first check-in is 7:30 PM. 5 lobbies, ≤2 matches per team per day, a free slot between.
+- Rounds go one per day while they fit, so groups of 4 play Tue/Wed/Thu = HP/S&D/Control, and groups of 5–6 use all five days. Fri/Sat are spare for 4-team groups.
+- Modes: Tue HP · Wed S&D · Thu Control · Fri HP · Sat S&D. Sun 22 tiebreakers only. Seeded as match days in `seed.sql`; production admins set them under Content.
+- Standings: wins → head-to-head → buffer-day tiebreaker matches (`stage = tiebreak`, they don't add wins) → recorded coin toss (`coin_toss` setting, e.g. `t03 > t07`). Only ties that affect qualifying or a qualifier's position are flagged.
+- Seeds: winners 1–4, runners-up 5–8 (8 groups: winners ranked together), each by wins → points won → coin toss. QF pairs that would be two teams from one group get swapped.
+- Offline: QFs Fri 27 (10:30, 12:30, 2:30, 4:30), SFs Sat 28 (11:00, 2:00), 3rd place Sun 29 11:30, Final 3:00 PM. "Generate bracket" sets these times.
 
-| Teams | Format | Matches | 4 lobbies, all rounds in 1 day | 1 round per day |
-|---|---|---|---|---|
-| 16 | 4×4, top 2 | 24 | 4:00 to about 8:30 pm | 3 days of about 1.5 h |
-| 24 | 8×3, top 1 | 24 | about 4.5 h | 3 days |
-| 24 | 4×6, top 2 | 60 | too long (6 lobbies → 2 days to about 8:30 pm) | 5 days of about 2.25 h |
-| 32 | 8×4, top 1 | 48 | 6 lobbies → 4:00–10:00 pm; 8 lobbies → about 8:30 pm | 3 days of about 3 h |
+| Teams | Groups | Matches | Evenings used (5 lobbies × 3 slots) |
+|---|---|---|---|
+| 8 | 1 × 8 | 28 | 5 (some days 2 per team) |
+| 16 | 4 × 4 | 24 | 3 (8 a night, done by 9:20) |
+| 24 | 4 × 6 | 60 | 5 (12 a night, done by 10:00) |
+| 32 | 8 × 4 | 48 | 4 (15/15/15/3) |
+| 36 | 8 × 4–5 | 64 | 5 |
+| 38 | 8 × 4–5 | 72 | 5, full |
+| 40 | 8 × 5 | 80 | spills 5 into Sunday |
+| 48 | 8 × 6 | 120 | doesn't fit (45 over) |
 
 ## Changelog
+- **2026-11-02:** Applied the organisers' format doc and the 8–10 PM / 5-referee window. Standings: wins → h2h → tiebreaker matches → coin toss. Seeding sets and the same-group QF swap. Scheduler rewritten for fixed evening slots, with a per-team daily cap and spill detection. Group draw by registration count. Bracket at the offline times with the 3rd-place match. Key dates on home; schedule, standings and seeding sections on Rules. Sample data moved to 17–29 Nov. Found and fixed: admin forms were filled from the cached tournament, so saving after an out-of-band DB edit wrote old teams back; staff pages now read uncached. 30 unit tests. New browser suites (match day 13, format 15, draw/fixtures 9) pass on a fresh DB. Pushed `backend`.
 - **2026-10-26 (night):**
   - Login by emailed code, plus a link page with a button.
   - Fixture generator now leaves per-team rest between matches, and setup shows a format preview.

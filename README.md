@@ -54,6 +54,13 @@ Security:
 - Player actions are authorised in server code (own team, deadlines, captain-only) before the service role writes them.
 - Only emails that are imported (players) or added as staff can receive a login link. The login form responds the same way for unknown emails.
 
+## Before the group stage
+
+1. **Sun 15 Nov, after registration closes:** import Teams, then Players (Admin → Setup). On the recorded call, press *Draw groups*: 1, 4 or 8 groups depending on the count, and qualifiers per group are set to match.
+2. **Generate fixtures:** the planner defaults to Tue 17 Nov, 5 evenings, slots at 8:00/8:40/9:20 PM and 5 lobbies. Its preview shows each evening's matches and finish time, and warns if anything spills past the last day. Set the lobbies to the number of referees you actually have.
+3. **Generate bracket:** QF–Final plus the 3rd-place match, at the offline times. Slots fill from the seeds once the groups finish.
+4. **Ties:** if the Groups page flags a tie, add a tiebreaker match for Sun 22 (Matches CSV with stage `tiebreaker`). Its result orders the level teams without adding wins. Record coin tosses under Content → Settings as `winner > loser`.
+
 ## Match day (online group stage)
 
 1. **Before the day:** Admin → Content → *Group stage match days*, set the day's mode. Keep exactly 5 maps per mode in the map pool, since the BO1 veto bans 4.
