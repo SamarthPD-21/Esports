@@ -36,7 +36,7 @@ export default function MePage() {
 function SignOut() {
   return (
     <form action="/auth/signout" method="post">
-      <button className="rounded-md border border-line px-3 py-1.5 text-xs font-medium text-muted hover:text-text">Sign out</button>
+      <button className="rounded-sm border border-line px-3 py-1.5 text-xs font-medium text-muted hover:text-text">Sign out</button>
     </form>
   );
 }
@@ -48,8 +48,8 @@ function Unlinked({ viewer }: { viewer: Viewer }) {
         <p className="text-sm text-muted">Signed in as <span className="text-text">{viewer.email}</span></p>
         {viewer.staffRole ? (
           <>
-            <p className="font-display text-xl font-bold">You&apos;re tournament staff ({viewer.staffRole}).</p>
-            <Link href="/admin" className="self-start rounded-lg bg-violet px-4 py-2 text-sm font-semibold text-white">Open the admin panel</Link>
+            <p className="font-cond text-xl font-bold">You&apos;re tournament staff ({viewer.staffRole}).</p>
+            <Link href="/admin" className="self-start rounded-sm bg-signal px-4 py-2 text-sm font-semibold text-bg">Open the admin panel</Link>
           </>
         ) : (
           <p>This email isn&apos;t linked to a registered player. Ask a tournament coordinator to check the email on your team&apos;s registration.</p>
@@ -86,15 +86,15 @@ async function Dashboard() {
         <div className="flex items-center gap-4">
           <TeamBadge team={team} size="lg" />
           <div>
-            <p className="font-display text-xs font-semibold uppercase tracking-[0.25em] text-violet-soft">
-              {player.isCaptain ? "Captain" : player.role === "sub" ? "Substitute" : "Player"} · {team?.name}
+            <p className="font-cond text-base font-semibold text-muted">
+              {player.isCaptain ? "Captain" : player.role === "sub" ? "Substitute" : "Player"}, {team?.name}
             </p>
             <h1 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">GG, {player.ign}</h1>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          {viewer.staffRole && <Link href="/admin" className="rounded-md border border-violet/40 px-3 py-1.5 text-xs font-medium text-violet-soft">Admin</Link>}
-          <Link href={`/teams/${d.teamId}`} className="rounded-md border border-line px-3 py-1.5 text-xs font-medium text-muted hover:text-text">Team page</Link>
+          {viewer.staffRole && <Link href="/admin" className="rounded-sm border border-line-strong px-3 py-1.5 text-xs font-semibold hover:border-signal">Admin</Link>}
+          <Link href={`/teams/${d.teamId}`} className="rounded-sm border border-line px-3 py-1.5 text-xs font-medium text-muted hover:text-text">Team page</Link>
           <SignOut />
         </div>
       </header>
@@ -105,13 +105,13 @@ async function Dashboard() {
         <section className="grid gap-4 lg:grid-cols-[1.2fr_1fr]">
           <div className="panel flex flex-col gap-4 p-5">
             <div className="flex flex-wrap items-baseline justify-between gap-2">
-              <p className="text-xs font-semibold uppercase tracking-widest text-violet-soft">Your next match</p>
-              {next.scheduledAt && <Countdown to={next.scheduledAt} className="tnum font-mono text-2xl font-semibold rift-text" />}
+              <p className="font-cond text-lg font-semibold">Your next match</p>
+              {next.scheduledAt && <Countdown to={next.scheduledAt} className="tnum font-cond text-2xl font-semibold text-signal" />}
             </div>
             <MatchCard match={next} teams={teams} />
             {next.stage === "group" && (
               <p className="text-sm text-muted">
-                Mode for this match day: {nextDay ? <span className="font-semibold text-cyan">{MODE_NAME[nextDay.mode]}</span> : "not announced yet"}
+                Mode for this match day: {nextDay ? <span className="font-semibold text-steel">{MODE_NAME[nextDay.mode]}</span> : "not announced yet"}
                 {nextDay?.note && <span> · {nextDay.note}</span>}
               </p>
             )}
@@ -126,7 +126,7 @@ async function Dashboard() {
                   {invitedAt ? (
                     <>
                       Lobby invite sent at {fmtTime(invitedAt)}. Join by <span className="text-text">{fmtTime(new Date(Date.parse(invitedAt) + LOBBY_JOIN_MIN * 60_000).toISOString())}</span>.
-                      {nextCheckIn?.joinedAt && <span className="ml-2 text-win">Joined</span>}
+                      {nextCheckIn?.joinedAt && <span className="ml-2 text-win">Joined.</span>}
                     </>
                   ) : (
                     `Join the lobby within ${LOBBY_JOIN_MIN} minutes of the invite.`
@@ -137,13 +137,13 @@ async function Dashboard() {
               </ul>
             )}
             {nextVeto && (
-              <div className="rounded-lg border border-line p-3 text-sm">
-                <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-faint">Map veto</p>
+              <div className="rounded-sm border border-line p-3 text-sm">
+                <p className="mb-1 text-xs font-semibold text-faint">Map veto</p>
                 <p className="text-muted">
                   {vetoTurns(1, nextVeto.firstSide).map((turn, i) => `${nextVeto.steps[i]} (${sideName(next, turn.side)})`).join(" · ")}
                 </p>
                 <p className="mt-1">
-                  Map: <span className="font-semibold text-cyan">{nextVeto.decider}</span>
+                  Map: <span className="font-semibold text-steel">{nextVeto.decider}</span>
                   {nextVeto.coinToss && <span className="text-muted"> · {sideName(next, nextVeto.coinToss)} picks side</span>}
                 </p>
               </div>
@@ -152,16 +152,16 @@ async function Dashboard() {
 
           <div className="flex flex-col gap-4">
             <div className="panel p-5">
-              <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-cyan">Room details</p>
+              <p className="mb-3 text-xs font-semibold text-steel">Room details</p>
               {d.rooms[next.id]?.roomId ? (
                 <dl className="grid grid-cols-2 gap-3">
                   <div>
                     <dt className="text-xs text-faint">Room ID</dt>
-                    <dd className="tnum font-mono text-2xl font-semibold select-all">{d.rooms[next.id].roomId}</dd>
+                    <dd className="tnum font-cond text-2xl font-semibold select-all">{d.rooms[next.id].roomId}</dd>
                   </div>
                   <div>
                     <dt className="text-xs text-faint">Password</dt>
-                    <dd className="tnum font-mono text-2xl font-semibold select-all">{d.rooms[next.id].password ?? "—"}</dd>
+                    <dd className="tnum font-cond text-2xl font-semibold select-all">{d.rooms[next.id].password ?? "—"}</dd>
                   </div>
                 </dl>
               ) : (
@@ -176,8 +176,8 @@ async function Dashboard() {
             </div>
 
             {player.isCaptain && next.vetoHolder === sideOf(next, d.teamId) && (
-              <div className="panel border-cyan/40 p-5">
-                <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-cyan">Veto Power</p>
+              <div className="panel border-steel/40 p-5">
+                <p className="mb-1 text-xs font-semibold text-steel">Veto Power</p>
                 <p className="mb-3 text-sm text-muted">As the higher seed you may reorder the modes or swap one. Confirm at least 30 min before the series.</p>
                 {vetoOpen(next, now) ? <VetoForm matchId={next.id} current={d.vetoes[next.id]} /> : <p className="text-sm">{d.vetoes[next.id] ? `Submitted: ${d.vetoes[next.id]}` : "Deadline passed — default order applies."}</p>}
               </div>
@@ -196,22 +196,22 @@ async function Dashboard() {
       )}
 
       {/* Stats */}
-      <section className="mt-10 grid grid-cols-2 gap-3 md:grid-cols-5">
+      <dl className="mt-10 grid grid-cols-2 border-y border-line md:grid-cols-5">
         {[
           { k: "Group pos", v: row && row.played > 0 ? `#${row.position}` : "–" },
           { k: "Series W-L", v: `${seriesWon}-${d.history.length - seriesWon}` },
           ...(["HP", "SND", "CTRL"] as const).map((m) => ({ k: MODE_NAME[m], v: `${stats[m].w}-${stats[m].l}` })),
-        ].map((s) => (
-          <div key={s.k} className="panel p-4">
-            <p className="text-[11px] uppercase tracking-widest text-faint">{s.k}</p>
-            <p className="tnum mt-1 font-mono text-xl font-semibold">{s.v}</p>
+        ].map((s, i) => (
+          <div key={s.k} className={`flex flex-col gap-0.5 py-4 pr-4 ${i % 2 ? "pl-4 md:pl-5" : "md:pl-5"} ${i ? "md:border-l md:border-line" : "md:pl-0"}`}>
+            <dt className="text-sm text-muted">{s.k}</dt>
+            <dd className="tnum font-cond text-2xl font-semibold">{s.v}</dd>
           </div>
         ))}
-      </section>
+      </dl>
 
       {d.upcoming.length > 1 && (
         <section className="mt-10">
-          <h2 className="mb-4 font-display text-xl font-bold">Later matches</h2>
+          <h2 className="mb-4 font-cond text-xl font-bold">Later matches</h2>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {d.upcoming.slice(1).map((m) => <MatchCard key={m.id} match={m} teams={teams} />)}
           </div>
@@ -219,7 +219,7 @@ async function Dashboard() {
       )}
 
       <section className="mt-10">
-        <h2 className="mb-4 font-display text-xl font-bold">Match history</h2>
+        <h2 className="mb-4 font-cond text-xl font-bold">Match history</h2>
         {d.history.length === 0 ? (
           <p className="text-sm text-muted">No results yet.</p>
         ) : (
@@ -243,11 +243,11 @@ async function Dashboard() {
         <section className="mt-10 grid gap-4 lg:grid-cols-2">
           {d.disputes.length > 0 && (
             <div className="panel p-5">
-              <h2 className="mb-3 font-display text-lg font-bold">Your disputes</h2>
+              <h2 className="mb-3 font-cond text-lg font-bold">Your disputes</h2>
               <ul className="flex flex-col gap-3 text-sm">
                 {d.disputes.map((x) => (
                   <li key={x.id} className="border-t border-line pt-3 first:border-0 first:pt-0">
-                    <p className="flex justify-between gap-2"><span className="font-mono text-xs text-faint">{x.matchId}</span><span className={x.status === "open" ? "text-warn" : x.status === "upheld" ? "text-win" : "text-muted"}>{x.status}</span></p>
+                    <p className="flex justify-between gap-2"><span className="font-cond text-xs text-faint">{x.matchId}</span><span className={x.status === "open" ? "text-warn" : x.status === "upheld" ? "text-win" : "text-muted"}>{x.status}</span></p>
                     <p className="mt-1">{x.reason}</p>
                     {x.resolution && <p className="mt-1 text-muted">Referee: {x.resolution}</p>}
                   </li>
@@ -257,10 +257,10 @@ async function Dashboard() {
           )}
           {d.subRequests.length > 0 && (
             <div className="panel p-5">
-              <h2 className="mb-3 font-display text-lg font-bold">Substitutions</h2>
+              <h2 className="mb-3 font-cond text-lg font-bold">Substitutions</h2>
               <ul className="flex flex-col gap-2 text-sm">
                 {d.subRequests.map((s, i) => (
-                  <li key={i}><span className="font-mono text-xs text-faint">{s.matchId}</span> · {s.out} → {s.in}</li>
+                  <li key={i}><span className="font-cond text-xs text-faint">{s.matchId}</span> · {s.out} → {s.in}</li>
                 ))}
               </ul>
             </div>

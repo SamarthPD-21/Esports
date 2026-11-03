@@ -49,10 +49,10 @@ export function UpNext({ items }: { items: UpNextItem[] }) {
   if (t === null) return <div className="panel h-40 animate-pulse" />;
 
   return (
-    <div className="panel flex flex-col gap-4 p-5">
+    <div className="panel flex flex-col gap-4 border-t-[3px] border-t-signal p-5">
       {live.length > 0 && (
         <div>
-          <p className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-live">
+          <p className="mb-2 flex items-center gap-2 font-cond font-semibold text-live">
             <span className="live-dot size-2 rounded-full bg-live" /> Live now
           </p>
           <ul className="flex flex-col gap-1.5">
@@ -67,11 +67,11 @@ export function UpNext({ items }: { items: UpNextItem[] }) {
       )}
       {next ? (
         <div>
-          <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-violet-soft">Next match · {next.label}</p>
-          <p className="font-display text-xl font-bold">
-            {next.a} <span className="text-faint">vs</span> {next.b}
+          <p className="mb-1 font-cond font-semibold text-muted">Next match, {next.label}</p>
+          <p className="font-display text-3xl font-bold">
+            {next.a} <span className="font-sans text-lg font-normal text-faint">vs</span> {next.b}
           </p>
-          <p className="tnum mt-2 font-mono text-3xl font-semibold rift-text">{countdown(Date.parse(next.scheduledAt) - t)}</p>
+          <p className="tnum mt-2 font-cond text-5xl leading-none font-bold text-signal">{countdown(Date.parse(next.scheduledAt) - t)}</p>
           {upcoming.length > 1 && (
             <ul className="mt-4 flex flex-col gap-1 border-t border-line pt-3 text-xs text-muted">
               {upcoming.slice(1).map((i) => (

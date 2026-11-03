@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
-import { Chakra_Petch, Inter, JetBrains_Mono } from "next/font/google";
+import { Barlow, Barlow_Condensed, Big_Shoulders_Stencil } from "next/font/google";
 import { Suspense } from "react";
 import { DataNotice, Footer } from "@/components/Footer";
 import { Nav, NavShell } from "@/components/Nav";
 import { EVENT } from "@/content/event";
 import "./globals.css";
 
-const inter = Inter({ variable: "--font-inter", subsets: ["latin"] });
-const chakra = Chakra_Petch({ variable: "--font-chakra", subsets: ["latin"], weight: ["500", "600", "700"] });
-const jetbrains = JetBrains_Mono({ variable: "--font-jetbrains", subsets: ["latin"] });
+const barlow = Barlow({ variable: "--font-barlow", subsets: ["latin"], weight: ["400", "500", "600", "700"] });
+const barlowCond = Barlow_Condensed({ variable: "--font-barlow-cond", subsets: ["latin"], weight: ["500", "600", "700"] });
+const stencil = Big_Shoulders_Stencil({ variable: "--font-stencil", subsets: ["latin"], axes: ["opsz"], adjustFontFallback: false });
 
 export const metadata: Metadata = {
   title: { default: `${EVENT.name} — ${EVENT.edition}`, template: `%s · ${EVENT.name}` },
@@ -17,7 +17,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${inter.variable} ${chakra.variable} ${jetbrains.variable} h-full antialiased`}>
+    <html lang="en" className={`${barlow.variable} ${barlowCond.variable} ${stencil.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col font-sans">
         <Suspense fallback={null}>
           <DataNotice />

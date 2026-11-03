@@ -39,19 +39,19 @@ async function Overview() {
           { k: "Live matches", v: live, tone: live ? "text-live" : "" },
         ].map((s) => (
           <div key={s.k} className="panel p-4">
-            <p className="text-[11px] uppercase tracking-widest text-faint">{s.k}</p>
-            <p className={`tnum mt-1 font-mono text-2xl font-semibold ${s.tone}`}>{s.v}</p>
+            <p className="text-[11px] text-faint">{s.k}</p>
+            <p className={`tnum mt-1 font-cond text-2xl font-semibold ${s.tone}`}>{s.v}</p>
           </div>
         ))}
       </div>
 
       {matches.length === 0 ? (
-        <p className="panel mt-6 p-5 text-sm text-muted">No matches yet. Import teams and generate fixtures on the <Link href="/admin/setup" className="text-violet-soft underline">Setup</Link> page.</p>
+        <p className="panel mt-6 p-5 text-sm text-muted">No matches yet. Import teams and generate fixtures on the <Link href="/admin/setup" className="link">Setup</Link> page.</p>
       ) : (
         <div className="panel mt-6 overflow-x-auto">
           <table className="w-full min-w-[640px] text-sm">
             <thead>
-              <tr className="text-left text-[11px] uppercase tracking-wider text-faint">
+              <tr className="text-left text-[11px] text-faint">
                 <th className="px-4 py-3 font-medium">Match</th>
                 <th className="px-4 py-3 font-medium">Teams</th>
                 <th className="px-4 py-3 font-medium">Time (IST)</th>
@@ -63,12 +63,12 @@ async function Overview() {
               {matches.map((m) => (
                 <tr key={m.id} className="border-t border-line">
                   <td className="px-4 py-2.5">
-                    <span className="font-mono text-xs">{m.id}</span>
+                    <span className="font-cond text-xs">{m.id}</span>
                     <span className="ml-2 text-xs text-faint">{m.stage === "group" ? `Grp ${m.group ?? ""}` : STAGE_LABEL[m.stage]} · BO{m.bestOf}</span>
                   </td>
                   <td className="px-4 py-2.5">
                     {name(m.a.teamId, m.a.label)} <span className="text-faint">vs</span> {name(m.b.teamId, m.b.label)}
-                    {m.status !== "scheduled" && <span className="tnum ml-2 font-mono text-xs text-muted">{m.mapWinsA}–{m.mapWinsB}</span>}
+                    {m.status !== "scheduled" && <span className="tnum ml-2 font-cond text-xs text-muted">{m.mapWinsA}–{m.mapWinsB}</span>}
                   </td>
                   <td className="px-4 py-2.5 text-muted">{m.scheduledAt ? fmtDateTime(m.scheduledAt) : "TBA"}</td>
                   <td className="px-4 py-2.5">
@@ -78,7 +78,7 @@ async function Overview() {
                     </span>
                   </td>
                   <td className="px-4 py-2.5 text-right">
-                    <Link href={`/admin/matches/${m.id}`} className="text-sm text-violet-soft hover:underline">Open →</Link>
+                    <Link href={`/admin/matches/${m.id}`} className="link text-sm">Open</Link>
                   </td>
                 </tr>
               ))}

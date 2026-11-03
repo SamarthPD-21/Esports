@@ -64,7 +64,7 @@ export function FixturePlanner({ action, teams, existing, qualifiersPerGroup }: 
   return (
     <ActionForm action={action} submit={drawn ? "Generate fixtures" : "Draw groups first"} className="mt-4 flex flex-col gap-4">
       {!teams.length && (
-        <div className="grid grid-cols-2 gap-3 rounded-lg border border-dashed border-line-strong p-3">
+        <div className="grid grid-cols-2 gap-3 rounded-sm border border-dashed border-line-strong p-3">
           <p className="col-span-2 text-xs text-muted">No teams imported yet. Try a registration count:</p>
           <label className="flex flex-col gap-1 text-xs text-muted">Teams<input type="number" min={2} max={128} value={f.whatIfTeams} onChange={set("whatIfTeams")} className={inputClass} /></label>
         </div>
@@ -80,7 +80,7 @@ export function FixturePlanner({ action, teams, existing, qualifiersPerGroup }: 
         {num("perTeam", "Most matches per team per day")}
       </div>
 
-      <div className="rounded-lg border border-line bg-surface-2/50 p-3 text-sm">
+      <div className="rounded-sm border border-line bg-surface-2/50 p-3 text-sm">
         {drawn && fixtures.length === 0 ? (
           <p>Every pair already has a group match ({existing.filter((m) => m.stage === "group").length} scheduled). Edit times on each match page.</p>
         ) : (

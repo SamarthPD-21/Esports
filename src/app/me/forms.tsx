@@ -4,8 +4,8 @@ import { useActionState } from "react";
 import { useHydrated } from "@/lib/use-hydrated";
 import { checkIn, raiseDispute, requestSub, submitVeto, type ActionState } from "./actions";
 
-const input = "rounded-lg border border-line-strong bg-surface-2 px-3 py-2 text-sm text-text outline-none placeholder:text-faint focus:border-violet";
-const button = "rounded-lg bg-violet px-4 py-2 text-sm font-semibold text-white disabled:opacity-60";
+const input = "rounded-sm border border-line-strong bg-surface-2 px-3 py-2 text-sm text-text outline-none placeholder:text-faint focus:border-signal";
+const button = "rounded-sm bg-signal px-4 py-2 text-sm font-semibold text-bg disabled:opacity-60";
 
 function Result({ state }: { state: ActionState }) {
   if (state.error) return <p className="text-sm text-live" role="alert">{state.error}</p>;

@@ -50,7 +50,7 @@ function Bullets({ items }: { items: readonly string[] }) {
     <ul className="flex flex-col gap-1.5 text-sm">
       {items.map((r) => (
         <li key={r} className="flex gap-2">
-          <span className="text-violet" aria-hidden>▸</span>
+          <span className="text-faint" aria-hidden>–</span>
           {r}
         </li>
       ))}
@@ -70,17 +70,17 @@ export default async function RulesPage() {
 
   return (
     <>
-      <PageHeader kicker="Official rulebook" title="Rules & format">
+      <PageHeader title="Rules & format">
         {EVENT.format}. {EVENT.roster}. The organisers&apos; and referees&apos; decisions are final.
       </PageHeader>
 
       <nav className="mb-10 flex flex-wrap gap-2" aria-label="Sections">
         {TOC.map(([id, label]) => (
-          <a key={id} href={`#${id}`} className="rounded-full border border-line px-3 py-1 text-xs font-medium text-muted hover:border-violet/50 hover:text-text">
+          <a key={id} href={`#${id}`} className="rounded-sm border border-line px-3 py-1 text-xs font-medium text-muted hover:border-signal hover:text-text">
             {label}
           </a>
         ))}
-        <a href="/rulebook.pdf" className="rounded-full border border-violet/40 px-3 py-1 text-xs font-medium text-violet-soft hover:bg-violet/10">
+        <a href="/rulebook.pdf" className="rounded-sm border border-line-strong px-3 py-1 text-xs font-semibold hover:border-signal">
           Full rulebook (PDF)
         </a>
       </nav>
@@ -92,15 +92,15 @@ export default async function RulesPage() {
             {STAGES.map((s) => (
               <article key={s.key} className="panel p-5">
                 <div className="flex items-baseline justify-between gap-2">
-                  <h3 className="font-display text-xl font-bold">{s.name}</h3>
-                  <span className="font-mono text-sm text-violet-soft">{s.series} · {s.venue}</span>
+                  <h3 className="font-cond text-xl font-bold">{s.name}</h3>
+                  <span className="font-cond font-semibold text-muted">{s.series}, {s.venue.toLowerCase()}</span>
                 </div>
                 <p className="mt-2 text-sm text-muted">{s.modes}</p>
                 <p className="mt-1 text-xs text-faint">Map veto: {s.veto}</p>
                 <ul className="mt-4 flex flex-col gap-1.5 text-sm">
                   {s.rules.map((r) => (
                     <li key={r} className="flex gap-2">
-                      <span className="text-violet" aria-hidden>▸</span>
+                      <span className="text-faint" aria-hidden>–</span>
                       {r}
                     </li>
                   ))}
@@ -109,7 +109,7 @@ export default async function RulesPage() {
             ))}
           </div>
           <div className="panel mt-4 p-5">
-            <h3 className="mb-3 font-display text-lg font-bold">Overtime</h3>
+            <h3 className="mb-3 font-cond text-lg font-bold">Overtime</h3>
             <dl className="grid gap-3 sm:grid-cols-3">
               {OVERTIME.map((o) => (
                 <div key={o.mode}>
@@ -125,7 +125,7 @@ export default async function RulesPage() {
           <H2 id="schedule">Groups &amp; schedule</H2>
           <div className="grid gap-4 lg:grid-cols-2">
             <div className="panel overflow-x-auto p-5">
-              <h3 className="mb-3 font-display text-lg font-bold">How groups are formed</h3>
+              <h3 className="mb-3 font-cond text-lg font-bold">How groups are formed</h3>
               <table className="w-full text-sm">
                 <thead className="text-left text-xs text-faint"><tr><th className="pb-2 font-medium">Teams</th><th className="pb-2 font-medium">Groups</th><th className="pb-2 font-medium">Qualify</th></tr></thead>
                 <tbody>
@@ -137,7 +137,7 @@ export default async function RulesPage() {
               <p className="mt-3 text-xs text-faint">Random draw on Sun 15 Nov on a recorded call. Uneven extras go to Group A, then B, and so on.</p>
             </div>
             <div className="panel p-5">
-              <h3 className="mb-3 font-display text-lg font-bold">Mode of the day</h3>
+              <h3 className="mb-3 font-cond text-lg font-bold">Mode of the day</h3>
               <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-sm">
                 {GROUP_DAY_MODES.map((d) => (
                   <div key={d.day} className="contents"><dt className="text-muted">{fmtDay(`${d.day}T12:00:00+05:30`)}</dt><dd className="font-semibold">{MODE_NAME[d.mode]}</dd></div>
@@ -146,7 +146,7 @@ export default async function RulesPage() {
               </dl>
             </div>
             <div className="panel overflow-x-auto p-5">
-              <h3 className="mb-3 font-display text-lg font-bold">Each online evening</h3>
+              <h3 className="mb-3 font-cond text-lg font-bold">Each online evening</h3>
               <table className="w-full text-sm">
                 <thead className="text-left text-xs text-faint"><tr><th className="pb-2 font-medium">Slot</th><th className="pb-2 font-medium">Check in by</th><th className="pb-2 font-medium">Room ID shared</th><th className="pb-2 font-medium">Starts</th></tr></thead>
                 <tbody>
@@ -158,7 +158,7 @@ export default async function RulesPage() {
               <p className="mt-3 text-xs text-faint">Several lobbies run side by side, one referee each. A team plays at most {w.maxPerTeamPerDay} matches a day, with a free slot in between. Your exact times are on the Schedule page.</p>
             </div>
             <div className="panel p-5">
-              <h3 className="mb-3 font-display text-lg font-bold">Offline at the {EVENT.venue}</h3>
+              <h3 className="mb-3 font-cond text-lg font-bold">Offline at the {EVENT.venue}</h3>
               <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-sm">
                 {Object.entries(KNOCKOUT_TIMES).map(([id, at]) => (
                   <div key={id} className="contents"><dt className="tnum text-muted">{fmtDay(at)} · {fmtTime(at)}</dt><dd>{KO_LABEL[id]}</dd></div>
@@ -172,8 +172,8 @@ export default async function RulesPage() {
         <section>
           <H2 id="standings">Standings &amp; seeding</H2>
           <div className="grid gap-4 md:grid-cols-2">
-            <div className="panel p-5"><h3 className="mb-3 font-display text-lg font-bold">Group positions</h3><Bullets items={TIEBREAK_RULES} /></div>
-            <div className="panel p-5"><h3 className="mb-3 font-display text-lg font-bold">Seeds 1–8</h3><Bullets items={SEEDING_RULES} /></div>
+            <div className="panel p-5"><h3 className="mb-3 font-cond text-lg font-bold">Group positions</h3><Bullets items={TIEBREAK_RULES} /></div>
+            <div className="panel p-5"><h3 className="mb-3 font-cond text-lg font-bold">Seeds 1–8</h3><Bullets items={SEEDING_RULES} /></div>
           </div>
         </section>
 
@@ -185,7 +185,7 @@ export default async function RulesPage() {
                 <dt className="text-sm font-semibold">{g.item}</dt>
                 <dd className="text-sm text-muted">
                   {g.rule}
-                  {g.item === "Perspective" && t.config.perspective && <span className="ml-2 text-cyan">Current: {t.config.perspective}</span>}
+                  {g.item === "Perspective" && t.config.perspective && <span className="ml-2 text-steel">Current: {t.config.perspective}</span>}
                 </dd>
               </div>
             ))}
@@ -206,7 +206,7 @@ export default async function RulesPage() {
           <div className="grid gap-4 lg:grid-cols-2">
             <table className="panel w-full overflow-hidden text-sm">
               <thead>
-                <tr className="text-left text-[11px] uppercase tracking-wider text-faint">
+                <tr className="text-left text-[11px] text-faint">
                   <th className="px-5 py-3 font-medium">Delay</th>
                   <th className="px-5 py-3 font-medium">Penalty</th>
                 </tr>
@@ -214,14 +214,14 @@ export default async function RulesPage() {
               <tbody>
                 {LATE_PENALTIES.map((p, i) => (
                   <tr key={p.delay} className="border-t border-line">
-                    <td className="tnum px-5 py-3 font-mono">{p.delay}</td>
+                    <td className="tnum px-5 py-3 font-cond">{p.delay}</td>
                     <td className={`px-5 py-3 ${i === 3 ? "text-live" : i === 0 ? "text-muted" : "text-warn"}`}>{p.penalty}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
             <div className="panel p-5">
-              <h3 className="mb-3 font-display text-lg font-bold">Grounds for disqualification</h3>
+              <h3 className="mb-3 font-cond text-lg font-bold">Grounds for disqualification</h3>
               <ul className="flex flex-col gap-1.5 text-sm">
                 {DISQUALIFICATION.map((d) => (
                   <li key={d} className="flex gap-2">
@@ -240,13 +240,13 @@ export default async function RulesPage() {
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {BANNED.map((b) => (
               <article key={b.category} className="panel p-5">
-                <h3 className="mb-3 font-display text-lg font-bold">{b.category}</h3>
+                <h3 className="mb-3 font-cond text-lg font-bold">{b.category}</h3>
                 {b.groups.map((g, i) => (
                   <div key={i} className="mb-3 last:mb-0">
-                    {g.label && <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-faint">{g.label}</p>}
+                    {g.label && <p className="mb-1.5 text-[11px] font-semibold text-faint">{g.label}</p>}
                     <ul className="flex flex-wrap gap-1.5">
                       {g.items.map((item) => (
-                        <li key={item} className="rounded-md border border-live/25 bg-live/5 px-2 py-1 text-xs text-text">{item}</li>
+                        <li key={item} className="rounded-sm border border-live/25 bg-live/5 px-2 py-1 text-xs text-text">{item}</li>
                       ))}
                     </ul>
                   </div>
@@ -265,7 +265,7 @@ export default async function RulesPage() {
             <div className="grid gap-4 md:grid-cols-3">
               {pool.map((p) => (
                 <article key={p.mode} className="panel p-5">
-                  <h3 className="mb-3 font-display text-lg font-bold">{MODE_NAME[p.mode]}</h3>
+                  <h3 className="mb-3 font-cond text-lg font-bold">{MODE_NAME[p.mode]}</h3>
                   <ul className="flex flex-col gap-1 text-sm text-muted">
                     {p.maps.length ? p.maps.map((m) => <li key={m}>{m}</li>) : <li>TBA</li>}
                   </ul>

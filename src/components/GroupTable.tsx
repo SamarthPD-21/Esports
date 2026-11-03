@@ -7,14 +7,14 @@ export function GroupTable({ table, teams, compact = false }: { table: Table; te
   return (
     <div className="panel overflow-hidden">
       <div className="flex items-center justify-between border-b border-line px-4 py-3">
-        <h3 className="font-display text-lg font-bold">Group {table.group}</h3>
-        <span className={`text-[11px] font-semibold uppercase tracking-wider ${table.complete ? "text-win" : "text-muted"}`}>
+        <h3 className="font-cond text-lg font-bold">Group {table.group}</h3>
+        <span className={`text-[11px] font-semibold ${table.complete ? "text-win" : "text-muted"}`}>
           {table.complete ? "Complete" : "In progress"}
         </span>
       </div>
       <table className="w-full text-sm">
         <thead>
-          <tr className="text-[11px] uppercase tracking-wider text-faint">
+          <tr className="text-[11px] text-faint">
             <th className="w-8 py-2 pl-4 text-left font-medium">#</th>
             <th className="py-2 text-left font-medium">Team</th>
             <th className="w-8 py-2 text-center font-medium" title="Played">P</th>
@@ -28,12 +28,12 @@ export function GroupTable({ table, teams, compact = false }: { table: Table; te
           {rows.map((r) => {
             const team = teams.get(r.teamId);
             return (
-              <tr key={r.teamId} className={`border-t border-line ${r.qualified ? "bg-violet/[0.06]" : ""}`}>
+              <tr key={r.teamId} className={`border-t border-line ${r.qualified ? "bg-signal/[0.06]" : ""}`}>
                 <td className="py-2.5 pl-4">
-                  <span className={`tnum font-mono text-xs ${r.qualified ? "text-violet-soft" : "text-faint"}`}>{r.position}</span>
+                  <span className={`tnum font-cond text-xs ${r.qualified ? "text-signal" : "text-faint"}`}>{r.position}</span>
                 </td>
                 <td className="py-2.5">
-                  <Link href={`/teams/${r.teamId}`} className="flex min-w-0 items-center gap-2.5 hover:text-violet-soft">
+                  <Link href={`/teams/${r.teamId}`} className="flex min-w-0 items-center gap-2.5 hover:text-signal">
                     <TeamBadge team={team} size="sm" />
                     <span className="truncate font-medium">{team?.name ?? r.teamId}</span>
                     {r.unresolvedTie && table.complete && (
@@ -44,7 +44,7 @@ export function GroupTable({ table, teams, compact = false }: { table: Table; te
                 <td className="tnum py-2.5 text-center text-muted">{r.played}</td>
                 {!compact && <td className="tnum py-2.5 text-center text-muted">{r.won}-{r.lost}</td>}
                 {!compact && (
-                  <td className={`tnum hidden py-2.5 text-right font-mono text-xs sm:table-cell ${r.diff > 0 ? "text-win" : r.diff < 0 ? "text-live" : "text-muted"}`}>
+                  <td className={`tnum hidden py-2.5 text-right font-cond text-xs sm:table-cell ${r.diff > 0 ? "text-win" : r.diff < 0 ? "text-live" : "text-muted"}`}>
                     {r.diff > 0 ? `+${r.diff}` : r.diff}
                   </td>
                 )}
@@ -59,7 +59,7 @@ export function GroupTable({ table, teams, compact = false }: { table: Table; te
                     </div>
                   </td>
                 )}
-                <td className="tnum py-2.5 pr-4 text-right font-mono font-semibold">{r.points}</td>
+                <td className="tnum py-2.5 pr-4 text-right font-cond font-semibold">{r.points}</td>
               </tr>
             );
           })}

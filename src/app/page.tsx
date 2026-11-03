@@ -26,7 +26,7 @@ export default async function Home() {
     .sort((x, y) => x.scheduledAt!.localeCompare(y.scheduledAt!))
     .map((m) => ({
       id: m.id,
-      label: m.stage === "group" ? `Group ${m.group ?? ""} · BO${m.bestOf}` : `${STAGE_LABEL[m.stage]} · BO${m.bestOf}`,
+      label: m.stage === "group" ? `Group ${m.group ?? ""}` : STAGE_LABEL[m.stage],
       a: name(m.a.teamId, m.a.label),
       b: name(m.b.teamId, m.b.label),
       scheduledAt: m.scheduledAt!,
@@ -41,26 +41,28 @@ export default async function Home() {
   return (
     <>
       {/* Hero */}
-      <section className="grid gap-8 pt-10 pb-14 sm:pt-16 lg:grid-cols-[1.4fr_1fr] lg:items-center">
+      <section className="grid gap-10 pt-10 pb-12 sm:pt-14 lg:grid-cols-[1.5fr_1fr] lg:items-end">
         <div>
-          <p className="mb-4 font-display text-xs font-semibold uppercase tracking-[0.3em] text-muted">
-            {EVENT.festival} · Theme: {EVENT.theme} · presents
+          <p className="mb-5 text-muted">
+            {EVENT.festival} presents a Call of Duty: Mobile squad tournament
           </p>
-          <h1 className="font-display text-5xl leading-[0.95] font-bold tracking-tight sm:text-7xl">
-            {EVENT.name}
-            <span className="mt-2 block rift-text">{EVENT.edition}</span>
+          <h1 className="font-display leading-[0.86] font-black">
+            <span className="block whitespace-nowrap text-[clamp(3.75rem,15vw,8rem)]">{EVENT.name.replace("CODM ", "")}</span>
+            <span className="mt-1 block text-[clamp(2.25rem,8vw,4.5rem)] text-muted">{EVENT.edition}</span>
           </h1>
-          <p className="mt-5 max-w-xl text-lg text-muted">&ldquo;{EVENT.tagline}&rdquo; Hardpoint, Search &amp; Destroy and Control — online groups into an offline bracket at the {EVENT.venue}.</p>
+          <p className="mt-6 max-w-xl text-lg text-muted">
+            &ldquo;{EVENT.tagline}&rdquo; Online groups every evening, then an offline bracket at the {EVENT.venue}.
+          </p>
           <div className="mt-7 flex flex-wrap gap-3">
-            <Link href="/bracket" className="rounded-lg bg-gradient-to-r from-violet to-cyan px-5 py-2.5 text-sm font-semibold text-bg">
+            <Link href="/schedule" className="rounded-sm bg-signal px-5 py-2.5 text-sm font-semibold text-bg hover:bg-text">
+              See the schedule
+            </Link>
+            <Link href="/bracket" className="rounded-sm border border-line-strong px-5 py-2.5 text-sm font-semibold hover:border-text">
               View bracket
             </Link>
-            <Link href="/teams" className="rounded-lg border border-line-strong px-5 py-2.5 text-sm font-semibold hover:bg-surface-2">
-              Meet the teams
-            </Link>
             {t.config.registrationUrl && (
-              <a href={t.config.registrationUrl} className="rounded-lg border border-violet/50 px-5 py-2.5 text-sm font-semibold text-violet-soft hover:bg-violet/10">
-                Register
+              <a href={t.config.registrationUrl} className="rounded-sm border border-signal px-5 py-2.5 text-sm font-semibold text-signal hover:bg-signal hover:text-bg">
+                Register your squad
               </a>
             )}
           </div>
@@ -69,37 +71,37 @@ export default async function Home() {
       </section>
 
       {/* Key facts */}
-      <section className="grid grid-cols-2 gap-3 md:grid-cols-4">
+      <dl className="grid grid-cols-2 border-y border-line sm:grid-cols-4">
         {[
           { k: "Prize pool", v: inr(PRIZE_TOTAL) },
           { k: "Squads", v: String(t.teams.length) },
           { k: "Entry", v: EVENT.entry },
-          { k: "Dates", v: t.config.eventDates ?? "TBA" },
-        ].map((s) => (
-          <div key={s.k} className="panel p-4">
-            <p className="text-xs uppercase tracking-widest text-faint">{s.k}</p>
-            <p className="mt-1 font-display text-2xl font-bold">{s.v}</p>
+          { k: "Dates", v: t.config.eventDates ?? "To be announced" },
+        ].map((s, i) => (
+          <div key={s.k} className={`flex flex-col gap-0.5 py-4 sm:px-5 ${i % 2 ? "pl-4" : ""} ${i ? "sm:border-l sm:border-line" : "sm:pl-0"}`}>
+            <dt className="text-sm text-muted">{s.k}</dt>
+            <dd className="font-cond text-2xl font-semibold">{s.v}</dd>
           </div>
         ))}
-      </section>
+      </dl>
 
       {/* Stage path */}
       <section className="mt-16">
-        <SectionHeading kicker="Road to the final" title="Tournament path" />
+        <SectionHeading title="Tournament path" />
         <ol className="grid gap-3 md:grid-cols-4">
           {STAGES.map((s, i) => {
             const state = stageState(t, s.key);
             return (
-              <li key={s.key} className={`panel relative p-4 ${state === "live" ? "border-violet/60" : ""}`}>
+              <li key={s.key} className={`panel relative border-t-[3px] p-4 ${state === "live" ? "border-t-signal" : state === "done" ? "border-t-line" : "border-t-line-strong"}`}>
                 <div className="flex items-center justify-between">
-                  <span className="font-mono text-xs text-faint">0{i + 1}</span>
-                  <span className={`text-[11px] font-semibold uppercase tracking-wider ${state === "done" ? "text-win" : state === "live" ? "text-violet-soft" : "text-faint"}`}>
+                  <span className="font-display text-2xl font-black text-faint">{i + 1}</span>
+                  <span className={`font-cond text-sm font-semibold ${state === "done" ? "text-win" : state === "live" ? "text-signal" : "text-faint"}`}>
                     {state === "done" ? "Complete" : state === "live" ? "In progress" : "Upcoming"}
                   </span>
                 </div>
-                <h3 className="mt-2 font-display text-lg font-bold">{s.name}</h3>
+                <h3 className="mt-2 font-cond text-lg font-bold">{s.name}</h3>
                 <p className="mt-1 text-sm text-muted">
-                  {s.series} · {s.venue}
+                  {s.series}, {s.venue.toLowerCase()}
                 </p>
                 <p className="mt-2 text-xs text-faint">{s.modes}</p>
               </li>
@@ -110,15 +112,15 @@ export default async function Home() {
 
       {/* Key dates */}
       <section className="mt-16">
-        <SectionHeading kicker="All times IST" title="Key dates">
-          <Link href="/rules#schedule" className="text-sm text-violet-soft hover:underline">Full schedule →</Link>
+        <SectionHeading note="All times IST" title="Key dates">
+          <Link href="/rules#schedule" className="link text-sm">Full schedule</Link>
         </SectionHeading>
         <ol className="panel divide-y divide-line">
           {KEY_DATES.map((d) => (
             <li key={d.when} className="grid gap-1 px-5 py-3 sm:grid-cols-[200px_1fr_auto] sm:items-baseline sm:gap-4">
-              <span className="tnum font-mono text-sm text-violet-soft">{d.when}</span>
+              <span className="tnum font-cond font-semibold">{d.when}</span>
               <span className="text-sm">{d.what}</span>
-              <span className={`text-xs font-semibold uppercase tracking-wider ${d.where === "Online" ? "text-faint" : "text-cyan"}`}>{d.where}</span>
+              <span className={`text-xs font-semibold ${d.where === "Online" ? "text-faint" : "text-steel"}`}>{d.where}</span>
             </li>
           ))}
         </ol>
@@ -127,8 +129,8 @@ export default async function Home() {
       {/* Groups snapshot */}
       {t.groups.length > 0 && (
         <section className="mt-16">
-          <SectionHeading kicker={`Top ${t.config.qualifiersPerGroup} per group advance`} title="Group standings">
-            <Link href="/groups" className="text-sm text-violet-soft hover:underline">Full tables →</Link>
+          <SectionHeading note={`Top ${t.config.qualifiersPerGroup} per group advance`} title="Group standings">
+            <Link href="/groups" className="link text-sm">Full tables</Link>
           </SectionHeading>
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             {t.groups.map((g) => (
@@ -141,8 +143,8 @@ export default async function Home() {
       {/* Recent results */}
       {recent.length > 0 && (
         <section className="mt-16">
-          <SectionHeading kicker="Latest" title="Recent results">
-            <Link href="/schedule" className="text-sm text-violet-soft hover:underline">All matches →</Link>
+          <SectionHeading title="Recent results">
+            <Link href="/schedule" className="link text-sm">All matches</Link>
           </SectionHeading>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {recent.map((m) => (
@@ -155,18 +157,18 @@ export default async function Home() {
       {/* Prizes + announcements */}
       <section className="mt-16 grid gap-6 lg:grid-cols-[1fr_1.2fr]">
         <div>
-          <SectionHeading kicker="Free entry" title="Prize pool" />
+          <SectionHeading note="Free entry" title="Prize pool" />
           <div className="flex flex-col gap-3">
             {PRIZES.map((p, i) => (
               <div key={p.place} className="panel flex items-center justify-between p-4">
-                <span className={`font-display text-lg font-bold ${i === 0 ? "rift-text" : ""}`}>{p.place} place</span>
-                <span className="tnum font-mono text-xl font-semibold">{inr(p.amount)}</span>
+                <span className={`font-cond text-lg font-bold ${i === 0 ? "text-signal" : ""}`}>{p.place} place</span>
+                <span className="tnum font-cond text-xl font-semibold">{inr(p.amount)}</span>
               </div>
             ))}
           </div>
         </div>
         <div>
-          <SectionHeading kicker="From the organisers" title="Announcements" />
+          <SectionHeading title="Announcements" />
           {t.announcements.length === 0 ? (
             <p className="text-sm text-muted">Nothing yet.</p>
           ) : (

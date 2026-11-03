@@ -13,13 +13,13 @@ export default async function TeamsPage() {
 
   return (
     <>
-      <PageHeader kicker={`${t.teams.length} squads`} title="Teams">
+      <PageHeader meta={`${t.teams.length} squads`} title="Teams">
         Every registered squad, its roster and how it&apos;s doing so far.
       </PageHeader>
       <div className="flex flex-col gap-12">
         {groups.map((g) => (
           <section key={g}>
-            <h2 className="mb-4 font-display text-sm font-semibold uppercase tracking-[0.2em] text-violet-soft">
+            <h2 className="mb-4 font-cond text-base font-semibold text-muted">
               {g === "—" ? "Unassigned" : `Group ${g}`}
             </h2>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -29,26 +29,26 @@ export default async function TeamsPage() {
                 .map((team) => {
                   const r = rowById.get(team.id);
                   return (
-                    <Link key={team.id} href={`/teams/${team.id}`} className="panel group flex flex-col gap-4 p-4 transition-colors hover:border-violet/50">
+                    <Link key={team.id} href={`/teams/${team.id}`} className="panel group flex flex-col gap-4 p-4 transition-colors hover:border-signal/50">
                       <div className="flex items-center gap-3">
                         <TeamBadge team={team} size="lg" />
                         <div className="min-w-0">
-                          <p className="truncate font-display text-lg font-bold group-hover:text-violet-soft">{team.name}</p>
+                          <p className="truncate font-cond text-lg font-bold group-hover:text-signal">{team.name}</p>
                           <p className="text-xs text-muted">[{team.tag}] · {team.players.length} players</p>
                         </div>
                       </div>
                       <dl className="grid grid-cols-3 gap-2 border-t border-line pt-3 text-center">
                         <div>
-                          <dt className="text-[10px] uppercase tracking-wider text-faint">Pos</dt>
-                          <dd className="tnum font-mono font-semibold">{r && r.played > 0 ? `#${r.position}` : "–"}</dd>
+                          <dt className="text-[10px] text-faint">Pos</dt>
+                          <dd className="tnum font-cond font-semibold">{r && r.played > 0 ? `#${r.position}` : "–"}</dd>
                         </div>
                         <div>
-                          <dt className="text-[10px] uppercase tracking-wider text-faint">W-L</dt>
-                          <dd className="tnum font-mono font-semibold">{r ? `${r.won}-${r.lost}` : "–"}</dd>
+                          <dt className="text-[10px] text-faint">W-L</dt>
+                          <dd className="tnum font-cond font-semibold">{r ? `${r.won}-${r.lost}` : "–"}</dd>
                         </div>
                         <div>
-                          <dt className="text-[10px] uppercase tracking-wider text-faint">Pts</dt>
-                          <dd className="tnum font-mono font-semibold">{r?.points ?? "–"}</dd>
+                          <dt className="text-[10px] text-faint">Pts</dt>
+                          <dd className="tnum font-cond font-semibold">{r?.points ?? "–"}</dd>
                         </div>
                       </dl>
                     </Link>

@@ -39,7 +39,7 @@ async function Setup() {
 
       <div className="mt-6 grid gap-5 lg:grid-cols-2">
         <section className="panel p-5 lg:row-span-2">
-          <h2 className="font-display text-lg font-bold">1 · Import from registration (CSV)</h2>
+          <h2 className="font-cond text-lg font-bold">1 · Import from registration (CSV)</h2>
           <p className="mt-1 text-xs text-muted">Export the registration Google Form/Sheet as CSV. Headers are matched by name, any order.</p>
           <ul className="mt-3 flex flex-col gap-1 text-xs text-muted">
             {FORMATS.map((f) => <li key={f.kind}><span className="font-semibold text-text">{f.kind}:</span> {f.cols}</li>)}
@@ -48,14 +48,14 @@ async function Setup() {
             <select name="kind" className={inputClass} defaultValue="Teams">
               {FORMATS.map((f) => <option key={f.kind}>{f.kind}</option>)}
             </select>
-            <input type="file" name="file" accept=".csv,text/csv" className="text-sm text-muted file:mr-3 file:rounded-md file:border-0 file:bg-surface-2 file:px-3 file:py-2 file:text-text" />
-            <textarea name="text" rows={6} placeholder="…or paste CSV here" className={`${inputClass} font-mono text-xs`} />
+            <input type="file" name="file" accept=".csv,text/csv" className="text-sm text-muted file:mr-3 file:rounded-sm file:border-0 file:bg-surface-2 file:px-3 file:py-2 file:text-text" />
+            <textarea name="text" rows={6} placeholder="…or paste CSV here" className={`${inputClass} font-cond text-xs`} />
           </ActionForm>
           <p className="mt-3 text-xs text-faint">Player emails are what players log in with. A player can only log in once their email is imported.</p>
         </section>
 
         <section className="panel p-5">
-          <h2 className="font-display text-lg font-bold">2 · Draw groups</h2>
+          <h2 className="font-cond text-lg font-bold">2 · Draw groups</h2>
           <p className="mt-1 text-xs text-muted">
             Random draw by the registration count: up to 8 teams play one group, 9–24 play 4 groups (top 2 qualify), 25–48 play 8 groups (winners qualify).
             Extra teams go to Group A, then B. Run it on the recorded call or stream so the draw is verifiable.
@@ -70,19 +70,19 @@ async function Setup() {
         </section>
 
         <section className="panel p-5">
-          <h2 className="font-display text-lg font-bold">3 · Generate group fixtures</h2>
+          <h2 className="font-cond text-lg font-bold">3 · Generate group fixtures</h2>
           <p className="mt-1 text-xs text-muted">Round robin inside each group, BO1. Pairs that already have a match are skipped. A slot covers veto, lobby join (up to 10 min), the map, one pause and score entry.</p>
           <FixturePlanner action={generateGroupFixtures} teams={teams} existing={existing} qualifiersPerGroup={t.config.qualifiersPerGroup} />
         </section>
 
         <section className="panel p-5">
-          <h2 className="font-display text-lg font-bold">4 · Generate knockout bracket</h2>
+          <h2 className="font-cond text-lg font-bold">4 · Generate knockout bracket</h2>
           <p className="mt-1 text-xs text-muted">
             Creates QF/SF/3rd place/Final from overall seeds (S1 v S8, S4 v S5, S2 v S7, S3 v S6) at the offline schedule times: QFs Fri 27 Nov from 10:30 AM,
             SFs Sat 28 Nov at 11 AM and 2 PM, 3rd place and Grand Final Sun 29 Nov at 11:30 AM and 3 PM. Slots fill automatically as results come in.
           </p>
           <ActionForm action={generateBracket} submit="Generate bracket" className="mt-4 flex flex-col gap-3">
-            <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="third" defaultChecked className="accent-violet" /> Include a 3rd-place match</label>
+            <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="third" defaultChecked className="accent-signal" /> Include a 3rd-place match</label>
           </ActionForm>
         </section>
       </div>

@@ -203,7 +203,14 @@ Sheet gotchas:
 | 40 | 8 × 5 | 80 | spills 5 into Sunday |
 | 48 | 8 × 6 | 120 | doesn't fit (45 over) |
 
+## Visual design ("ops board")
+- Asphalt `#1c1f22` and gunmetal surfaces, chalk text `#eceae4`, one accent: signal yellow `#f4c430`, used only for attention (primary buttons, the next-match countdown, live rail, qualifying rows, champion). Flare `#ff5436` for live/errors.
+- Type: Big Shoulders Stencil for display, used only at 2xl and up; Barlow for body; Barlow Condensed for data, scores and small labels. No monospace.
+- 3px corners, no gradients or glows. Match cards carry a left status rail. Headings have no tracked-caps eyebrows; a page's live fact (e.g. "19 of 32 played") sits opposite its title. Text links are chalk with an underline that turns yellow on hover.
+- Custom primitives (`.panel`, `.rail`, `.link`, `.rift-line`) live in `@layer components` so Tailwind utilities can override them.
+
 ## Changelog
+- **2026-11-03:** New visual identity replacing the violet-cyan gradient look (see "Visual design"). Fixed along the way: white text on primary buttons, `.panel` silently overriding border-colour utilities, and arrows lost from `.join()` separators during the sweep. Browser suites updated for the new copy and pass; README screenshots retaken.
 - **2026-11-02 (later):** README rewritten with screenshots (`docs/screenshots/`, taken from the local stack in a staged match-day state). Fixed while reviewing them: tie flags showed on groups still in progress; "1 matches" on the schedule; a missing full stop on the dashboard; a truncated mode select in Content; the planner said "0 matches" once fixtures existed; the seed didn't set the registration deadline.
 - **2026-11-02:** Applied the organisers' format doc and the 8–10 PM / 5-referee window. Standings: wins → h2h → tiebreaker matches → coin toss. Seeding sets and the same-group QF swap. Scheduler rewritten for fixed evening slots, with a per-team daily cap and spill detection. Group draw by registration count. Bracket at the offline times with the 3rd-place match. Key dates on home; schedule, standings and seeding sections on Rules. Sample data moved to 17–29 Nov. Found and fixed: admin forms were filled from the cached tournament, so saving after an out-of-band DB edit wrote old teams back; staff pages now read uncached. 30 unit tests. New browser suites (match day 13, format 15, draw/fixtures 9) pass on a fresh DB. Pushed `backend`.
 - **2026-10-26 (night):**

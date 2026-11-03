@@ -5,8 +5,8 @@ import { useHydrated } from "@/lib/use-hydrated";
 import { sendLoginCode, verifyLoginCode, type LoginState } from "./actions";
 
 const input =
-  "rounded-lg border border-line-strong bg-surface-2 px-3 py-2.5 text-text outline-none placeholder:text-faint focus:border-violet";
-const button = "rounded-lg bg-gradient-to-r from-violet to-cyan px-5 py-2.5 text-sm font-semibold text-bg disabled:opacity-60";
+  "rounded-sm border border-line-strong bg-surface-2 px-3 py-2.5 text-text outline-none placeholder:text-faint focus:border-signal";
+const button = "rounded-sm bg-signal px-5 py-2.5 text-sm font-semibold text-bg disabled:opacity-60";
 
 export function LoginForm() {
   // Bumping the key starts over with an empty email form.
@@ -38,7 +38,7 @@ function CodeForm({ email, onBack }: { email: string; onBack: () => void }) {
   return (
     <form action={action} className="panel flex flex-col gap-4 p-6">
       <div role="status">
-        <p className="font-display text-xl font-bold">Check your inbox</p>
+        <p className="font-cond text-xl font-bold">Check your inbox</p>
         <p className="mt-2 text-sm text-muted">
           If <span className="text-text">{email}</span> is registered for the tournament, a login code is on its way. Check Spam and Promotions too.
         </p>
@@ -53,14 +53,14 @@ function CodeForm({ email, onBack }: { email: string; onBack: () => void }) {
           pattern="[0-9 ]{6,12}"
           maxLength={12}
           placeholder="123456"
-          className={`${input} tnum font-mono text-xl tracking-[0.3em]`}
+          className={`${input} tnum font-cond text-xl`}
         />
       </label>
       {state.error && <p className="text-sm text-live" role="alert">{state.error}</p>}
       <button disabled={pending || !hydrated} className={button}>{pending ? "Checking…" : "Log in"}</button>
       <p className="text-xs text-faint">
         You can also tap the link in the email. Wrong address?{" "}
-        <button type="button" onClick={onBack} className="text-violet-soft underline">Use a different email</button>
+        <button type="button" onClick={onBack} className="link">Use a different email</button>
       </p>
     </form>
   );

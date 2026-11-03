@@ -21,13 +21,13 @@ export default async function SchedulePage() {
 
   return (
     <>
-      <PageHeader kicker={`${done} of ${t.matches.length} matches played`} title="Schedule & results">
+      <PageHeader meta={`${done} of ${t.matches.length} played`} title="Schedule & results">
         All times are IST. Room ID/password is shared with teams 15–5 minutes before each match.
       </PageHeader>
 
       <nav className="mb-8 flex flex-wrap gap-2" aria-label="Jump to day">
         {[...days.keys()].map((k) => (
-          <a key={k} href={`#d-${k}`} className="rounded-full border border-line px-3 py-1 text-xs font-medium text-muted hover:border-violet/50 hover:text-text">
+          <a key={k} href={`#d-${k}`} className="rounded-sm border border-line px-3 py-1 text-xs font-medium text-muted hover:border-signal hover:text-text">
             {k === "tba" ? "Date TBA" : fmtDay(days.get(k)![0].scheduledAt!)}
           </a>
         ))}
@@ -38,12 +38,12 @@ export default async function SchedulePage() {
           const matchDay = t.matchDays?.find((d) => d.day === k);
           return (
             <section key={k} id={`d-${k}`} className="scroll-mt-20">
-              <h2 className="mb-4 flex flex-wrap items-baseline gap-3 font-display text-xl font-bold">
+              <h2 className="mb-4 flex flex-wrap items-baseline gap-3 font-display text-3xl font-bold">
                 {k === "tba" ? "Date TBA" : fmtDay(ms[0].scheduledAt!)}
-                <span className="text-xs font-normal text-faint">{ms.length} match{ms.length === 1 ? "" : "es"}</span>
+                <span className="font-sans text-sm font-normal text-faint">{ms.length} match{ms.length === 1 ? "" : "es"}</span>
                 {matchDay && (
-                  <span className="rounded-full border border-cyan/40 px-2.5 py-0.5 font-sans text-xs font-semibold text-cyan">
-                    Mode: {MODE_NAME[matchDay.mode]}{matchDay.note ? ` · ${matchDay.note}` : ""}
+                  <span className="rounded-sm border border-steel/40 px-2.5 py-0.5 font-sans text-xs font-semibold text-steel">
+                    Mode: {MODE_NAME[matchDay.mode]}{matchDay.note ? `, ${matchDay.note}` : ""}
                   </span>
                 )}
               </h2>

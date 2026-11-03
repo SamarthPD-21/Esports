@@ -8,9 +8,9 @@ import type { Stage } from "@/lib/types";
 export const metadata: Metadata = { title: "Bracket" };
 
 const COLUMNS: { stage: Stage; sub: string }[] = [
-  { stage: "qf", sub: "BO3 · fixed HP → S&D → Control" },
-  { stage: "sf", sub: "BO3 · higher seed holds Veto Power" },
-  { stage: "final", sub: "BO5 · Pro Standard" },
+  { stage: "qf", sub: "Best of 3, fixed order HP → S&D → Control" },
+  { stage: "sf", sub: "Best of 3, the higher seed holds Veto Power" },
+  { stage: "final", sub: "Best of 5, Pro Standard" },
 ];
 
 export default async function BracketPage() {
@@ -23,17 +23,17 @@ export default async function BracketPage() {
 
   return (
     <>
-      <PageHeader kicker="Offline · Yugaantar Gaming Arena" title="Playoff bracket">
+      <PageHeader meta="Offline at the Gaming Arena" title="Playoff bracket">
         Quarterfinal slots fill automatically from the group tables.
-        {projected && " Teams marked PROJ are current standings — they lock in when the group stage finishes."}
+        {projected && " Teams marked projected are where the current standings put them, and lock in when the group stage finishes."}
       </PageHeader>
 
       {championId && (
-        <div className="panel mb-10 flex items-center gap-4 border-violet/50 p-5">
+        <div className="panel mb-10 flex items-center gap-4 border-signal/50 p-5">
           <span className="text-3xl" aria-hidden>🏆</span>
           <div>
-            <p className="text-xs font-semibold uppercase tracking-widest text-violet-soft">Champions</p>
-            <p className="font-display text-3xl font-bold rift-text">{teams.get(championId)?.name}</p>
+            <p className="text-xs font-semibold text-signal">Champions</p>
+            <p className="font-display text-3xl font-bold text-signal">{teams.get(championId)?.name}</p>
           </div>
         </div>
       )}
@@ -44,7 +44,7 @@ export default async function BracketPage() {
           return (
             <section key={col.stage} className="flex flex-col">
               <header className="mb-4">
-                <h2 className="font-display text-lg font-bold">{STAGE_LABEL[col.stage]}{ms.length > 1 ? "s" : ""}</h2>
+                <h2 className="font-cond text-lg font-bold">{STAGE_LABEL[col.stage]}{ms.length > 1 ? "s" : ""}</h2>
                 <p className="text-xs text-muted">{col.sub}</p>
               </header>
               <div className="flex flex-1 flex-col justify-around gap-4">
@@ -53,7 +53,7 @@ export default async function BracketPage() {
                 {col.stage === "final" &&
                   third.map((m) => (
                     <div key={m.id} className="mt-4">
-                      <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-faint">3rd place</p>
+                      <p className="mb-2 text-xs font-semibold text-faint">3rd place</p>
                       <MatchCard match={m} teams={teams} showStage={false} />
                     </div>
                   ))}

@@ -1,20 +1,20 @@
 @import "tailwindcss";
 
 :root {
-  --bg: #07070d;
-  --surface: #0e0f1c;
-  --surface-2: #151628;
-  --line: #24253d;
-  --line-strong: #34365a;
-  --text: #ecedf7;
-  --muted: #8d8fab;
-  --faint: #5d5f7c;
-  --violet: #8b5cf6;
-  --violet-soft: #a78bfa;
-  --cyan: #22d3ee;
-  --live: #f43f5e;
-  --win: #34d399;
-  --warn: #fbbf24;
+  /* Ops board: asphalt and gunmetal, chalk text, one signal yellow. */
+  --bg: #1c1f22;
+  --surface: #23272b;
+  --surface-2: #2b3035;
+  --line: #353b41;
+  --line-strong: #4a525a;
+  --text: #eceae4;
+  --muted: #a3a9ae;
+  --faint: #7d848a;
+  --signal: #f4c430;
+  --steel: #b9c6cf;
+  --live: #ff5436;
+  --win: #a8cc7f;
+  --warn: #ff9a3d;
 }
 
 @theme inline {
@@ -26,15 +26,14 @@
   --color-text: var(--text);
   --color-muted: var(--muted);
   --color-faint: var(--faint);
-  --color-violet: var(--violet);
-  --color-violet-soft: var(--violet-soft);
-  --color-cyan: var(--cyan);
+  --color-signal: var(--signal);
+  --color-steel: var(--steel);
   --color-live: var(--live);
   --color-win: var(--win);
   --color-warn: var(--warn);
-  --font-sans: var(--font-inter);
-  --font-display: var(--font-chakra);
-  --font-mono: var(--font-jetbrains);
+  --font-sans: var(--font-barlow);
+  --font-display: var(--font-stencil);
+  --font-cond: var(--font-barlow-cond);
 }
 
 html {
@@ -43,30 +42,55 @@ html {
 }
 
 body {
-  background:
-    radial-gradient(1200px 600px at 85% -10%, rgb(139 92 246 / 0.16), transparent 60%),
-    radial-gradient(900px 500px at -10% 10%, rgb(34 211 238 / 0.08), transparent 60%),
-    var(--bg);
-  background-attachment: fixed;
+  background: var(--bg);
   color: var(--text);
 }
 
-.rift-text {
-  background: linear-gradient(100deg, var(--violet-soft) 10%, var(--cyan) 90%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+::selection {
+  background: var(--signal);
+  color: var(--bg);
 }
 
-.rift-line {
-  background: linear-gradient(90deg, transparent, var(--violet), var(--cyan), transparent);
-  height: 1px;
+:focus-visible {
+  outline: 2px solid var(--signal);
+  outline-offset: 2px;
 }
 
-.panel {
-  background: linear-gradient(180deg, rgb(255 255 255 / 0.025), transparent 40%), var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 14px;
+/* Display type: stencil, set tight. Large sizes use the display optical size. */
+.font-display {
+  font-variation-settings: "opsz" 72;
+  letter-spacing: 0.01em;
+}
+
+/* In the components layer so utilities (border colours, padding) can override them. */
+@layer components {
+  /* A short signal tab on a seam line, under page titles. */
+  .rift-line {
+    height: 2px;
+    background: linear-gradient(90deg, var(--signal) 0 56px, var(--line) 56px);
+  }
+
+  /* Inline text link: chalk with a seam underline that lights up on hover. */
+  .link {
+    color: var(--text);
+    text-decoration: underline;
+    text-decoration-color: var(--line-strong);
+    text-underline-offset: 4px;
+  }
+  .link:hover {
+    text-decoration-color: var(--signal);
+  }
+
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+  }
+
+  /* Status rail on the left edge of a match: what state it's in, at a glance. */
+  .rail {
+    border-left-width: 3px;
+  }
 }
 
 .tnum {

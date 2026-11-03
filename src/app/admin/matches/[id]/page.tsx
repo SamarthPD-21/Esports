@@ -35,7 +35,7 @@ export default function EditMatchPage(props: PageProps<"/admin/matches/[id]">) {
 function Panel({ title, children, note }: { title: string; children: React.ReactNode; note?: string }) {
   return (
     <section className="panel p-5">
-      <h2 className="font-display text-lg font-bold">{title}</h2>
+      <h2 className="font-cond text-lg font-bold">{title}</h2>
       {note && <p className="mt-1 text-xs text-muted">{note}</p>}
       <div className="mt-4">{children}</div>
     </section>
@@ -66,7 +66,7 @@ async function Editor({ params }: Pick<PageProps<"/admin/matches/[id]">, "params
 
   return (
     <>
-      <Link href="/admin" className="text-sm text-violet-soft hover:underline">← All matches</Link>
+      <Link href="/admin" className="link text-sm">← All matches</Link>
       <header className="mt-3 mb-6 flex flex-wrap items-center gap-3">
         <h1 className="font-display text-3xl font-bold">
           {m.id} · {sides[0].team?.name ?? m.a.label} <span className="text-faint">vs</span> {sides[1].team?.name ?? m.b.label}
@@ -74,7 +74,7 @@ async function Editor({ params }: Pick<PageProps<"/admin/matches/[id]">, "params
         <StatusChip status={m.status} />
         <span className="text-sm text-muted">
           {m.stage === "group" ? `Group ${m.group}` : STAGE_LABEL[m.stage]} · BO{m.bestOf} · public score {m.mapWinsA}–{m.mapWinsB}
-          {m.stage === "group" && <> · day mode: <span className={day ? "text-cyan" : "text-warn"}>{day ? MODE_NAME[day.mode] : "not announced"}</span></>}
+          {m.stage === "group" && <> · day mode: <span className={day ? "text-steel" : "text-warn"}>{day ? MODE_NAME[day.mode] : "not announced"}</span></>}
         </span>
       </header>
 
@@ -91,7 +91,7 @@ async function Editor({ params }: Pick<PageProps<"/admin/matches/[id]">, "params
               <div key={p.maps.map((x) => `${x.game}${x.mode}${x.status}`).join() + (veto?.decider ?? "")} className="overflow-x-auto">
                 <table className="w-full min-w-[560px] text-sm">
                   <thead>
-                    <tr className="text-left text-[11px] uppercase tracking-wider text-faint">
+                    <tr className="text-left text-[11px] text-faint">
                       <th className="pb-2 font-medium">G</th>
                       <th className="pb-2 font-medium">Mode</th>
                       <th className="pb-2 font-medium">Map</th>
@@ -107,7 +107,7 @@ async function Editor({ params }: Pick<PageProps<"/admin/matches/[id]">, "params
                       const locked = r?.status === "final" && !isAdmin;
                       return (
                         <tr key={g}>
-                          <td className="py-1 pr-2 font-mono text-xs text-faint">{g}</td>
+                          <td className="py-1 pr-2 font-cond text-xs text-faint">{g}</td>
                           <td className="py-1 pr-2">
                             <select name={`mode${g}`} defaultValue={r?.mode ?? modeFor(g)} disabled={locked} className={`${inputClass} min-w-20`}>
                               {(Object.keys(MODE_NAME) as Mode[]).map((k) => <option key={k} value={k}>{k === "SND" ? "S&D" : k}</option>)}
@@ -133,7 +133,7 @@ async function Editor({ params }: Pick<PageProps<"/admin/matches/[id]">, "params
               </datalist>
               {isAdmin && (
                 <label className="flex items-center gap-2 text-sm">
-                  <input type="checkbox" name="approve" defaultChecked className="accent-violet" /> Publish now
+                  <input type="checkbox" name="approve" defaultChecked className="accent-signal" /> Publish now
                 </label>
               )}
             </ActionForm>
@@ -251,7 +251,7 @@ async function Editor({ params }: Pick<PageProps<"/admin/matches/[id]">, "params
           {m.stage === "sf" && (
             <Panel title="Veto Power">
               <p className="text-sm">
-                Holder: <span className="text-cyan">{m.vetoHolder ? (m.vetoHolder === "A" ? sides[0].team?.name : sides[1].team?.name) : "decided when both teams are known"}</span>
+                Holder: <span className="text-steel">{m.vetoHolder ? (m.vetoHolder === "A" ? sides[0].team?.name : sides[1].team?.name) : "decided when both teams are known"}</span>
               </p>
               <p className="mt-1 text-sm text-muted">{p.veto ? `Captain submitted: ${p.veto.choice} (${fmtTime(p.veto.submitted_at)})` : "No veto submitted — default order applies."}</p>
             </Panel>
@@ -274,7 +274,7 @@ async function Editor({ params }: Pick<PageProps<"/admin/matches/[id]">, "params
                   <li key={d.id} className="text-sm">
                     <p className="flex justify-between"><span className="font-medium">{team(d.team_id)?.name}</span><span className={d.status === "open" ? "text-warn" : "text-muted"}>{d.status}</span></p>
                     <p className="mt-1">{d.reason}</p>
-                    {d.evidence_url && <a href={d.evidence_url} className="text-xs text-violet-soft underline" target="_blank" rel="noreferrer">Evidence</a>}
+                    {d.evidence_url && <a href={d.evidence_url} className="link text-xs" target="_blank" rel="noreferrer">Evidence</a>}
                     {d.status === "open" ? (
                       <ActionForm action={resolveDispute} submit="Resolve" className="mt-2 flex flex-col gap-2">
                         <input type="hidden" name="id" value={d.id} />
@@ -312,14 +312,14 @@ function VetoEditor({ matchId, mode, pool, saved, teamName, lobbyOpen }: {
   return (
     <>
       {saved && (
-        <div className="mb-4 rounded-lg border border-line p-3 text-sm">
+        <div className="mb-4 rounded-sm border border-line p-3 text-sm">
           <ol className="flex flex-col gap-0.5 text-muted">
             {vetoTurns(1, saved.first_side).map((turn, i) => (
               <li key={i}>Ban {i + 1}: <span className="text-text">{saved.steps[i]}</span> <span className="text-xs">({teamName(turn.side)})</span></li>
             ))}
           </ol>
-          <p className="mt-2">Map: <span className="font-semibold text-cyan">{saved.decider}</span>{saved.coin_toss && <> · {teamName(saved.coin_toss)} picks side</>}</p>
-          {saved.screenshot_url && <a href={saved.screenshot_url} target="_blank" rel="noreferrer" className="text-xs text-violet-soft underline">Screenshot</a>}
+          <p className="mt-2">Map: <span className="font-semibold text-steel">{saved.decider}</span>{saved.coin_toss && <> · {teamName(saved.coin_toss)} picks side</>}</p>
+          {saved.screenshot_url && <a href={saved.screenshot_url} target="_blank" rel="noreferrer" className="link text-xs">Screenshot</a>}
         </div>
       )}
       {saved && lobbyOpen && <p className="mb-3 text-xs text-warn">The lobby invite has already gone out. Only change the veto to correct a mistake.</p>}

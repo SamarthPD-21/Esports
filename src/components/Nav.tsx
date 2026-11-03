@@ -23,15 +23,13 @@ export function NavShell({ pathname }: { pathname: string }) {
   const active = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
 
   return (
-    <header className="sticky top-0 z-40 border-b border-line bg-bg/80 backdrop-blur-md">
+    <header className="sticky top-0 z-40 border-b border-line bg-bg/95">
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-4 px-4">
         <Link href="/" className="flex items-center gap-2" onClick={() => setOpen(false)}>
-          <span className="grid size-7 place-items-center rounded-md bg-gradient-to-br from-violet to-cyan font-display text-xs font-black text-bg">
+          <span className="grid h-7 place-items-center rounded-sm bg-signal px-1.5 font-cond text-lg leading-none font-black text-bg">
             C2
           </span>
-          <span className="font-display text-sm font-bold uppercase tracking-[0.18em]">
-            Carnage <span className="rift-text">2.0</span>
-          </span>
+          <span className="font-cond text-xl font-bold">Carnage 2.0</span>
         </Link>
 
         <nav className="hidden items-center gap-1 md:flex" aria-label="Main">
@@ -40,8 +38,8 @@ export function NavShell({ pathname }: { pathname: string }) {
               key={l.href}
               href={l.href}
               aria-current={active(l.href) ? "page" : undefined}
-              className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
-                active(l.href) ? "bg-surface-2 text-text" : "text-muted hover:text-text"
+              className={`border-b-2 px-3 py-4 text-sm font-medium ${
+                active(l.href) ? "border-signal text-text" : "border-transparent text-muted hover:text-text"
               }`}
             >
               {l.label}
@@ -50,7 +48,7 @@ export function NavShell({ pathname }: { pathname: string }) {
           <Link
             href="/me"
             aria-current={pathname.startsWith("/me") || pathname.startsWith("/admin") ? "page" : undefined}
-            className="ml-2 rounded-md border border-violet/40 px-3 py-1.5 text-sm font-medium text-violet-soft hover:bg-violet/10"
+            className="ml-3 rounded-sm border border-line-strong px-3 py-1.5 text-sm font-semibold hover:border-signal"
           >
             My matches
           </Link>
@@ -58,7 +56,7 @@ export function NavShell({ pathname }: { pathname: string }) {
 
         <button
           type="button"
-          className="grid size-9 place-items-center rounded-md border border-line text-muted md:hidden"
+          className="grid size-9 place-items-center rounded-sm border border-line text-muted md:hidden"
           aria-expanded={open}
           aria-controls="mobile-nav"
           aria-label={open ? "Close menu" : "Open menu"}
@@ -78,13 +76,13 @@ export function NavShell({ pathname }: { pathname: string }) {
               href={l.href}
               onClick={() => setOpen(false)}
               aria-current={active(l.href) ? "page" : undefined}
-              className={`block rounded-md px-3 py-2.5 text-sm font-medium ${active(l.href) ? "bg-surface-2 text-text" : "text-muted"}`}
+              className={`block rounded-sm px-3 py-2.5 text-sm font-medium ${active(l.href) ? "bg-surface-2 text-text" : "text-muted"}`}
             >
               {l.label}
             </Link>
           ))}
-          <Link href="/me" onClick={() => setOpen(false)} className="mt-1 block rounded-md px-3 py-2.5 text-sm font-medium text-violet-soft">
-            My matches · Log in
+          <Link href="/me" onClick={() => setOpen(false)} className="mt-1 block rounded-sm px-3 py-2.5 text-sm font-semibold text-text">
+            My matches and login
           </Link>
         </nav>
       )}

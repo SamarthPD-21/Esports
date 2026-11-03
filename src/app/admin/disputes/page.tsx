@@ -29,13 +29,13 @@ async function Disputes() {
           {disputes.map((d) => (
             <li key={d.id} className="panel flex flex-wrap items-start justify-between gap-3 p-4">
               <div className="min-w-0 flex-1">
-                <p className="text-xs text-faint"><span className="font-mono">{d.match_id}</span> · {d.team_id} · {fmtDateTime(d.created_at)}</p>
+                <p className="text-xs text-faint"><span className="font-cond">{d.match_id}</span> · {d.team_id} · {fmtDateTime(d.created_at)}</p>
                 <p className="mt-1 text-sm">{d.reason}</p>
                 {d.resolution && <p className="mt-1 text-sm text-muted">Ruling: {d.resolution}</p>}
               </div>
               <div className="flex items-center gap-3">
-                <span className={`text-xs font-semibold uppercase tracking-wider ${d.status === "open" ? "text-warn" : "text-muted"}`}>{d.status}</span>
-                <Link href={`/admin/matches/${d.match_id}`} className="text-sm text-violet-soft hover:underline">Open match →</Link>
+                <span className={`text-xs font-semibold ${d.status === "open" ? "text-warn" : "text-muted"}`}>{d.status}</span>
+                <Link href={`/admin/matches/${d.match_id}`} className="link text-sm">Open match</Link>
               </div>
             </li>
           ))}

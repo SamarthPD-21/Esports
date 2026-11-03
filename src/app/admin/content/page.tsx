@@ -33,7 +33,7 @@ async function Content() {
       <h1 className="font-display text-3xl font-bold">Content &amp; staff</h1>
       <div className="mt-6 grid gap-5 lg:grid-cols-2">
         <section className="panel p-5">
-          <h2 className="font-display text-lg font-bold">Settings</h2>
+          <h2 className="font-cond text-lg font-bold">Settings</h2>
           <ActionForm action={saveConfig} submit="Save settings" className="mt-4 grid gap-3 sm:grid-cols-2">
             {field("qualifiers_per_group", "Qualifiers per group", c.qualifiersPerGroup)}
             {field("tiebreakers", "Tiebreakers (h2h, playoff, diff, scored)", c.tiebreakers.join(", "))}
@@ -46,7 +46,7 @@ async function Content() {
         </section>
 
         <section className="panel p-5">
-          <h2 className="font-display text-lg font-bold">Group stage match days</h2>
+          <h2 className="font-cond text-lg font-bold">Group stage match days</h2>
           <p className="mt-1 text-xs text-muted">One decisive mode per match day. Setting a mode publishes it on the schedule and players&apos; dashboards.</p>
           {groupDays.length === 0 ? (
             <p className="mt-4 text-sm text-muted">Generate group fixtures first.</p>
@@ -71,7 +71,7 @@ async function Content() {
         </section>
 
         <section className="panel p-5">
-          <h2 className="font-display text-lg font-bold">Map pool</h2>
+          <h2 className="font-cond text-lg font-bold">Map pool</h2>
           <p className="mt-1 text-xs text-muted">One map per line. Announce ≥48 hours before each stage. The group-stage veto bans 4, so each mode needs exactly 5 maps then.</p>
           <ActionForm action={saveMapPool} submit="Save map pool" className="mt-4 grid gap-3 sm:grid-cols-3">
             {(["HP", "SND", "CTRL"] as const).map((mode) => (
@@ -84,7 +84,7 @@ async function Content() {
         </section>
 
         <section className="panel p-5">
-          <h2 className="font-display text-lg font-bold">Announcements</h2>
+          <h2 className="font-cond text-lg font-bold">Announcements</h2>
           <ActionForm action={addAnnouncement} submit="Publish" className="mt-4 flex flex-col gap-3">
             <input name="title" required placeholder="Title" className={inputClass} />
             <textarea name="body" rows={3} placeholder="Details" className={inputClass} />
@@ -102,7 +102,7 @@ async function Content() {
         </section>
 
         <section className="panel p-5">
-          <h2 className="font-display text-lg font-bold">Staff</h2>
+          <h2 className="font-cond text-lg font-bold">Staff</h2>
           <p className="mt-1 text-xs text-muted">Referees enter results and check-ins; admins also publish results, import data and manage staff.</p>
           <ul className="mt-4 flex flex-col gap-2">
             {o.staff.map((s) => (

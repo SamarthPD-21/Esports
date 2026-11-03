@@ -7,7 +7,7 @@ export const metadata: Metadata = { title: "Log in" };
 export default function LoginPage() {
   return (
     <div className="mx-auto max-w-md">
-      <PageHeader kicker="Players & staff" title="Log in">
+      <PageHeader title="Log in">
         No password needed. We&apos;ll email you a one-time code.
       </PageHeader>
       <LoginForm />

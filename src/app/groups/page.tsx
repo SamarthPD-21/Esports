@@ -15,13 +15,13 @@ export default async function GroupsPage() {
 
   return (
     <>
-      <PageHeader kicker="Group stage · Online · BO1" title="Group standings">
-        One point per match won. Top {t.config.qualifiersPerGroup} in each group advance to the offline Quarterfinals. Level on wins →{" "}
-        {t.config.tiebreakers.map((x) => TB_LABEL[x]).join(" → ")}.
+      <PageHeader meta="Online, best of one" title="Group standings">
+        One point per match won. Top {t.config.qualifiersPerGroup} in each group advance to the offline Quarterfinals. Level on wins:{" "}
+        {t.config.tiebreakers.map((x) => TB_LABEL[x]).join(", then ")}.
       </PageHeader>
 
       {ties.length > 0 && (
-        <ul className="mb-6 flex flex-col gap-1 rounded-lg border border-warn/30 bg-warn/5 px-4 py-3 text-sm text-warn">
+        <ul className="mb-6 flex flex-col gap-1 rounded-sm border border-warn/30 bg-warn/5 px-4 py-3 text-sm text-warn">
           {ties.map((tie) => (
             <li key={tie.teams.join()}>
               ⚑ Group {tie.group}: {names(tie.teams)} are level — tiebreaker match needed
@@ -38,7 +38,7 @@ export default async function GroupsPage() {
       </div>
 
       <div className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-xs text-muted">
-        <span className="flex items-center gap-2"><span className="size-3 rounded-sm bg-violet/30" /> Qualifying position</span>
+        <span className="flex items-center gap-2"><span className="size-3 rounded-sm bg-signal/30" /> Qualifying position</span>
         <span>P played · W-L series record · Diff score difference · Pts points</span>
       </div>
 
@@ -52,7 +52,7 @@ export default async function GroupsPage() {
           <ol className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
             {t.seeds.map((id, i) => (
               <li key={id} className="panel flex items-center gap-3 px-4 py-3">
-                <span className="tnum w-6 font-mono text-sm text-violet-soft">S{i + 1}</span>
+                <span className="tnum w-7 font-cond font-semibold text-muted">S{i + 1}</span>
                 <span className="truncate font-medium">{teams.get(id)?.name ?? id}</span>
               </li>
             ))}

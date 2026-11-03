@@ -25,7 +25,7 @@ export function ActionForm({
   const [state, run, pending] = useActionState(action, {});
   const hydrated = useHydrated();
   const btn =
-    tone === "primary" ? "bg-violet text-white" : tone === "danger" ? "border border-live/40 text-live" : "border border-line-strong text-muted hover:text-text";
+    tone === "primary" ? "bg-signal text-bg" : tone === "danger" ? "border border-live/40 text-live" : "border border-line-strong text-muted hover:text-text";
   return (
     <form
       action={run}
@@ -40,7 +40,7 @@ export function ActionForm({
     >
       {children}
       <div className="flex flex-wrap items-center gap-3">
-        <button disabled={pending || !hydrated} className={`rounded-lg px-4 py-2 text-sm font-semibold disabled:opacity-60 ${btn}`}>
+        <button disabled={pending || !hydrated} className={`rounded-sm px-4 py-2 text-sm font-semibold disabled:opacity-60 ${btn}`}>
           {pending ? "Working…" : submit}
         </button>
         {state.error && <span className="text-sm text-live" role="alert">{state.error}</span>}
@@ -51,4 +51,4 @@ export function ActionForm({
 }
 
 export const inputClass =
-  "w-full rounded-lg border border-line-strong bg-surface-2 px-3 py-2 text-sm text-text outline-none placeholder:text-faint focus:border-violet";
+  "w-full rounded-sm border border-line-strong bg-surface-2 px-3 py-2 text-sm text-text outline-none placeholder:text-faint focus:border-signal";
