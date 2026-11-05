@@ -375,7 +375,13 @@ export function buildTournament(
       const m = resolveMatch(src);
       // An empty bracket slot (two byes, or the loser of a bye) is itself a bye.
       if (m && m.a.bye && m.b.bye) return { ref, label: "Bye", projected: false, bye: true };
-      if (!m?.winner) return { ref, label, projected: false };
+      if (!m?.winner) {
+        // Both teams known: name them, which reads better than a match code.
+        const na = m?.a.teamId && teamById.get(m.a.teamId)?.name;
+        const nb = m?.b.teamId && teamById.get(m.b.teamId)?.name;
+        if (na && nb && !m.a.projected && !m.b.projected) return { ref, label: kind === "W" ? `${na} or ${nb}` : `Loser of ${na} v ${nb}`, projected: false };
+        return { ref, label, projected: false };
+      }
       const side = (kind === "W") === (m.winner === "A") ? m.a : m.b;
       if (side.bye) return { ref, label: "Bye", projected: false, bye: true };
       return { ref, teamId: side.teamId, label, projected: side.projected };

@@ -109,7 +109,7 @@ test("bracket: group refs and W: refs resolve, SF veto goes to higher seed", () 
   assert.deepEqual(t.seeds, ["a1", "b1", "b2", "a2"]);
   const final = t.matches.find((m) => m.id === "FINAL")!;
   assert.equal(final.a.teamId, undefined);
-  assert.equal(final.a.label, "Winner SF1");
+  assert.equal(final.a.label, "B2 or A1"); // both semifinalists known
   assert.equal(final.b.teamId, "a2");
   assert.deepEqual(t.warnings, []);
 });
