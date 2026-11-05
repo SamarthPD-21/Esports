@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { GAME_LIST, type GameDef } from "@/games/registry";
 import { getTournament, teamMap } from "@/lib/data";
 import { dayKey, fmtDay, fmtTime } from "@/lib/format";
@@ -44,7 +45,53 @@ async function gameSnapshot(g: GameDef) {
   return { g, confirmed, registered: registered.length, slots };
 }
 
-export default async function Hub() {
+export default function Hub() {
+  return (
+    <>
+      <section className="pt-12 pb-10 sm:pt-16">
+        <p className="text-muted">Yugaantar 2026 · Game Verse</p>
+        <h1 className="mt-3 font-display text-[clamp(3.5rem,14vw,8rem)] leading-[0.86] font-black">Esports</h1>
+        <p className="mt-5 max-w-xl text-lg text-muted">
+          Six games, online qualifiers through November, finals on campus. Schedules, live standings and brackets for every event.
+        </p>
+      </section>
+
+      <Suspense fallback={<GamesFallback />}>
+        <HubData />
+      </Suspense>
+
+      <section className="mt-14 mb-4 flex flex-col gap-3 border-l-2 border-signal pl-5 sm:flex-row sm:items-center sm:justify-between">
+        <p className="max-w-xl text-muted">
+          <span className="font-semibold text-text">Team leaders and solo players:</span> log in with your Unstop email to check in and get room details for your matches.
+        </p>
+        <Link href="/me" className="shrink-0 self-start rounded-sm bg-signal px-5 py-2.5 text-sm font-semibold text-bg hover:bg-text">
+          My matches
+        </Link>
+      </section>
+    </>
+  );
+}
+
+/** Same rows without the live numbers, shown while they load. */
+function GamesFallback() {
+  return (
+    <section className="border-t border-line" aria-busy>
+      <ul className="divide-y divide-line">
+        {GAME_LIST.map((g) => (
+          <li key={g.id} className="grid grid-cols-[auto_1fr] items-center gap-x-4 py-5">
+            <span className="size-3 rounded-full" style={{ background: g.accent }} aria-hidden />
+            <span className="min-w-0">
+              <span className="block font-cond text-2xl font-bold">{g.name}</span>
+              <span className="block truncate text-sm text-muted">{g.tagline}</span>
+            </span>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+async function HubData() {
   const snaps = await Promise.all(GAME_LIST.map(gameSnapshot));
   const all = snaps.flatMap((s) => s.slots).sort((a, b) => a.at.localeCompare(b.at));
   // "Tonight" is the first day that still has matches: today on a match day, else the next one.
@@ -56,14 +103,6 @@ export default async function Hub() {
 
   return (
     <>
-      <section className="pt-12 pb-10 sm:pt-16">
-        <p className="text-muted">Yugaantar 2026 · Gameverse</p>
-        <h1 className="mt-3 font-display text-[clamp(3.5rem,14vw,8rem)] leading-[0.86] font-black">Esports</h1>
-        <p className="mt-5 max-w-xl text-lg text-muted">
-          Six games, online qualifiers through November, finals on campus. Schedules, live standings and brackets for every event.
-        </p>
-      </section>
-
       <section aria-labelledby="games" className="border-t border-line">
         <h2 id="games" className="sr-only">Games</h2>
         <ul className="divide-y divide-line">
@@ -125,14 +164,6 @@ export default async function Hub() {
         )}
       </section>
 
-      <section className="mt-14 mb-4 flex flex-col gap-3 border-l-2 border-signal pl-5 sm:flex-row sm:items-center sm:justify-between">
-        <p className="max-w-xl text-muted">
-          <span className="font-semibold text-text">Team leaders and solo players:</span> log in with your Unstop email to check in and get room details for your matches.
-        </p>
-        <Link href="/me" className="shrink-0 self-start rounded-sm bg-signal px-5 py-2.5 text-sm font-semibold text-bg hover:bg-text">
-          My matches
-        </Link>
-      </section>
     </>
   );
 }

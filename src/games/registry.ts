@@ -96,7 +96,7 @@ export const GAMES: Record<GameId, GameDef> = {
     rulesPdf: "codm.pdf",
     prizes: [3000, 2000, 1000],
     keyDates: [
-      { when: "Tue 17 – Sat 21 Nov, 8–10 PM", what: "Group Stage, BO1", where: "Online" },
+      { when: "Tue 17 – Sat 21 Nov, 8–10 pm", what: "Group Stage, BO1", where: "Online" },
       { when: "Sun 22 Nov", what: "Tiebreakers and rescheduled matches", where: "Online" },
       { when: "Fri 27 Nov", what: "Quarterfinals, BO3", where: "Campus" },
       { when: "Sat 28 Nov", what: "Semifinals, BO3", where: "Campus" },
@@ -123,9 +123,9 @@ export const GAMES: Record<GameId, GameDef> = {
     rulesPdf: "valorant.pdf",
     prizes: [5000, 3000, 2000],
     keyDates: [
-      { when: "Wed 18 – Thu 19 Nov, 1–5 PM", what: "Round of 64, BO1", where: "Online" },
-      { when: "Fri 20 Nov, 1–5 PM", what: "Round of 32, BO1", where: "Online" },
-      { when: "Mon 23 Nov, 1–5 PM", what: "Round of 16 and Round of 8, BO1", where: "Online" },
+      { when: "Wed 18 – Thu 19 Nov, 1–5 pm", what: "Round of 64, BO1", where: "Online" },
+      { when: "Fri 20 Nov, 1–5 pm", what: "Round of 32, BO1", where: "Online" },
+      { when: "Mon 23 Nov, 1–5 pm", what: "Round of 16 and Round of 8, BO1", where: "Online" },
       { when: "Event Day 1", what: "Semifinals", where: "Campus" },
       { when: "Event Day 2", what: "Grand Final", where: "Campus" },
     ],
@@ -174,8 +174,8 @@ export const GAMES: Record<GameId, GameDef> = {
     rulesPdf: "bgmi.pdf",
     prizes: [4000, 2400, 1600],
     keyDates: [
-      { when: "Tue 17 – Wed 18 Nov, 8:30 PM – 12 AM", what: "Qualifiers, half the groups each night", where: "Online" },
-      { when: "Mon 23 Nov, 8:30 PM – 12 AM", what: "Semifinals", where: "Online" },
+      { when: "Tue 17 – Wed 18 Nov, 8:30 pm – 12 am", what: "Qualifiers, half the groups each night", where: "Online" },
+      { when: "Mon 23 Nov, 8:30 pm – 12 am", what: "Semifinals", where: "Online" },
       { when: "Event Day", what: "Final, top 16, 4 matches", where: "Campus" },
     ],
     rules: [
@@ -252,9 +252,9 @@ export const GAMES: Record<GameId, GameDef> = {
     rulesPdf: "freefire.pdf",
     prizes: [],
     keyDates: [
-      { when: "Tue 17 – Thu 19 Nov, 8:30 – 11 PM", what: "Qualifiers, two groups a night", where: "Online" },
-      { when: "Sat 21 – Sun 22 Nov, 9:30 PM – 12 AM", what: "Qualifiers, remaining groups", where: "Online" },
-      { when: "Mon 23 Nov, 8:30 PM", what: "Wildcard LCQ and Semifinal roster lock", where: "Online" },
+      { when: "Tue 17 – Thu 19 Nov, 8:30 – 11 pm", what: "Qualifiers, two groups a night", where: "Online" },
+      { when: "Sat 21 – Sun 22 Nov, 9:30 pm – 12 am", what: "Qualifiers, remaining groups", where: "Online" },
+      { when: "Mon 23 Nov, 8:30 pm", what: "Wildcard LCQ and Semifinal roster lock", where: "Online" },
       { when: "Event Day", what: "Semifinals and Grand Final", where: "Campus" },
     ],
     rules: [

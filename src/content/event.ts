@@ -24,10 +24,10 @@ export const PRIZE_TOTAL = PRIZES.reduce((n, p) => n + p.amount, 0);
 export const MODE_NAME = { HP: "Hardpoint", SND: "Search & Destroy", CTRL: "Control" } as const;
 
 export const KEY_DATES = [
-  { when: "Sat 14 Nov, 11:59 PM", what: "Registration closes", where: "Online" },
-  { when: "Sun 15 Nov, by 6 PM", what: "Groups drawn; fixtures, map pool, perspective and mode of the day published", where: "Online" },
+  { when: "Sat 14 Nov, 11:59 pm", what: "Registration closes", where: "Online" },
+  { when: "Sun 15 Nov, by 6 pm", what: "Groups drawn; fixtures, map pool, perspective and mode of the day published", where: "Online" },
   { when: "Mon 16 Nov", what: "Captains' briefing, CODM ID check, test lobby", where: "Online" },
-  { when: "Tue 17 – Sat 21 Nov", what: "Group Stage, BO1, 8–10 PM", where: "Online" },
+  { when: "Tue 17 – Sat 21 Nov", what: "Group Stage, BO1, 8–10 pm", where: "Online" },
   { when: "Sun 22 Nov", what: "Buffer day: tiebreakers and rescheduled matches only", where: "Online" },
   { when: "Mon 23 Nov", what: "Final standings, seeds and Quarterfinal bracket", where: "Online" },
   { when: "Tue 24 – Wed 25 Nov", what: "Qualified teams confirm attendance and final roster", where: "Online" },
