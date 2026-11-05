@@ -20,14 +20,14 @@ export function GameTabsShell({ game, pathname }: { game: string; pathname: stri
   const base = `/${game}`;
   const active = (path: string) => (path ? pathname.startsWith(base + path) : pathname === base);
   return (
-    <nav className="-mx-4 mt-3 mb-8 overflow-x-auto border-b border-line px-4" aria-label="Game sections">
+    <nav className="-mx-4 mt-6 overflow-x-auto px-4" aria-label="Game sections">
       <ul className="flex sm:gap-1">
         {TABS.map((t) => (
           <li key={t.label}>
             <Link
               href={base + t.path}
               aria-current={active(t.path) ? "page" : undefined}
-              className={`block border-b-2 px-2 py-2.5 text-sm min-[380px]:px-2.5 sm:px-3 font-medium whitespace-nowrap ${
+              className={`caps block border-b-4 px-2 py-3 text-[0.68rem] font-bold whitespace-nowrap min-[380px]:px-2.5 sm:px-3.5 sm:text-[0.72rem] ${
                 active(t.path) ? "border-[var(--game)] text-text" : "border-transparent text-muted hover:text-text"
               }`}
             >

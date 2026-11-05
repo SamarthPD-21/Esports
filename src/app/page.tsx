@@ -5,6 +5,8 @@ import { getTournament, teamMap } from "@/lib/data";
 import { dayKey, fmtDay, fmtTime } from "@/lib/format";
 import { getLobbyGame } from "@/lib/lobby/data";
 import { STAGE_LABEL } from "@/lib/tournament";
+import { EVENT } from "@/content/event";
+import { PixelCloud } from "@/components/PixelCloud";
 
 interface Slot {
   game: GameDef;
@@ -45,47 +47,70 @@ async function gameSnapshot(g: GameDef) {
   return { g, confirmed, registered: registered.length, slots };
 }
 
+const entryLabel = (g: GameDef) => (g.solo ? "Solo" : `Squad of ${g.roster.min}${g.roster.max > g.roster.min ? `+${g.roster.max - g.roster.min}` : ""}`);
+
 export default function Hub() {
   return (
     <>
-      <section className="pt-12 pb-10 sm:pt-16">
-        <p className="text-muted">Yugaantar 2026 · Game Verse</p>
-        <h1 className="mt-3 font-display text-[clamp(3.5rem,14vw,8rem)] leading-[0.86] font-black">Esports</h1>
-        <p className="mt-5 max-w-xl text-lg text-muted">
-          Six games, online qualifiers through November, finals on campus. Schedules, live standings and brackets for every event.
-        </p>
+      <section className="relative mx-[calc(50%-50vw)] overflow-hidden bg-[linear-gradient(180deg,#0e2a66_0%,#1a4590_58%,#2a64ad_100%)]">
+        <div className="pointer-events-none absolute inset-0" aria-hidden>
+          <div className="absolute -top-10 -right-12 size-36 rounded-full bg-moon opacity-90 shadow-[0_0_90px_40px_rgb(227_237_166/0.28)] sm:top-16 sm:right-[8%] sm:size-64" />
+          <PixelCloud className="drift absolute top-[9%] left-[46%] w-20 opacity-90 sm:top-[12%] sm:w-32" />
+          <PixelCloud className="drift absolute top-[58%] right-[4%] w-28 opacity-80 [animation-delay:-4s] sm:right-[22%] sm:w-44" />
+          <PixelCloud className="absolute bottom-10 left-[38%] hidden w-32 opacity-60 sm:block" />
+        </div>
+        <div className="relative mx-auto max-w-6xl px-4 pt-16 pb-20 sm:pt-24 sm:pb-28">
+          <p className="caps text-[0.7rem] text-muted">Scaler School of Technology presents</p>
+          <h1 className="mt-4 font-display text-[clamp(4.5rem,19vw,11rem)] text-moon [text-shadow:4px_4px_0_var(--color-deep)] sm:[text-shadow:6px_6px_0_var(--color-deep)]">
+            Esports
+          </h1>
+          <p className="caps mt-3 text-sm text-text">{EVENT.festival} · {EVENT.theme}</p>
+          <p className="mt-5 max-w-lg text-lg text-muted">
+            Six games, online qualifiers from 17 November, finals on campus. Schedules, live standings and brackets for every event.
+          </p>
+          <div className="mt-8 flex flex-wrap gap-3">
+            <Link href="/me" className="btn">My matches</Link>
+            <a href="#match-day" className="btn btn-ghost">Next match day</a>
+          </div>
+        </div>
+        <div className="pixel-edge relative" aria-hidden />
       </section>
 
       <Suspense fallback={<GamesFallback />}>
         <HubData />
       </Suspense>
 
-      <section className="mt-14 mb-4 flex flex-col gap-3 border-l-2 border-signal pl-5 sm:flex-row sm:items-center sm:justify-between">
+      <section className="panel mt-16 flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
         <p className="max-w-xl text-muted">
-          <span className="font-semibold text-text">Team leaders and solo players:</span> log in with your Unstop email to check in and get room details for your matches.
+          <span className="font-bold text-text">Team leaders and solo players:</span> log in with your Unstop email to check in and get room details for your matches.
         </p>
-        <Link href="/me" className="shrink-0 self-start rounded-sm bg-signal px-5 py-2.5 text-sm font-semibold text-bg hover:bg-text">
-          My matches
-        </Link>
+        <Link href="/me" className="btn shrink-0 self-start sm:self-auto">Log in</Link>
       </section>
     </>
   );
 }
 
-/** Same rows without the live numbers, shown while they load. */
+function GameCard({ g, children }: { g: GameDef; children?: React.ReactNode }) {
+  return (
+    <li style={{ "--game": g.accent } as React.CSSProperties}>
+      <Link href={`/${g.id}`} className="panel group flex h-full flex-col border-t-4 border-t-[var(--game)] p-5 transition-transform hover:-translate-y-1">
+        <span className="flex items-start justify-between gap-3">
+          <span className="font-display text-[2.6rem] group-hover:text-[var(--game)]">{g.short}</span>
+          <span className="tag mt-1 text-muted">{entryLabel(g)}</span>
+        </span>
+        <span className="mt-1 text-sm text-muted">{g.tagline}</span>
+        {children}
+      </Link>
+    </li>
+  );
+}
+
+/** Same cards without the live numbers, shown while they load. */
 function GamesFallback() {
   return (
-    <section className="border-t border-line" aria-busy>
-      <ul className="divide-y divide-line">
-        {GAME_LIST.map((g) => (
-          <li key={g.id} className="grid grid-cols-[auto_1fr] items-center gap-x-4 py-5">
-            <span className="size-3 rounded-full" style={{ background: g.accent }} aria-hidden />
-            <span className="min-w-0">
-              <span className="block font-cond text-2xl font-bold">{g.name}</span>
-              <span className="block truncate text-sm text-muted">{g.tagline}</span>
-            </span>
-          </li>
-        ))}
+    <section className="mt-12" aria-busy>
+      <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        {GAME_LIST.map((g) => <GameCard key={g.id} g={g} />)}
       </ul>
     </section>
   );
@@ -103,55 +128,49 @@ async function HubData() {
 
   return (
     <>
-      <section aria-labelledby="games" className="border-t border-line">
+      <section aria-labelledby="games" className="mt-12">
         <h2 id="games" className="sr-only">Games</h2>
-        <ul className="divide-y divide-line">
+        <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {snaps.map(({ g, confirmed, registered, slots }) => {
             const live = slots.some((s) => s.live);
             const next = slots[0];
             return (
-              <li key={g.id}>
-                <Link href={`/${g.id}`} className="group grid grid-cols-[auto_1fr_auto] items-center gap-x-4 gap-y-1 py-5 sm:grid-cols-[auto_1.2fr_1fr_auto]">
-                  <span className="size-3 rounded-full" style={{ background: g.accent }} aria-hidden />
-                  <span className="min-w-0">
-                    <span className="block font-cond text-2xl font-bold group-hover:underline group-hover:decoration-line-strong group-hover:underline-offset-4">{g.name}</span>
-                    <span className="block truncate text-sm text-muted">{g.tagline}</span>
+              <GameCard key={g.id} g={g}>
+                <span className="mt-auto flex flex-col gap-1 border-t border-line pt-4 text-sm">
+                  {live ? (
+                    <span className="flex items-center gap-2 font-bold text-live"><span className="live-dot size-2 bg-live" aria-hidden />Live now</span>
+                  ) : next ? (
+                    <span>Next: {fmtDay(next.at)}, {fmtTime(next.at)}</span>
+                  ) : (
+                    <span className="text-muted">{g.keyDates[0]?.when}: {g.keyDates[0]?.what}</span>
+                  )}
+                  <span className="text-xs text-faint">
+                    <span className="tnum font-cond text-base text-text">{confirmed}</span> {g.solo ? "players" : "teams"} confirmed
+                    {registered > confirmed ? `, ${registered - confirmed} forming` : ""}
                   </span>
-                  <span className="col-start-2 text-sm sm:col-start-auto">
-                    {live ? (
-                      <span className="font-semibold text-live">Live now</span>
-                    ) : next ? (
-                      <span>Next: {fmtDay(next.at)}, {fmtTime(next.at)}</span>
-                    ) : (
-                      <span className="text-muted">{g.keyDates[0]?.when}: {g.keyDates[0]?.what}</span>
-                    )}
-                    <span className="block text-xs text-faint">
-                      {confirmed} {g.solo ? "players" : "teams"} confirmed{registered > confirmed ? `, ${registered - confirmed} forming` : ""}
-                    </span>
-                  </span>
-                  <span className="row-span-2 text-faint group-hover:text-text sm:row-span-1" aria-hidden>›</span>
-                </Link>
-              </li>
+                </span>
+              </GameCard>
             );
           })}
         </ul>
       </section>
 
-      <section className="mt-14">
-        <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2 border-b border-line pb-3">
-          <h2 className="font-display text-3xl font-bold sm:text-4xl">{day ? fmtDay(tonight[0].at) : "Match days"}</h2>
-          <span className="text-sm text-muted">All times IST</span>
+      <section id="match-day" className="mt-20 scroll-mt-24">
+        <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
+          <h2 className="font-display text-5xl">{day ? fmtDay(tonight[0].at) : "Match days"}</h2>
+          <span className="caps text-[0.7rem] text-muted">All times IST</span>
         </div>
+        <div className="rift-line mb-2" />
         {rows.length === 0 ? (
-          <p className="text-muted">No matches scheduled yet. Online qualifiers start Tue 17 Nov.</p>
+          <p className="py-4 text-muted">No matches scheduled yet. Online qualifiers start Tue 17 Nov.</p>
         ) : (
           <ol className="flex flex-col">
             {rows.map((s) => {
               const n = lobbiesAt(s);
               return (
-                <li key={`${s.game.id}|${s.at}|${s.label}`} className="grid grid-cols-[72px_1fr] gap-4 border-b border-line py-3 sm:grid-cols-[88px_160px_1fr]">
-                  <span className={`tnum font-cond text-lg font-semibold ${s.live ? "text-live" : ""}`}>{s.live ? "Live" : fmtTime(s.at)}</span>
-                  <Link href={`/${s.game.id}/schedule`} className="font-cond font-semibold hover:underline" style={{ color: s.game.accent }}>
+                <li key={`${s.game.id}|${s.at}|${s.label}`} className="grid grid-cols-[100px_1fr] items-baseline gap-x-4 gap-y-1 border-b border-line py-3 sm:grid-cols-[110px_140px_1fr]">
+                  <span className={`tnum font-cond text-2xl whitespace-nowrap ${s.live ? "text-live" : ""}`}>{s.live ? "Live" : fmtTime(s.at)}</span>
+                  <Link href={`/${s.game.id}/schedule`} className="caps text-xs font-bold hover:underline" style={{ color: s.game.accent }}>
                     {s.game.short}
                   </Link>
                   <span className="col-span-2 text-sm text-muted sm:col-span-1">
@@ -163,7 +182,6 @@ async function HubData() {
           </ol>
         )}
       </section>
-
     </>
   );
 }

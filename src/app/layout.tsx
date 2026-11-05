@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
-import { Barlow, Barlow_Condensed, Big_Shoulders_Stencil } from "next/font/google";
+import { Alegreya_Sans, Jersey_10 } from "next/font/google";
 import { Suspense } from "react";
 import { DataNotice, Footer } from "@/components/Footer";
 import { Nav, NavShell } from "@/components/Nav";
 import { EVENT } from "@/content/event";
 import "./globals.css";
 
-const barlow = Barlow({ variable: "--font-barlow", subsets: ["latin"], weight: ["400", "500", "600", "700"] });
-const barlowCond = Barlow_Condensed({ variable: "--font-barlow-cond", subsets: ["latin"], weight: ["500", "600", "700"] });
-const stencil = Big_Shoulders_Stencil({ variable: "--font-stencil", subsets: ["latin"], axes: ["opsz"], adjustFontFallback: false });
+// Same pixel face as yugaantar.org for headings and numbers; a humanist sans for reading.
+const body = Alegreya_Sans({ variable: "--font-body", subsets: ["latin"], weight: ["400", "500", "700", "800"], style: ["normal", "italic"] });
+const pixel = Jersey_10({ variable: "--font-pixel", subsets: ["latin"], weight: "400" });
 
 export const metadata: Metadata = {
   title: { default: `Esports · ${EVENT.festival}`, template: `%s · ${EVENT.festival} Esports` },
@@ -17,7 +17,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${barlow.variable} ${barlowCond.variable} ${stencil.variable} h-full antialiased`}>
+    <html lang="en" className={`${body.variable} ${pixel.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col font-sans">
         <Suspense fallback={null}>
           <DataNotice />

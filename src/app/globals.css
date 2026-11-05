@@ -1,23 +1,27 @@
 @import "tailwindcss";
 
 :root {
-  /* Ops board: asphalt and gunmetal, chalk text, one signal yellow. */
-  --bg: #1c1f22;
-  --surface: #23272b;
-  --surface-2: #2b3035;
-  --line: #353b41;
-  --line-strong: #4a525a;
-  --text: #eceae4;
-  --muted: #a3a9ae;
-  --faint: #7d848a;
-  --signal: #f4c430;
-  --steel: #b9c6cf;
-  --live: #ff5436;
-  --win: #a8cc7f;
-  --warn: #ff9a3d;
+  /* Yugaantar night: the main fest site's navy sky, cream text, lime for actions. */
+  --deep: #061431;
+  --bg: #0b1f4b;
+  --surface: #112a60;
+  --surface-2: #173571;
+  --line: #213f7c;
+  --line-strong: #2b4c8a;
+  --text: #f3f1e2;
+  --muted: #a7b6d6;
+  --faint: #7d90ba;
+  --signal: #a8e27c;
+  --steel: #6ad5e7;
+  --moon: #e3eda6;
+  --blossom: #f6d3e3;
+  --live: #ff6568;
+  --win: #a8e27c;
+  --warn: #ffc56b;
 }
 
 @theme inline {
+  --color-deep: var(--deep);
   --color-bg: var(--bg);
   --color-surface: var(--surface);
   --color-surface-2: var(--surface-2);
@@ -28,27 +32,56 @@
   --color-faint: var(--faint);
   --color-signal: var(--signal);
   --color-steel: var(--steel);
+  --color-moon: var(--moon);
+  --color-blossom: var(--blossom);
   --color-live: var(--live);
   --color-win: var(--win);
   --color-warn: var(--warn);
-  --font-sans: var(--font-barlow);
-  --font-display: var(--font-stencil);
-  --font-cond: var(--font-barlow-cond);
+  --font-sans: var(--font-body);
+  --font-display: var(--font-pixel);
+  --font-cond: var(--font-pixel);
+  /* Pixel world: square corners everywhere except true circles. */
+  --radius-xs: 0;
+  --radius-sm: 0;
+  --radius: 0;
+  --radius-md: 0;
+  --radius-lg: 0;
+  --radius-xl: 0;
 }
 
 html {
   color-scheme: dark;
-  background: var(--bg);
+  background: var(--deep);
+  overflow-x: clip;
 }
 
 body {
   background: var(--bg);
   color: var(--text);
+  font-variant-numeric: lining-nums;
+  overflow-x: clip;
+  position: relative;
+}
+
+/* A faint field of pixel stars behind everything. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(1.5px 1.5px at 20px 30px, rgb(243 241 226 / 0.55) 99%, transparent),
+    radial-gradient(1px 1px at 140px 90px, rgb(243 241 226 / 0.4) 99%, transparent),
+    radial-gradient(1.5px 1.5px at 260px 170px, rgb(227 237 166 / 0.45) 99%, transparent),
+    radial-gradient(1px 1px at 90px 230px, rgb(167 182 214 / 0.5) 99%, transparent),
+    var(--bg);
+  background-size: 310px 290px, 310px 290px, 310px 290px, 310px 290px, auto;
 }
 
 ::selection {
   background: var(--signal);
-  color: var(--bg);
+  color: var(--deep);
 }
 
 :focus-visible {
@@ -56,21 +89,39 @@ body {
   outline-offset: 2px;
 }
 
-/* Display type: stencil, set tight. Large sizes use the display optical size. */
-.font-display {
-  font-variation-settings: "opsz" 72;
+/* Jersey 10 is drawn small for its size; pixel type wants no faux bold or tracking. */
+.font-display,
+.font-cond {
+  font-weight: 400 !important;
   letter-spacing: 0.01em;
+  font-size-adjust: ex-height 0.56;
+}
+.font-display {
+  font-size-adjust: none;
+  line-height: 0.9;
 }
 
 /* In the components layer so utilities (border colours, padding) can override them. */
 @layer components {
-  /* A short signal tab on a seam line, under page titles. */
+  /* A short accent tab on a seam line, under page titles. */
   .rift-line {
-    height: 2px;
-    background: linear-gradient(90deg, var(--game, var(--signal)) 0 56px, var(--line) 56px);
+    height: 4px;
+    background:
+      linear-gradient(90deg, var(--game, var(--signal)) 0 48px, transparent 48px 56px, var(--game, var(--signal)) 56px 64px, transparent 64px),
+      linear-gradient(var(--line) 0 0) bottom / 100% 1px no-repeat;
   }
 
-  /* Inline text link: chalk with a seam underline that lights up on hover. */
+  /* The stepped pixel edge between sky and page, as on the main site. */
+  .pixel-edge {
+    --a: var(--bg);
+    --b: transparent;
+    height: 24px;
+    background:
+      conic-gradient(from 90deg at 50% 50%, var(--b) 25%, var(--a) 0 50%, var(--b) 0 75%, var(--a) 0) 0 0 / 24px 24px,
+      linear-gradient(transparent 50%, var(--a) 50%);
+    image-rendering: pixelated;
+  }
+
   .link {
     color: var(--text);
     text-decoration: underline;
@@ -81,10 +132,110 @@ body {
     text-decoration-color: var(--signal);
   }
 
+  /* Cards: a bordered tile with a hard shadow, like the main site's event cards. */
   .panel {
     background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: 3px;
+    border: 1px solid var(--line-strong);
+    box-shadow: 4px 4px 0 var(--deep);
+  }
+
+  /* Small tracked capitals for nav, buttons and tags. */
+  .caps {
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+  }
+
+  /* Primary action: lime block with a pixel shadow that presses in. */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.7rem 1.25rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    background: var(--signal);
+    color: var(--deep);
+    box-shadow: 3px 3px 0 var(--deep);
+    transition: transform 80ms, box-shadow 80ms;
+  }
+  .btn:hover {
+    background: var(--moon);
+  }
+  .btn:active {
+    transform: translate(3px, 3px);
+    box-shadow: none;
+  }
+  .btn-ghost {
+    background: var(--deep);
+    color: var(--text);
+    border: 1px solid var(--line-strong);
+  }
+  .btn-ghost:hover {
+    background: var(--surface-2);
+  }
+
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.15rem 0.45rem;
+    border: 1px solid var(--line-strong);
+    background: var(--deep);
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    white-space: nowrap;
+  }
+
+  /* Checkbox shown as a toggle chip; --chip is its colour. */
+  .chip {
+    --chip: var(--signal);
+    display: inline-flex;
+    align-items: center;
+    padding: 0.45rem 0.7rem;
+    border: 1px solid var(--line-strong);
+    background: var(--deep);
+    color: var(--muted);
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    cursor: pointer;
+    user-select: none;
+  }
+  .chip:hover {
+    color: var(--text);
+  }
+  .chip:has(:checked) {
+    border-color: var(--chip);
+    color: var(--text);
+    background: color-mix(in oklab, var(--chip) 22%, var(--deep));
+    box-shadow: inset 0 -3px 0 var(--chip);
+  }
+  .chip:has(:focus-visible),
+  .choice:has(:focus-visible) {
+    outline: 2px solid var(--signal);
+    outline-offset: 2px;
+  }
+
+  /* Radio shown as a selectable card. */
+  .choice {
+    display: flex;
+    flex: 1 1 10rem;
+    flex-direction: column;
+    gap: 0.15rem;
+    padding: 0.65rem 0.8rem;
+    border: 1px solid var(--line-strong);
+    background: var(--deep);
+    font-size: 0.875rem;
+    cursor: pointer;
+  }
+  .choice:has(:checked) {
+    border-color: var(--signal);
+    box-shadow: inset 3px 0 0 var(--signal);
   }
 
   /* Status rail on the left edge of a match: what state it's in, at a glance. */
@@ -94,7 +245,7 @@ body {
 }
 
 .tnum {
-  font-variant-numeric: tabular-nums;
+  font-variant-numeric: tabular-nums lining-nums;
 }
 
 @keyframes pulse-dot {
@@ -105,6 +256,14 @@ body {
   animation: pulse-dot 1.4s ease-in-out infinite;
 }
 
+@keyframes drift {
+  from { transform: translateX(0); }
+  to { transform: translateX(-24px); }
+}
+.drift {
+  animation: drift 9s ease-in-out infinite alternate;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .live-dot { animation: none; }
+  .live-dot, .drift { animation: none; }
 }

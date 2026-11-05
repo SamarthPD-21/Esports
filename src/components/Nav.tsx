@@ -17,13 +17,11 @@ export function NavShell({ pathname }: { pathname: string }) {
   const active = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-line bg-bg/95">
-      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-4 px-4">
-        <Link href="/" className="flex items-center gap-2" onClick={() => setOpen(false)}>
-          <span className="grid h-7 place-items-center rounded-sm bg-signal px-1.5 font-cond text-lg leading-none font-black text-bg">
-            YG
-          </span>
-          <span className="font-cond text-xl font-bold">Esports</span>
+    <header className="sticky top-0 z-40 border-b border-line-strong bg-deep/95 backdrop-blur-sm">
+      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4">
+        <Link href="/" className="group flex items-baseline gap-2" onClick={() => setOpen(false)}>
+          <span className="font-display text-[1.9rem] text-moon [text-shadow:2px_2px_0_var(--color-surface-2)] group-hover:text-signal">Yugaantar</span>
+          <span className="caps text-[0.65rem] font-bold text-steel">Esports</span>
         </Link>
 
         <nav className="hidden items-center gap-1 md:flex" aria-label="Main">
@@ -33,7 +31,7 @@ export function NavShell({ pathname }: { pathname: string }) {
               href={l.href}
               aria-current={active(l.href) ? "page" : undefined}
               style={active(l.href) ? { borderColor: l.accent } : undefined}
-              className={`border-b-2 px-2.5 py-4 text-sm font-medium lg:px-3 ${
+              className={`caps border-b-2 px-2 py-[1.45rem] text-[0.72rem] font-medium lg:px-2.5 ${
                 active(l.href) ? "text-text" : "border-transparent text-muted hover:text-text"
               }`}
             >
@@ -43,7 +41,7 @@ export function NavShell({ pathname }: { pathname: string }) {
           <Link
             href="/me"
             aria-current={pathname.startsWith("/me") || pathname.startsWith("/admin") || pathname.startsWith("/ref") ? "page" : undefined}
-            className="ml-3 rounded-sm border border-line-strong px-3 py-1.5 text-sm font-semibold hover:border-signal"
+            className="caps ml-3 border border-line-strong bg-bg px-3.5 py-2 text-[0.72rem] font-bold hover:border-signal hover:text-signal"
           >
             My matches
           </Link>
@@ -64,19 +62,19 @@ export function NavShell({ pathname }: { pathname: string }) {
       </div>
 
       {open && (
-        <nav id="mobile-nav" className="border-t border-line px-4 py-2 md:hidden" aria-label="Main">
+        <nav id="mobile-nav" className="border-t border-line-strong px-4 py-2 md:hidden" aria-label="Main">
           {LINKS.map((l) => (
             <Link
               key={l.href}
               href={l.href}
               onClick={() => setOpen(false)}
               aria-current={active(l.href) ? "page" : undefined}
-              className={`block rounded-sm px-3 py-2.5 text-sm font-medium ${active(l.href) ? "bg-surface-2 text-text" : "text-muted"}`}
+              className={`caps block px-3 py-3 text-xs font-medium ${active(l.href) ? "bg-surface-2 text-text" : "text-muted"}`}
             >
               {l.label}
             </Link>
           ))}
-          <Link href="/me" onClick={() => setOpen(false)} className="mt-1 block rounded-sm px-3 py-2.5 text-sm font-semibold text-text">
+          <Link href="/me" onClick={() => setOpen(false)} className="btn mt-2 mb-2 w-full">
             My matches and login
           </Link>
         </nav>

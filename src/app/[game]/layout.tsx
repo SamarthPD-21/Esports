@@ -23,17 +23,22 @@ async function GameFrame({ children, params }: { children: React.ReactNode; para
 
   return (
     <div style={{ "--game": g.accent } as React.CSSProperties}>
-      <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-1 pt-8">
-        <p className="font-cond text-2xl font-bold">
-          <span className="mr-2.5 inline-block size-2.5 -translate-y-0.5 rounded-full bg-[var(--game)]" aria-hidden />
-          {g.name}
-        </p>
-        <p className="text-sm text-muted">{g.tagline}</p>
-      </div>
-      <Suspense fallback={<GameTabsShell game={game} pathname="" />}>
-        <GameTabs game={game} />
-      </Suspense>
-      {children}
+      <header className="relative mx-[calc(50%-50vw)] bg-[linear-gradient(180deg,#0e2a66,color-mix(in_oklab,var(--game)_22%,#1a4590))]">
+        <div className="mx-auto max-w-6xl px-4 pt-10">
+          <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-2">
+            <p className="font-display text-5xl text-text [text-shadow:3px_3px_0_var(--color-deep)] sm:text-6xl">
+              <span className="mr-3 inline-block size-3.5 -translate-y-2 bg-[var(--game)] sm:size-4" aria-hidden />
+              {g.name}
+            </p>
+            <p className="pb-1 text-sm text-muted">{g.tagline}</p>
+          </div>
+          <Suspense fallback={<GameTabsShell game={game} pathname="" />}>
+            <GameTabs game={game} />
+          </Suspense>
+        </div>
+        <div className="pixel-edge" aria-hidden />
+      </header>
+      <div className="pt-6">{children}</div>
     </div>
   );
 }
