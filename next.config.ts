@@ -4,8 +4,8 @@ const nextConfig: NextConfig = {
   cacheComponents: true,
   partialPrefetching: true,
   cacheLife: {
-    // Public tournament data. Staff writes call updateTag() so results show
-    // immediately; this lifetime is just a safety net.
+    // Registrations and results sheets: organisers' edits show up within
+    // about a minute.
     tournament: {
       stale: 60,
       revalidate: 60,

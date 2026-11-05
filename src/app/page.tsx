@@ -125,13 +125,11 @@ export default async function Hub() {
         )}
       </section>
 
-      <section className="mt-14 mb-4 flex flex-col gap-3 border-l-2 border-signal pl-5 sm:flex-row sm:items-center sm:justify-between">
+      <section className="mt-14 mb-4 border-l-2 border-signal pl-5">
         <p className="max-w-xl text-muted">
-          <span className="font-semibold text-text">Team leaders and solo players:</span> log in with your Unstop email to check in and get room details for your matches.
+          <span className="font-semibold text-text">Team leaders and solo players:</span> room IDs, passwords and check-in calls come from the
+          organisers on the event WhatsApp and Discord groups.
         </p>
-        <Link href="/me" className="shrink-0 self-start rounded-sm bg-signal px-5 py-2.5 text-sm font-semibold text-bg hover:bg-text">
-          My matches
-        </Link>
       </section>
     </>
   );

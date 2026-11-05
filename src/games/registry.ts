@@ -1,6 +1,6 @@
 // What each esports game at Yugaantar is, from the organisers' docs in docs/.
-// Data an admin may need to change on the day (points tables, cutoffs, times)
-// lives in the database; this is the default it starts from.
+// Lobby stage settings (points tables, cutoffs, maps) are read from here; the
+// results sheet only says which stage each lobby belongs to.
 // Plain Node can import this file (relative .ts imports, no runtime deps).
 
 import type { LobbyStageSettings } from "../lib/lobby/types.ts";

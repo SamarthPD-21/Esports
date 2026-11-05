@@ -10,15 +10,9 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "test": "node --test 'src/**/*.test.ts'",
-    "export-template": "node scripts/export-template.ts",
-    "seed-sql": "node scripts/seed-sql.ts",
-    "db:reset": "npm run seed-sql && supabase db reset",
-    "db:types": "supabase gen types typescript --local > src/lib/db/database.types.ts"
+    "export-template": "node scripts/export-template.ts"
   },
   "dependencies": {
-    "@supabase/postgrest-js": "^2.118.0",
-    "@supabase/ssr": "^0.12.7",
-    "@supabase/supabase-js": "^2.118.0",
     "next": "16.4.3",
     "react": "19.3.0",
     "react-dom": "19.3.0",
@@ -31,7 +25,6 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.4.3",
-    "supabase": "^2.122.0",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

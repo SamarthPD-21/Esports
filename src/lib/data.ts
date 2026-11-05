@@ -20,11 +20,6 @@ export async function getTournament(game: GameId = "codm"): Promise<Tournament> 
   return (await load(game)).data;
 }
 
-/** Uncached read. */
-export async function loadTournament(game: GameId = "codm"): Promise<Tournament> {
-  return (await load(game)).data;
-}
-
 export function teamMap(t: Tournament): Map<string, Team> {
   return new Map(t.teams.map((x) => [x.id, x]));
 }

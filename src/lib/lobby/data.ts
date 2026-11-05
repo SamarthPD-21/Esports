@@ -15,11 +15,6 @@ export async function getLobbyGame(game: GameId): Promise<LobbyGame> {
   return (await load(game)).data;
 }
 
-/** Uncached read. */
-export async function loadLobbyGame(game: GameId): Promise<LobbyGame> {
-  return (await load(game)).data;
-}
-
 /** The stage to show by default: the live one, else the latest started, else the first. */
 export function currentStage(g: LobbyGame): LobbyStage | undefined {
   return (

@@ -1,5 +1,5 @@
-// Shared tournament data model. The static branch fills these from a Google
-// Sheet; the backend branch fills the same shapes from Postgres. Keep this
+// Shared tournament data model, filled from the registrations and results
+// sheets (the main branch fills the same shapes from Postgres). Keep this
 // file free of runtime code so scripts can import it under plain Node.
 
 export type Mode = "HP" | "SND" | "CTRL";
@@ -176,7 +176,7 @@ export interface Tournament extends Omit<RawTournament, "matches"> {
   seedTies: string[][];
   /** Seeds swapped so two teams from one group don't meet in a Quarterfinal. */
   qfSwaps: [number, number][];
-  source: "database" | "sheet" | "sample";
+  source: "sheet" | "sample";
   warnings: string[];
   fetchedAt: string;
 }
