@@ -194,7 +194,7 @@ export function modeStats(matches: Match[], teamId: string) {
     const side = sideOf(m, teamId);
     if (!side) continue;
     for (const g of m.maps) {
-      if (!(g.mode in stats)) continue;
+      if (!g.mode || !(g.mode in stats)) continue;
       const won = side === "A" ? g.scoreA > g.scoreB : g.scoreB > g.scoreA;
       stats[g.mode][won ? "w" : "l"]++;
     }

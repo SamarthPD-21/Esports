@@ -82,7 +82,7 @@ export function toCsv(rows: (string | number | undefined)[][]): string {
     .join("\n") + "\n";
 }
 
-type Row = Record<string, string> & { __line: string };
+export type Row = Record<string, string> & { __line: string };
 
 const normKey = (s: string) => s.trim().toLowerCase().replace(/[\s-]+/g, "_");
 
@@ -151,7 +151,7 @@ function parseTime(s: string): string | undefined {
   return `${String(h).padStart(2, "0")}:${m[2]}`;
 }
 
-const int = (s: string | undefined) => (s && /^-?\d+$/.test(s) ? Number(s) : undefined);
+export const int = (s: string | undefined) => (s && /^-?\d+$/.test(s) ? Number(s) : undefined);
 const slug = (s: string) => s.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 
 // ---------------------------------------------------------------------------
@@ -180,6 +180,113 @@ export function parseCoinToss(value: string): string[][] {
     .split(/[;\n]+/)
     .map((o) => o.split(/[>,]/).map((x) => x.trim().toLowerCase()).filter(Boolean))
     .filter((o) => o.length >= 2);
+}
+
+export interface MatchRowOptions {
+  /** A team reference as typed (id or name) → team id, or undefined if it isn't a team. */
+  team: (value: string) => string | undefined;
+  /** Called with a side that is neither a team nor a slot ref; the side is then kept as typed. */
+  unknown?: (value: string, line: string) => void;
+  /** CODM maps carry a mode (HP, SND, CTRL); other games leave it blank. Default true. */
+  modes?: boolean;
+  warn: (msg: string) => void;
+}
+
+const SLOT_RE = /^(BYE|[A-Za-z]\d+|S(?:EED)?\d+)$/i;
+
+/** Matches + Maps rows → MatchInput[]. Shared by the CODM tabs and the results sheet. */
+export function parseMatchRows(matchRows: Row[], mapRows: Row[], opts: MatchRowOptions): { matches: MatchInput[] } {
+  const { warn } = opts;
+  const modes = opts.modes ?? true;
+  const mapsTab = mapRows[0]?.__line.replace(/ row \d+$/, "") ?? "Maps";
+
+  const mapsByMatch = new Map<string, MapResult[]>();
+  for (const r of mapRows) {
+    const matchId = (r.match_id ?? "").toUpperCase();
+    const mode = parseMode(r.mode ?? "");
+    const scoreA = int(r.score_a);
+    const scoreB = int(r.score_b);
+    if (!matchId || scoreA === undefined || scoreB === undefined) {
+      if (matchId && (r.score_a || r.score_b)) warn(`${r.__line}: scores must be whole numbers`);
+      continue; // a row with no scores yet is just a planned map
+    }
+    if (modes && !mode) warn(`${r.__line}: unknown mode "${r.mode}" (use HP, SND or CTRL)`);
+    const list = mapsByMatch.get(matchId) ?? [];
+    list.push({ game: int(r.game) ?? list.length + 1, mode: modes ? (mode ?? "HP") : mode, map: r.map ?? "", scoreA, scoreB });
+    mapsByMatch.set(matchId, list);
+  }
+
+  // A side is a team, a slot ref (A1, S3, W:QF1, L:SF2, BYE) or blank (TBD).
+  const side = (s: string, line: string) => {
+    const v = s.trim();
+    if (!v) return "";
+    const team = opts.team(v);
+    if (team) return team;
+    if (/^[WL]:/i.test(v)) return `${v[0].toUpperCase()}:${v.slice(2).trim().toUpperCase()}`;
+    if (SLOT_RE.test(v) || !opts.unknown) return v.toUpperCase();
+    opts.unknown(v, line);
+    return v;
+  };
+
+  const matches: MatchInput[] = [];
+  for (const r of matchRows) {
+    const id = (r.match_id ?? "").toUpperCase();
+    const stage = STAGE_ALIASES[(r.stage ?? "").toLowerCase()];
+    if (!id || !stage) {
+      warn(`${r.__line}: needs match_id and a stage (group, r64, r32, r16, qf, sf, third, final)`);
+      continue;
+    }
+    const bo = int(r.best_of);
+    const bestOf = bo === 1 || bo === 3 || bo === 5 ? bo : DEFAULT_BEST_OF[stage];
+    if (r.best_of && bo !== bestOf) warn(`${r.__line}: best_of must be 1, 3 or 5`);
+
+    const status = (r.status ?? "").toLowerCase();
+    const statusOverride =
+      status === "live" || status === "forfeit" || status === "cancelled" ? status : undefined;
+
+    const sideA = side(r.team_a ?? "", r.__line);
+    const sideB = side(r.team_b ?? "", r.__line);
+    const fw = (r.forfeit_winner ?? "").trim();
+    const fwTeam = fw ? opts.team(fw) : undefined;
+    const forfeitWinner =
+      fw.toUpperCase() === "A" ? "A"
+      : fw.toUpperCase() === "B" ? "B"
+      : fwTeam && fwTeam === sideA ? "A"
+      : fwTeam && fwTeam === sideB ? "B"
+      : undefined;
+
+    matches.push({
+      id,
+      stage,
+      group: r.group ? r.group.toUpperCase() : undefined,
+      round: int(r.round),
+      bestOf,
+      sideA,
+      sideB,
+      scheduledAt: parseWhen(r, warn),
+      statusOverride,
+      forfeitWinner,
+      vetoNote: r.veto_note || undefined,
+      notes: r.notes || undefined,
+      maps: (mapsByMatch.get(id) ?? []).sort((x, y) => x.game - y.game),
+    });
+  }
+  const matchIds = new Set(matches.map((m) => m.id));
+  for (const id of mapsByMatch.keys()) {
+    if (!matchIds.has(id)) warn(`${mapsTab}: scores entered for unknown match_id "${id}"`);
+  }
+  return { matches };
+}
+
+/** date + time columns → ISO in IST. Undefined (with a warning when unreadable) otherwise. */
+export function parseWhen(r: Row, warn: (msg: string) => void): string | undefined {
+  if (!r.date) return undefined;
+  const d = parseDate(r.date);
+  const t = r.time ? parseTime(r.time) : "00:00";
+  if (!d) warn(`${r.__line}: can't read date "${r.date}" (use YYYY-MM-DD)`);
+  else if (!t) warn(`${r.__line}: can't read time "${r.time}" (use 18:00 or 6:00 PM)`);
+  else return `${d}T${t}:00+05:30`;
+  return undefined;
 }
 
 export function parseTournament(tabs: Partial<Record<TabName, string>>): {
@@ -254,83 +361,11 @@ export function parseTournament(tabs: Partial<Record<TabName, string>>): {
     }
   }
 
-  // Maps
-  const mapsByMatch = new Map<string, MapResult[]>();
-  for (const r of rows("Maps")) {
-    const matchId = (r.match_id ?? "").toUpperCase();
-    const mode = parseMode(r.mode ?? "");
-    const scoreA = int(r.score_a);
-    const scoreB = int(r.score_b);
-    if (!matchId || scoreA === undefined || scoreB === undefined) {
-      if (matchId && (r.score_a || r.score_b)) warn(`${r.__line}: scores must be whole numbers`);
-      continue; // a row with no scores yet is just a planned map
-    }
-    if (!mode) warn(`${r.__line}: unknown mode "${r.mode}" (use HP, SND or CTRL)`);
-    const list = mapsByMatch.get(matchId) ?? [];
-    list.push({ game: int(r.game) ?? list.length + 1, mode: mode ?? "HP", map: r.map ?? "", scoreA, scoreB });
-    mapsByMatch.set(matchId, list);
-  }
-
-  // Matches
-  const matches: MatchInput[] = [];
-  for (const r of rows("Matches")) {
-    const id = (r.match_id ?? "").toUpperCase();
-    const stage = STAGE_ALIASES[(r.stage ?? "").toLowerCase()];
-    if (!id || !stage) {
-      warn(`${r.__line}: needs match_id and a stage (group, r64, r32, r16, qf, sf, third, final)`);
-      continue;
-    }
-    const bo = int(r.best_of);
-    const bestOf = bo === 1 || bo === 3 || bo === 5 ? bo : DEFAULT_BEST_OF[stage];
-    if (r.best_of && bo !== bestOf) warn(`${r.__line}: best_of must be 1, 3 or 5`);
-
-    let scheduledAt: string | undefined;
-    if (r.date) {
-      const d = parseDate(r.date);
-      const t = r.time ? parseTime(r.time) : "00:00";
-      if (!d) warn(`${r.__line}: can't read date "${r.date}" (use YYYY-MM-DD)`);
-      else if (!t) warn(`${r.__line}: can't read time "${r.time}" (use 18:00 or 6:00 PM)`);
-      else scheduledAt = `${d}T${t}:00+05:30`;
-    }
-
-    const status = (r.status ?? "").toLowerCase();
-    const statusOverride =
-      status === "live" || status === "forfeit" || status === "cancelled" ? status : undefined;
-    const fw = (r.forfeit_winner ?? "").trim();
-    const forfeitWinner =
-      fw.toUpperCase() === "A" ? "A"
-      : fw.toUpperCase() === "B" ? "B"
-      : slug(fw) && slug(fw) === slug(r.team_a ?? "") ? "A"
-      : slug(fw) && slug(fw) === slug(r.team_b ?? "") ? "B"
-      : undefined;
-
-    // team_a / team_b may be a team id or a slot ref (A1, S3, W:QF1); only slug real team ids.
-    const side = (s: string) => {
-      const v = s.trim();
-      if (/^[WL]:/i.test(v)) return `${v[0].toUpperCase()}:${v.slice(2).trim().toUpperCase()}`;
-      return teamIds.has(slug(v)) ? slug(v) : v.toUpperCase();
-    };
-
-    matches.push({
-      id,
-      stage,
-      group: r.group ? r.group.toUpperCase() : undefined,
-      round: int(r.round),
-      bestOf,
-      sideA: side(r.team_a ?? ""),
-      sideB: side(r.team_b ?? ""),
-      scheduledAt,
-      statusOverride,
-      forfeitWinner,
-      vetoNote: r.veto_note || undefined,
-      notes: r.notes || undefined,
-      maps: (mapsByMatch.get(id) ?? []).sort((x, y) => x.game - y.game),
-    });
-  }
-  const matchIds = new Set(matches.map((m) => m.id));
-  for (const id of mapsByMatch.keys()) {
-    if (!matchIds.has(id)) warn(`Maps: scores entered for unknown match_id "${id}"`);
-  }
+  // team_a / team_b may be a team id or a slot ref (A1, S3, W:QF1); only slug real team ids.
+  const { matches } = parseMatchRows(rows("Matches"), rows("Maps"), {
+    team: (v) => (teamIds.has(slug(v)) ? slug(v) : undefined),
+    warn,
+  });
 
   // Extras
   const announcements: Announcement[] = rows("Announcements")

@@ -24,13 +24,16 @@ export interface Team {
   /** From the registration sheet; withdrawn and disqualified teams don't play. */
   status?: "confirmed" | "forming" | "withdrawn" | "disqualified";
   eligible?: boolean;
+  /** Why a team is not eligible yet, e.g. "Forming, 3 of 5 players". */
+  eligibilityNote?: string;
   captain?: string;
   players: Player[];
 }
 
 export interface MapResult {
   game: number;
-  mode: Mode;
+  /** CODM only. */
+  mode?: Mode;
   map: string;
   scoreA: number;
   scoreB: number;

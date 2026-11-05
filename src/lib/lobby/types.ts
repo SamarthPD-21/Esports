@@ -112,3 +112,11 @@ export interface LobbyStandings {
   /** Matches with published results / all matches. */
   progress: { done: number; total: number };
 }
+
+/** Everything the public pages show for one lobby game. */
+export interface LobbyGame {
+  stages: LobbyStage[];
+  entrants: Record<string, LobbyEntrant[]>;
+  matches: LobbyMatch[];
+  standings: Record<string, LobbyStandings>;
+}

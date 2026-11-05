@@ -5,14 +5,9 @@ import { gameTag, TOURNAMENT_TAG } from "../data";
 import { supabaseConfigured } from "../supabase/env";
 import { createPublicClient } from "../supabase/server";
 import { computeLobbyStandings } from "./standings";
-import type { LobbyEntrant, LobbyMatch, LobbyMatchStatus, LobbyStage, LobbyStandings } from "./types";
+import type { LobbyGame, LobbyMatchStatus, LobbyStage } from "./types";
 
-export interface LobbyGame {
-  stages: LobbyStage[];
-  entrants: Record<string, LobbyEntrant[]>;
-  matches: LobbyMatch[];
-  standings: Record<string, LobbyStandings>;
-}
+export type { LobbyGame };
 
 const EMPTY: LobbyGame = { stages: [], entrants: {}, matches: [], standings: {} };
 
