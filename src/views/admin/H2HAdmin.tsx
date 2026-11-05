@@ -25,7 +25,8 @@ async function Overview({ game }: { game: GameId }) {
   const open = o.disputes.filter((d) => d.status === "open").length;
   const pending = Object.values(o.pendingByMatch).reduce((a, b) => a + b, 0);
   const live = t.matches.filter((m) => m.status === "live").length;
-  const matches = [...t.matches].sort((x, y) => (x.scheduledAt ?? "~").localeCompare(y.scheduledAt ?? "~") || x.id.localeCompare(y.id));
+  const byes = t.matches.filter((m) => m.a.bye || m.b.bye).length;
+  const matches = [...t.matches].filter((m) => !m.a.bye && !m.b.bye).sort((x, y) => (x.scheduledAt ?? "~").localeCompare(y.scheduledAt ?? "~") || x.id.localeCompare(y.id));
 
   return (
     <>
@@ -48,6 +49,7 @@ async function Overview({ game }: { game: GameId }) {
         ))}
       </div>
 
+      {byes > 0 && <p className="mt-6 text-sm text-muted">{byes} first-round byes are walked over automatically and not listed.</p>}
       {matches.length === 0 ? (
         <p className="panel mt-6 p-5 text-sm text-muted">{game === "codm" ? <>No matches yet. Import teams and generate fixtures on the <Link href="/admin/setup" className="link">Setup</Link> page.</> : "No matches yet. Draw the bracket above once registration closes."}</p>
       ) : (
