@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { ActionForm, inputClass } from "@/components/ActionForm";
-import { formatAdvanceRule, pointsSummary, TIEBREAKERS } from "@/components/lobby/settings";
+import { formatAdvanceRule, TIEBREAKERS } from "@/components/lobby/settings";
 import { ResultChip, type ResultState } from "@/components/lobby/ResultChip";
 import { StageTabs } from "@/components/lobby/StageTabs";
 import { StandingsTable } from "@/components/lobby/StandingsTable";
@@ -32,7 +32,6 @@ async function ControlRoom({ game }: { game: GameId }) {
   const viewer = await requireStaff();
   const def = GAMES[game];
   if (!canStaff(viewer, game)) return <p className="panel p-5 text-sm text-muted">You aren&apos;t on the staff for {def.name}.</p>;
-  const isAdmin = viewer.staffRole === "admin";
   const [g, t] = await Promise.all([loadLobbyGame(game), loadTournament(game)]);
   const states = await loadResultStates(g.stages.map((s) => s.id));
   const teams = teamMap(t);
@@ -45,7 +44,7 @@ async function ControlRoom({ game }: { game: GameId }) {
         <Link href="/ref" className="link text-sm">Tonight&apos;s lobbies</Link>
       </div>
       <p className="mt-1 mb-6 text-sm text-muted">
-        Signed in as {viewer.email} ({viewer.staffRole}). {isAdmin ? "You can set up stages and publish results." : "Enter results from each lobby's page."}
+        You run {def.short} here: set up stages, draw lobbies and publish results.
       </p>
 
       {g.stages.length === 0 ? (
@@ -53,15 +52,11 @@ async function ControlRoom({ game }: { game: GameId }) {
           <p className="text-sm text-muted">
             No stages yet. {def.name} runs {(def.stages ?? []).map((s) => s.name).join(", then ")}.
           </p>
-          {isAdmin ? (
-            <div className="mt-4">
-              <ActionForm action={createStages} submit="Create stages">
-                <input type="hidden" name="game" value={game} />
-              </ActionForm>
-            </div>
-          ) : (
-            <p className="mt-2 text-sm text-faint">An admin creates them.</p>
-          )}
+          <div className="mt-4">
+            <ActionForm action={createStages} submit="Create stages">
+              <input type="hidden" name="game" value={game} />
+            </ActionForm>
+          </div>
         </section>
       ) : (
         <StageTabs
@@ -72,7 +67,7 @@ async function ControlRoom({ game }: { game: GameId }) {
               id: s.id,
               label: s.name,
               meta: `${s.status} · ${(g.entrants[s.id] ?? []).length} in · ${p.done}/${p.total}`,
-              content: <StageAdmin game={game} g={g} stage={s} teams={teams} states={states} isAdmin={isAdmin} />,
+              content: <StageAdmin game={game} g={g} stage={s} teams={teams} states={states} />,
             };
           })}
         />
@@ -97,14 +92,12 @@ function StageAdmin({
   stage,
   teams,
   states,
-  isAdmin,
 }: {
   game: GameId;
   g: LobbyGame;
   stage: LobbyStage;
   teams: Map<string, Team>;
   states: Map<string, ResultState>;
-  isAdmin: boolean;
 }) {
   const unit = GAMES[game].solo ? "player" : "team";
   const entrants = g.entrants[stage.id] ?? [];
@@ -124,7 +117,7 @@ function StageAdmin({
   return (
     <div className="flex flex-col gap-5">
       <Panel title={`Entrants · ${entrants.length}`}>
-        {isAdmin && matches.length === 0 && (
+        {matches.length === 0 && (
           sources.length === 0 ? (
             <ActionForm action={fillEntrants} submit="Fill from eligible teams" tone={entrants.length ? "quiet" : "primary"}>
               <input type="hidden" name="game" value={game} />
@@ -151,7 +144,7 @@ function StageAdmin({
                     {e.pool && <span className="mr-2 font-cond text-xs text-faint">{e.pool}</span>}
                     {name(e.teamId)}
                   </span>
-                  {isAdmin && matches.length === 0 && (
+                  {matches.length === 0 && (
                     <ActionForm action={removeEntrant} submit="Remove" tone="quiet" className="flex items-center gap-2">
                       <input type="hidden" name="game" value={game} />
                       <input type="hidden" name="stage" value={stage.id} />
@@ -165,39 +158,31 @@ function StageAdmin({
         )}
       </Panel>
 
-      {isAdmin && (
-        <Panel
-          title="Lobbies & schedule"
-          note={stage.settings.reshuffle ? "Lobbies are dealt fresh for every match, so teams rarely meet the same lobby twice." : "Each pool keeps its lobby for every match of the stage."}
-        >
-          <ScheduleForm
-            game={game}
-            stageId={stage.id}
-            entrants={entrants.length}
-            lobbySize={stage.settings.lobbySize}
-            matches={stage.settings.matches}
-            reshuffle={stage.settings.reshuffle}
-            drawn={matches.length}
-            locked={hasResults}
-            defaults={(() => {
-              const plan = GAMES[game].stages?.find((x) => `${game}-${x.id}` === stage.id || x.id === stage.id)?.schedule;
-              return firstAt
-                ? { firstDay: dayKey(firstAt), start: timeIST(firstAt), gap: plan?.gap, perDay: plan?.perDay, skip: plan?.skip }
-                : { firstDay: plan?.firstDay ?? "", start: plan?.start ?? "20:30", gap: plan?.gap, perDay: plan?.perDay, skip: plan?.skip };
-            })()}
-            unit={unit}
-          />
-        </Panel>
-      )}
+      <Panel
+        title="Lobbies & schedule"
+        note={stage.settings.reshuffle ? "Lobbies are dealt fresh for every match, so teams rarely meet the same lobby twice." : "Each pool keeps its lobby for every match of the stage."}
+      >
+        <ScheduleForm
+          game={game}
+          stageId={stage.id}
+          entrants={entrants.length}
+          lobbySize={stage.settings.lobbySize}
+          matches={stage.settings.matches}
+          reshuffle={stage.settings.reshuffle}
+          drawn={matches.length}
+          locked={hasResults}
+          defaults={(() => {
+            const plan = GAMES[game].stages?.find((x) => `${game}-${x.id}` === stage.id || x.id === stage.id)?.schedule;
+            return firstAt
+              ? { firstDay: dayKey(firstAt), start: timeIST(firstAt), gap: plan?.gap, perDay: plan?.perDay, skip: plan?.skip }
+              : { firstDay: plan?.firstDay ?? "", start: plan?.start ?? "20:30", gap: plan?.gap, perDay: plan?.perDay, skip: plan?.skip };
+          })()}
+          unit={unit}
+        />
+      </Panel>
 
-      <Panel title="Stage settings" note={isAdmin ? undefined : "Only an admin can change these."}>
-        {isAdmin ? <SettingsForm game={game} stage={stage} /> : (
-          <div className="flex flex-col gap-1 text-sm text-muted">
-            <p>{pointsSummary(stage.settings.points, game)}</p>
-            <p>Tiebreakers: {stage.settings.tiebreakers.join(", ") || "none"}</p>
-            {stage.settings.advance.map((r) => <p key={formatAdvanceRule(r)}>{formatAdvanceRule(r)}</p>)}
-          </div>
-        )}
+      <Panel title="Stage settings">
+        <SettingsForm game={game} stage={stage} />
       </Panel>
 
       <Panel title="Matches" note={matches.length ? undefined : "Draw the lobbies above to create them."}>

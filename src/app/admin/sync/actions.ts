@@ -2,7 +2,7 @@
 
 import { refresh, updateTag } from "next/cache";
 import { isGameId } from "@/games/registry";
-import { requireAdmin } from "@/lib/auth";
+import { canStaff, requireAdmin, requireStaff } from "@/lib/auth";
 import { gameTag, TOURNAMENT_TAG } from "@/lib/data";
 import { syncAll, syncGame, type SyncSummary } from "@/lib/sync/apply";
 import type { ActionState } from "../actions";
@@ -32,9 +32,11 @@ function gameFrom(form: FormData): string {
 }
 
 export async function previewSync(_prev: ActionState, form: FormData): Promise<ActionState> {
-  const viewer = await requireAdmin();
+  const viewer = await requireStaff();
   try {
-    const s = await syncGame(gameFrom(form), { dryRun: true, triggeredBy: viewer.email });
+    const game = gameFrom(form);
+    if (!canStaff(viewer, game)) throw new Error("You aren't on the staff for this game.");
+    const s = await syncGame(game, { dryRun: true, triggeredBy: viewer.email });
     refresh();
     return s.ok ? { ok: `Preview: ${describe(s)}. Details below.` } : { error: s.error };
   } catch (e) {
@@ -43,9 +45,11 @@ export async function previewSync(_prev: ActionState, form: FormData): Promise<A
 }
 
 export async function syncNow(_prev: ActionState, form: FormData): Promise<ActionState> {
-  const viewer = await requireAdmin();
+  const viewer = await requireStaff();
   try {
-    const s = await syncGame(gameFrom(form), { triggeredBy: viewer.email });
+    const game = gameFrom(form);
+    if (!canStaff(viewer, game)) throw new Error("You aren't on the staff for this game.");
+    const s = await syncGame(game, { triggeredBy: viewer.email });
     invalidate([s]);
     refresh();
     return s.ok ? { ok: `Synced: ${describe(s)}.` } : { error: s.error };

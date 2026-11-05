@@ -7,10 +7,10 @@ const LINKS = [
   { href: "/admin", label: "Games" },
   { href: "/ref", label: "Tonight" },
   { href: "/admin/disputes", label: "Disputes" },
+  { href: "/admin/sync", label: "Registrations" },
   { href: "/admin/setup", label: "CODM setup", game: "codm" },
-  { href: "/admin/sync", label: "Registrations", admin: true },
+  { href: "/admin/content", label: "CODM settings", game: "codm" },
   { href: "/admin/staff", label: "Staff", admin: true },
-  { href: "/admin/content", label: "Content", admin: true },
 ];
 
 const linkClass = "caps px-3 py-2 text-[0.7rem] font-bold text-muted hover:bg-surface-2 hover:text-text";

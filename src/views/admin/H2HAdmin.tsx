@@ -3,8 +3,8 @@ import { Suspense } from "react";
 import { StatusChip } from "@/components/StatusChip";
 import { KnockoutSetup } from "@/app/admin/knockout/KnockoutSetup";
 import { getAdminOverview } from "@/lib/admin";
-import type { GameId } from "@/games/registry";
-import { requireStaff } from "@/lib/auth";
+import { GAMES, type GameId } from "@/games/registry";
+import { canStaff, requireStaff } from "@/lib/auth";
 import { loadTournament } from "@/lib/data";
 import { fmtDateTime } from "@/lib/format";
 import { STAGE_LABEL } from "@/lib/tournament";
@@ -20,6 +20,7 @@ export function H2HAdmin({ game }: { game: GameId }) {
 
 async function Overview({ game }: { game: GameId }) {
   const viewer = await requireStaff();
+  if (!canStaff(viewer, game)) return <p className="panel p-5 text-sm text-muted">You aren&apos;t on the staff for {GAMES[game].name}.</p>;
   const [t, o] = await Promise.all([loadTournament(game), getAdminOverview()]);
   const name = (id?: string, label?: string) => (id ? t.teams.find((x) => x.id === id)?.name ?? id : label ?? "TBD");
   const open = o.disputes.filter((d) => d.status === "open").length;
@@ -31,10 +32,10 @@ async function Overview({ game }: { game: GameId }) {
   return (
     <>
       <h1 className="font-display text-3xl font-bold">Matches</h1>
-      {game !== "codm" && viewer.staffRole === "admin" && !t.matches.length && (
+      {game !== "codm" && !t.matches.length && (
         <KnockoutSetup game={game as "valorant" | "fifa"} entrants={t.teams.filter((x) => x.eligible !== false && x.status !== "withdrawn" && x.status !== "disqualified").length} />
       )}
-      <p className="mt-1 text-sm text-muted">Signed in as {viewer.email} ({viewer.staffRole}). Enter map scores per match; {viewer.staffRole === "admin" ? "you can publish them directly." : "an admin publishes them."}</p>
+      <p className="mt-1 text-sm text-muted">Enter map scores per match and publish them when they&apos;re right.</p>
 
       <div className="mt-6 grid grid-cols-3 gap-3">
         {[

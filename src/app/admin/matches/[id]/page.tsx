@@ -56,7 +56,8 @@ async function Editor({ params }: Pick<PageProps<"/admin/matches/[id]">, "params
   if (!m) notFound();
   const p = await getMatchPrivate(m.id);
   const now = await requestNow();
-  const isAdmin = viewer.staffRole === "admin";
+  // Admins and this game's referees run it end to end.
+  const runsGame = canStaff(viewer, game);
   const team = (tid?: string) => (tid ? t.teams.find((x) => x.id === tid) : undefined);
   const sides = [
     { key: "A" as const, side: m.a, team: team(m.a.teamId) },
@@ -88,7 +89,7 @@ async function Editor({ params }: Pick<PageProps<"/admin/matches/[id]">, "params
         <div className="flex flex-col gap-5">
           <Panel
             title="Map results"
-            note={isAdmin ? "Tick “publish” to make results public immediately. Untick to save as pending." : "Saved results stay pending until an admin publishes them. Leave a game blank if it wasn't played."}
+            note="Tick “publish” to make results public immediately. Untick to save as pending. Leave a game blank if it wasn't played."
           >
             <ActionForm action={saveMaps} submit="Save results">
               <input type="hidden" name="id" value={m.id} />
@@ -110,7 +111,7 @@ async function Editor({ params }: Pick<PageProps<"/admin/matches/[id]">, "params
                   <tbody>
                     {Array.from({ length: m.bestOf }, (_, i) => i + 1).map((g) => {
                       const r = mapRow(g);
-                      const locked = r?.status === "final" && !isAdmin;
+                      const locked = r?.status === "final" && !runsGame;
                       return (
                         <tr key={g}>
                           <td className="py-1 pr-2 font-cond text-xs text-faint">{g}</td>
@@ -139,13 +140,13 @@ async function Editor({ params }: Pick<PageProps<"/admin/matches/[id]">, "params
               <datalist id="map-pool">
                 {[...new Set(t.mapPool.map((x) => x.map))].map((x) => <option key={x} value={x} />)}
               </datalist>
-              {isAdmin && (
+              {runsGame && (
                 <label className="flex items-center gap-2 text-sm">
                   <input type="checkbox" name="approve" defaultChecked className="accent-signal" /> Publish now
                 </label>
               )}
             </ActionForm>
-            {isAdmin && pending > 0 && (
+            {runsGame && pending > 0 && (
               <div className="mt-4 border-t border-line pt-4">
                 <ActionForm action={approveMaps} submit={`Publish ${pending} pending map(s)`} tone="quiet">
                   <input type="hidden" name="id" value={m.id} />

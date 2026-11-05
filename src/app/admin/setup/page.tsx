@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { ActionForm, inputClass } from "@/components/ActionForm";
-import { requireAdmin } from "@/lib/auth";
+import { canStaff, requireStaff } from "@/lib/auth";
 import { loadTournament } from "@/lib/data";
 import { groupFormat } from "@/lib/fixtures";
 import { drawTeamGroups, generateBracket, generateGroupFixtures, importCsv } from "../actions";
@@ -25,7 +25,8 @@ const FORMATS = [
 ];
 
 async function Setup() {
-  await requireAdmin();
+  const viewer = await requireStaff();
+  if (!canStaff(viewer, "codm")) return <p className="panel p-5 text-sm text-muted">CODM setup is for CODM staff.</p>;
   const t = await loadTournament();
   const teams = t.teams.map((x) => ({ id: x.id, group: x.group }));
   const existing = t.matches.map((m) => ({ id: m.id, stage: m.stage, side_a: m.a.ref, side_b: m.b.ref }));

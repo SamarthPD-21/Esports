@@ -12,7 +12,6 @@ import { dayKey, fmtDateTime, fmtTime } from "@/lib/format";
 import type { LobbyMatch } from "@/lib/lobby/types";
 import { createClient } from "@/lib/supabase/server";
 import { changeLineup, resolveLobbyDispute, saveLobbyRoom, setLobbyStatus, unpublishLobby } from "../actions";
-import { refereesPublish } from "../data";
 import { PlacementEntry, type SavedEntry } from "./PlacementEntry";
 
 export const metadata: Metadata = { title: "Lobby result" };
@@ -68,7 +67,6 @@ async function Entry({ params }: Pick<PageProps<"/admin/[game]/lobby/[match]">, 
   const game = gameParam;
   const def = GAMES[game];
   if (!canStaff(viewer, game)) return <p className="panel p-5 text-sm text-muted">You aren&apos;t on the staff for {def.name}.</p>;
-  const isAdmin = viewer.staffRole === "admin";
 
   const db = await createClient();
   const id = decodeURIComponent(match).toUpperCase();
@@ -81,7 +79,7 @@ async function Entry({ params }: Pick<PageProps<"/admin/[game]/lobby/[match]">, 
   const settings = normaliseSettings(stage.settings);
 
   const day = m.scheduled_at ? dayKey(m.scheduled_at) : undefined;
-  const [results, room, disputes, entrants, checkIns, t, refsPublish] = await Promise.all([
+  const [results, room, disputes, entrants, checkIns, t] = await Promise.all([
     db.from("lobby_results").select("team_id, placement, kills, adjustment, adjustment_reason").eq("match_id", id),
     db.from("lobby_rooms").select("room_id, room_password").eq("match_id", id).maybeSingle(),
     db.from("lobby_disputes").select("*").eq("match_id", id).order("created_at"),
@@ -90,7 +88,6 @@ async function Entry({ params }: Pick<PageProps<"/admin/[game]/lobby/[match]">, 
       ? db.from("lobby_check_ins").select("team_id, checked_in_at").eq("stage_id", stage.id).eq("day", day)
       : Promise.resolve({ data: [] as { team_id: string; checked_in_at: string }[] }),
     loadTournament(game),
-    refereesPublish(game),
   ]);
 
   const nameOf = (tid: string) => t.teams.find((x) => x.id === tid)?.name ?? tid;
@@ -106,7 +103,6 @@ async function Entry({ params }: Pick<PageProps<"/admin/[game]/lobby/[match]">, 
     .sort((a, b) => nameOf(a).localeCompare(nameOf(b)));
   const status: LobbyMatch["status"] =
     m.status_override === "cancelled" ? "cancelled" : m.results === "final" ? "completed" : m.status_override === "live" ? "live" : "scheduled";
-  const canPublish = isAdmin || refsPublish;
   const roomRow = room.data as { room_id: string | null; room_password: string | null } | null;
   const disputeRows = (disputes.data ?? []) as Dispute[];
 
@@ -129,7 +125,7 @@ async function Entry({ params }: Pick<PageProps<"/admin/[game]/lobby/[match]">, 
         <div className="flex flex-col gap-5">
           <Panel
             title="Results"
-            note={canPublish ? "Save a draft while you check the screenshot; publish when it's right." : "You save drafts; an admin checks and publishes them."}
+            note="Save a draft while you check the screenshot; publish when it's right."
           >
             {lineup.length === 0 ? (
               <p className="text-sm text-muted">No one is in this lobby yet. Add {def.solo ? "players" : "teams"} under Lineup.</p>
@@ -143,11 +139,9 @@ async function Entry({ params }: Pick<PageProps<"/admin/[game]/lobby/[match]">, 
                 saved={saved}
                 screenshot={m.screenshot_url ?? ""}
                 points={settings.points}
-                canPublish={canPublish}
-                locked={m.results === "final" && !isAdmin}
               />
             )}
-            {isAdmin && m.results === "final" && (
+            {m.results === "final" && (
               <div className="mt-4 border-t border-line pt-4">
                 <ActionForm action={unpublishLobby} submit="Unpublish" tone="danger">
                   <input type="hidden" name="game" value={game} />

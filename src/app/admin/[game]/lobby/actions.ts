@@ -11,13 +11,11 @@ import { matchTime, planStageMatches, schedulePools, validateLobbyResults } from
 import type { LobbyEntrant, LobbyStageSettings } from "@/lib/lobby/types";
 import { createClient } from "@/lib/supabase/server";
 import type { ActionState } from "../../actions";
-import { refereesPublish } from "./data";
 
 type Db = Awaited<ReturnType<typeof createClient>>;
 interface Ctx {
   db: Db;
   email: string;
-  isAdmin: boolean;
   game: GameId;
 }
 type Action = (prev: ActionState, form: FormData) => Promise<ActionState>;
@@ -29,17 +27,16 @@ const check = <T,>(r: { error: { message: string } | null; data?: T | null }): T
   return r.data as T;
 };
 
-/** Wraps a lobby write: staff of this game (admins for setup), then refreshes every page showing it. */
-function lobby(fn: (form: FormData, ctx: Ctx) => Promise<string>, opts: { admin?: boolean } = {}): Action {
+/** Wraps a lobby write: admins, or referees of this game, then refreshes every page showing it. */
+function lobby(fn: (form: FormData, ctx: Ctx) => Promise<string>): Action {
   return async (_prev, form) => {
     try {
       const viewer = await requireStaff();
       const game = str(form, "game");
       if (!isGameId(game) || GAMES[game].shape !== "lobby") throw new Error("That isn't a lobby game.");
       if (!canStaff(viewer, game)) throw new Error(`You aren't on the staff for ${GAMES[game].name}.`);
-      if (opts.admin && viewer.staffRole !== "admin") throw new Error("Only an admin can do that.");
       const db = await createClient();
-      const ok = await fn(form, { db, email: viewer.email, isAdmin: viewer.staffRole === "admin", game });
+      const ok = await fn(form, { db, email: viewer.email, game });
       updateTag(TOURNAMENT_TAG);
       updateTag(gameTag(game));
       refresh();
@@ -91,7 +88,7 @@ export const createStages = lobby(async (_form, { db, game }) => {
     ),
   );
   return `Created ${templates.length} stages.`;
-}, { admin: true });
+});
 
 export const fillEntrants = lobby(async (form, { db, game }) => {
   const stage = await stageRow(db, game, str(form, "stage"));
@@ -121,14 +118,14 @@ export const fillEntrants = lobby(async (form, { db, game }) => {
   const add = [...new Set(teamIds)].filter((id) => !have.has(id));
   if (add.length) check(await db.from("lobby_entrants").insert(add.map((team_id) => ({ stage_id: stage.id, team_id }))));
   return add.length ? `Added ${add.length} entrant${add.length === 1 ? "" : "s"}.` : "Everyone who qualifies is already in.";
-}, { admin: true });
+});
 
 export const removeEntrant = lobby(async (form, { db, game }) => {
   const stage = await stageRow(db, game, str(form, "stage"));
   if (await matchCount(db, stage.id)) throw new Error("Lobbies are already drawn. Take the team out of its lobby lineups instead, or redo the lobbies.");
   check(await db.from("lobby_entrants").delete().eq("stage_id", stage.id).eq("team_id", str(form, "team")));
   return "Entrant removed.";
-}, { admin: true });
+});
 
 export const planLobbies = lobby(async (form, { db, game }) => {
   const stage = await stageRow(db, game, str(form, "stage"));
@@ -195,7 +192,7 @@ export const planLobbies = lobby(async (form, { db, game }) => {
 
   const lobbies = new Set(plan.map((m) => m.lobby)).size;
   return `Drew ${plan.length} matches across ${lobbies} lobb${lobbies === 1 ? "y" : "ies"}.`;
-}, { admin: true });
+});
 
 export const saveStageSettings = lobby(async (form, { db, game }) => {
   const stage = await stageRow(db, game, str(form, "stage"));
@@ -230,7 +227,7 @@ export const saveStageSettings = lobby(async (form, { db, game }) => {
   return formatChanged && (await matchCount(db, stage.id))
     ? "Saved. Lobbies are already drawn, so redo them to apply the new format."
     : "Stage saved.";
-}, { admin: true });
+});
 
 // ---------------------------------------------------------------------------
 // One lobby match (referees)
@@ -321,15 +318,13 @@ function readEntries(raw: string): EntryInput[] {
   }));
 }
 
-export const saveLobbyResults = lobby(async (form, { db, game, email, isAdmin }) => {
+export const saveLobbyResults = lobby(async (form, { db, game, email }) => {
   const m = await matchRow(db, game, str(form, "match"));
   const publish = str(form, "intent") === "publish";
   const seen = Date.parse(str(form, "updated_at"));
   if (Number.isNaN(seen) || seen !== Date.parse(m.updated_at)) {
     throw new Error("Someone else saved this lobby a moment ago. Reload to see their entry.");
   }
-  if (m.results === "final" && !isAdmin) throw new Error("This lobby is published. Ask an admin to unpublish it before changing it.");
-  if (publish && !isAdmin && !(await refereesPublish(game))) throw new Error("An admin publishes results for this game. Save a draft instead.");
 
   const lineup = m.team_ids ?? [];
   if (!lineup.length) throw new Error("This lobby has no lineup yet.");
@@ -386,7 +381,7 @@ export const saveLobbyResults = lobby(async (form, { db, game, email, isAdmin })
       })
       .eq("id", m.id),
   );
-  return publish ? "Published. Standings are updated." : isAdmin ? "Draft saved." : "Draft saved. An admin will publish it.";
+  return publish ? "Published. Standings are updated." : "Draft saved.";
 });
 
 export const unpublishLobby = lobby(async (form, { db, game }) => {
@@ -394,7 +389,7 @@ export const unpublishLobby = lobby(async (form, { db, game }) => {
   if (m.results !== "final") throw new Error("This lobby isn't published.");
   check(await db.from("lobby_matches").update({ results: "draft", published_by: null, updated_at: new Date().toISOString() }).eq("id", m.id));
   return "Unpublished. The results are a draft again.";
-}, { admin: true });
+});
 
 export const resolveLobbyDispute = lobby(async (form, { db, game }) => {
   const m = await matchRow(db, game, str(form, "match"));

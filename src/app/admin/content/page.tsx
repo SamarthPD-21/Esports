@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { ActionForm, inputClass } from "@/components/ActionForm";
-import { requireAdmin } from "@/lib/auth";
+import { canStaff, requireStaff } from "@/lib/auth";
 import { loadTournament } from "@/lib/data";
 import { MODE_NAME } from "@/content/event";
 import { dayKey, fmtDay } from "@/lib/format";
@@ -18,7 +18,9 @@ export default function ContentPage() {
 }
 
 async function Content() {
-  await requireAdmin();
+  const viewer = await requireStaff();
+  if (!canStaff(viewer, "codm")) return <p className="panel p-5 text-sm text-muted">These are CODM settings, for CODM staff.</p>;
+  const isAdmin = viewer.staffRole === "admin";
   const t = await loadTournament();
   const c = t.config;
   const groupDays = [...new Set(t.matches.filter((m) => m.stage === "group" && m.scheduledAt).map((m) => dayKey(m.scheduledAt!)))].sort();
@@ -29,7 +31,7 @@ async function Content() {
 
   return (
     <>
-      <h1 className="font-display text-3xl font-bold">Content</h1>
+      <h1 className="font-display text-3xl font-bold">CODM settings</h1>
       <div className="mt-6 grid gap-5 lg:grid-cols-2">
         <section className="panel p-5">
           <h2 className="font-cond text-lg font-bold">Settings</h2>
@@ -82,7 +84,7 @@ async function Content() {
           </ActionForm>
         </section>
 
-        <section className="panel p-5">
+        {isAdmin && <section className="panel p-5">
           <h2 className="font-cond text-lg font-bold">Announcements</h2>
           <ActionForm action={addAnnouncement} submit="Publish" className="mt-4 flex flex-col gap-3">
             <input name="title" required placeholder="Title" className={inputClass} />
@@ -98,7 +100,7 @@ async function Content() {
             ))}
           </ul>
           <AnnouncementDeletes />
-        </section>
+        </section>}
 
       </div>
     </>

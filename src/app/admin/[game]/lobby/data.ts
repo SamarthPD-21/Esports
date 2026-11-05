@@ -9,9 +9,3 @@ export async function loadResultStates(stageIds: string[]): Promise<Map<string, 
   if (error) throw new Error(error.message);
   return new Map((data as { id: string; results: ResultState }[]).map((r) => [r.id, r.results]));
 }
-
-/** Whether referees of this game may publish lobby results without an admin. */
-export async function refereesPublish(game: string): Promise<boolean> {
-  const { data } = await createPublicClient().from("games").select("settings").eq("id", game).maybeSingle();
-  return Boolean((data as { settings: { refereesPublish?: boolean } | null } | null)?.settings?.refereesPublish);
-}

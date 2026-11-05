@@ -2,7 +2,7 @@
 
 import { updateTag } from "next/cache";
 import { unstable_rethrow } from "next/navigation";
-import { requireAdmin } from "@/lib/auth";
+import { canStaff, requireStaff } from "@/lib/auth";
 import { gameTag, TOURNAMENT_TAG } from "@/lib/data";
 import { scheduleKnockout, singleElimination, VALORANT_SCHEDULE } from "@/lib/knockout";
 import type { BestOf } from "@/lib/knockout";
@@ -56,10 +56,11 @@ function seedOrder(text: string, teams: { id: string; name: string }[]): string[
 
 /** Draws a single-elimination bracket for a game from its eligible teams. */
 export async function generateKnockout(_prev: ActionState, form: FormData): Promise<ActionState> {
-  await requireAdmin();
+  const viewer = await requireStaff();
   try {
     const game = str(form, "game") as KnockoutGame;
     if (!KNOCKOUT_GAMES.includes(game)) throw new Error("Pick a head-to-head game.");
+    if (!canStaff(viewer, game)) throw new Error("You aren't on the staff for this game.");
     const prefix = str(form, "prefix").toUpperCase();
     if (!/^[A-Z0-9]{0,8}$/.test(prefix)) throw new Error("Match ID prefix: up to 8 letters or digits.");
     if (!prefix && game !== "codm") throw new Error("Give this game a match ID prefix (e.g. VAL) so its ids don't clash with CODM's.");

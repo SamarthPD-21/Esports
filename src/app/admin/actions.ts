@@ -40,19 +40,20 @@ async function gameOfForm(db: Db, form: FormData, scope: "match" | "dispute"): P
  * Referees act only on matches of their own games.
  */
 function staff(
-  fn: (form: FormData, ctx: { db: Db; email: string; isAdmin: boolean }) => Promise<string>,
-  opts: { admin?: boolean; scope?: "match" | "dispute" } = {},
+  fn: (form: FormData, ctx: { db: Db; email: string; runsGame: boolean }) => Promise<string>,
+  opts: { admin?: boolean; game?: string; scope?: "match" | "dispute" } = {},
 ): Action {
   return async (_prev, form) => {
     try {
       const viewer = opts.admin ? await requireAdmin() : await requireStaff();
       const db = await createClient();
-      // Admins cover every game; their actions don't carry a match id.
-      const game = opts.admin ? undefined : await gameOfForm(db, form, opts.scope ?? "match");
+      // Site-wide actions are admin-only; everything else belongs to one game,
+      // which its referees run end to end.
+      const game = opts.admin ? undefined : (opts.game ?? (await gameOfForm(db, form, opts.scope ?? "match")));
       if (game && !canStaff(viewer, game)) {
         throw new Error(`You aren't on the staff for ${isGameId(game) ? GAMES[game].name : game}.`);
       }
-      const ok = await fn(form, { db, email: viewer.email, isAdmin: viewer.staffRole === "admin" });
+      const ok = await fn(form, { db, email: viewer.email, runsGame: viewer.staffRole === "admin" || (!!game && canStaff(viewer, game)) });
       updateTag(TOURNAMENT_TAG);
       refresh();
       return { ok };
@@ -153,10 +154,10 @@ export const saveVeto = staff(async (form, { db, email }) => {
   return `Veto saved. Map: ${result.decider}.`;
 });
 
-export const saveMaps = staff(async (form, { db, email, isAdmin }) => {
+export const saveMaps = staff(async (form, { db, email, runsGame }) => {
   const matchId = str(form, "id");
   const bestOf = Number(str(form, "best_of"));
-  const approve = isAdmin && form.get("approve") === "on";
+  const approve = runsGame && form.get("approve") === "on";
   let saved = 0;
   for (let g = 1; g <= bestOf; g++) {
     const a = intOrNull(str(form, `a${g}`));
@@ -192,7 +193,7 @@ export const approveMaps = staff(async (form, { db, email }) => {
     await db.from("maps").update({ status: "final", approved_by: email }).eq("match_id", str(form, "id")).eq("status", "pending").select("game"),
   );
   return `${rows.length} map(s) published.`;
-}, { admin: true });
+});
 
 export const resolveDispute = staff(async (form, { db }) => {
   const status = str(form, "status");
@@ -268,7 +269,7 @@ export const importCsv = staff(async (form, { db }) => {
     return `${raw.matches.length} match(es) imported.${warnings.length ? ` Notes: ${warnings.join("; ")}` : ""}`;
   }
   throw new Error("Pick what you're importing.");
-}, { admin: true });
+}, { game: "codm" });
 
 export const drawTeamGroups = staff(async (_form, { db }) => {
   const teams = check<{ id: string }[]>(await db.from("teams").select("id"));
@@ -283,7 +284,7 @@ export const drawTeamGroups = staff(async (_form, { db }) => {
   }
   check(await db.from("config").upsert({ key: "qualifiers_per_group", value: String(fmt.qualifiersPerGroup) }));
   return `${teams.length} teams drawn into ${fmt.groups} group(s); top ${fmt.qualifiersPerGroup} of each qualify.`;
-}, { admin: true });
+}, { game: "codm" });
 
 export const generateGroupFixtures = staff(async (form, { db }) => {
   const teams = check<{ id: string; group_name: string | null }[]>(await db.from("teams").select("id, group_name").order("name"));
@@ -300,7 +301,7 @@ export const generateGroupFixtures = staff(async (form, { db }) => {
   if (!fixtures.length) return "No new fixtures needed — every pair already has a match.";
   check(await db.from("matches").insert(fixtures.map((f) => ({ id: f.id, stage: "group", group_name: f.group, round: f.round, best_of: 1, side_a: f.a, side_b: f.b, scheduled_at: f.scheduledAt }))));
   return `${fixtures.length} group match(es) created.`;
-}, { admin: true });
+}, { game: "codm" });
 
 export const generateBracket = staff(async (form, { db }) => {
   const teams = check<{ group_name: string | null }[]>(await db.from("teams").select("group_name"));
@@ -312,7 +313,7 @@ export const generateBracket = staff(async (form, { db }) => {
   if (!skeleton.length) return "Bracket already exists.";
   check(await db.from("matches").insert(skeleton.map((m) => ({ id: m.id, stage: m.stage, best_of: m.bestOf, side_a: m.a, side_b: m.b, scheduled_at: KNOCKOUT_TIMES[m.id] ?? null }))));
   return `${skeleton.length} knockout match(es) created for ${qualifiers} qualifiers, at the offline schedule times.`;
-}, { admin: true });
+}, { game: "codm" });
 
 // ---------------------------------------------------------------------------
 // Content (admins)
@@ -334,7 +335,7 @@ export const saveConfig = staff(async (form, { db }) => {
   const keys = ["qualifiers_per_group", "tiebreakers", "coin_toss", "perspective", "event_dates", "registration_deadline", "registration_url"];
   check(await db.from("config").upsert(keys.map((key) => ({ key, value: str(form, key) }))));
   return "Settings saved.";
-}, { admin: true });
+}, { game: "codm" });
 
 export const saveMatchDays = staff(async (form, { db }) => {
   const days = str(form, "days").split(",").filter((d) => /^\d{4}-\d{2}-\d{2}$/.test(d));
@@ -349,7 +350,7 @@ export const saveMatchDays = staff(async (form, { db }) => {
     set++;
   }
   return `${set} match day(s) announced.`;
-}, { admin: true });
+}, { game: "codm" });
 
 export const saveMapPool = staff(async (form, { db }) => {
   const rows = (["HP", "SND", "CTRL"] as const).flatMap((mode) =>
@@ -358,7 +359,7 @@ export const saveMapPool = staff(async (form, { db }) => {
   check(await db.from("map_pool").delete().neq("map", ""));
   if (rows.length) check(await db.from("map_pool").insert(rows));
   return `Map pool saved (${rows.length} maps).`;
-}, { admin: true });
+}, { game: "codm" });
 
 /** Adds a staff member or changes their role and games. */
 export const saveStaff = staff(async (form, { db, email: me }) => {

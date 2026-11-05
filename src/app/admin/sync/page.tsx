@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { ActionForm } from "@/components/ActionForm";
 import { GAME_LIST, type GameId } from "@/games/registry";
-import { requireAdmin } from "@/lib/auth";
+import { canStaff, requireStaff } from "@/lib/auth";
 import { fmtDateTime } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
 import { previewSync, syncAllGames, syncNow } from "./actions";
@@ -55,7 +55,8 @@ const KIND_LABEL: Record<string, string> = {
 };
 
 async function Sync() {
-  await requireAdmin();
+  const viewer = await requireStaff();
+  const games = GAME_LIST.filter((g) => canStaff(viewer, g.id));
   const db = await createClient();
   const [runsRes, issuesRes] = await Promise.all([
     db.from("sync_runs").select("game_id, started_at, ok, dry_run, error, triggered_by, summary").order("started_at", { ascending: false }).limit(120),
@@ -76,12 +77,12 @@ async function Sync() {
             marked missing. Fields locked by an admin and disqualified teams are never touched.
           </p>
         </div>
-        <ActionForm action={syncAllGames} submit="Sync all games" className="flex flex-col items-end gap-2" />
+        {viewer.staffRole === "admin" && <ActionForm action={syncAllGames} submit="Sync all games" className="flex flex-col items-end gap-2" />}
       </div>
       {(runsRes.error || issuesRes.error) && <p className="mt-4 text-sm text-live">{runsRes.error?.message ?? issuesRes.error?.message}</p>}
 
       <div className="panel mt-6 divide-y divide-line">
-        {GAME_LIST.map((g) => {
+        {games.map((g) => {
           const run = lastReal(g.id);
           const latest = lastAny(g.id);
           const preview = latest?.dry_run ? latest : undefined;
