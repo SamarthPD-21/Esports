@@ -14,7 +14,14 @@ export function Nav() {
 
 export function NavShell({ pathname }: { pathname: string }) {
   const [open, setOpen] = useState(false);
-  const active = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
+  // A tapped game lights up at once; the memory lapses when the URL changes.
+  const [tapped, setTapped] = useState<{ from: string; to: string }>();
+  const shown = tapped && tapped.from === pathname ? tapped.to : pathname;
+  const active = (href: string) => shown === href || shown.startsWith(`${href}/`);
+  const tap = (href: string) => {
+    setTapped({ from: pathname, to: href });
+    setOpen(false);
+  };
 
   return (
     <header className="sticky top-0 z-40 border-b border-line-strong bg-deep">
@@ -29,6 +36,7 @@ export function NavShell({ pathname }: { pathname: string }) {
             <Link
               key={l.href}
               href={l.href}
+              onClick={() => tap(l.href)}
               aria-current={active(l.href) ? "page" : undefined}
               style={active(l.href) ? { borderColor: l.accent } : undefined}
               className={`caps border-b-2 px-2 py-[1.45rem] text-[0.72rem] font-medium lg:px-2.5 ${
@@ -67,7 +75,7 @@ export function NavShell({ pathname }: { pathname: string }) {
             <Link
               key={l.href}
               href={l.href}
-              onClick={() => setOpen(false)}
+              onClick={() => tap(l.href)}
               aria-current={active(l.href) ? "page" : undefined}
               className={`caps block px-3 py-3 text-xs font-medium ${active(l.href) ? "bg-surface-2 text-text" : "text-muted"}`}
             >

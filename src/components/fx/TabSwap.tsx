@@ -3,21 +3,18 @@
 import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
 
-// Stepped look from hard keyframe stops; linear timing on opacity and
-// transform keeps it on the compositor, so the page never stalls.
+// Two quick steps from mostly visible: it reads as a pixel flicker, not a
+// wait. Opacity with linear timing stays on the compositor.
 const FRAMES: Keyframe[] = [
-  { opacity: 0, transform: "translateY(8px)", offset: 0 },
-  { opacity: 0, transform: "translateY(8px)", offset: 0.249 },
-  { opacity: 0.4, transform: "translateY(6px)", offset: 0.25 },
-  { opacity: 0.4, transform: "translateY(6px)", offset: 0.499 },
-  { opacity: 0.75, transform: "translateY(3px)", offset: 0.5 },
-  { opacity: 0.75, transform: "translateY(3px)", offset: 0.749 },
-  { opacity: 1, transform: "none", offset: 0.75 },
-  { opacity: 1, transform: "none", offset: 1 },
+  { opacity: 0.55, offset: 0 },
+  { opacity: 0.55, offset: 0.499 },
+  { opacity: 0.85, offset: 0.5 },
+  { opacity: 0.85, offset: 0.999 },
+  { opacity: 1, offset: 1 },
 ];
 
 /**
- * Switching game tabs steps the new page in. Plays on the existing element
+ * Switching game tabs flickers the new page in. Plays on the existing element
  * (no remount, no page snapshot), skipped for reduced motion and first load.
  * Render inside <Suspense> (reads the URL).
  */
@@ -31,7 +28,7 @@ export function TabSwap({ children }: { children: React.ReactNode }) {
       return;
     }
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    ref.current?.animate(FRAMES, { duration: 240, easing: "linear" });
+    ref.current?.animate(FRAMES, { duration: 120, easing: "linear" });
   }, [pathname]);
   return <div ref={ref}>{children}</div>;
 }

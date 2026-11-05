@@ -366,7 +366,7 @@ body::before {
   transform: scaleX(0.25);
   background: var(--line-strong);
 }
-.game-tab[aria-current="page"]::after {
+.game-tab[data-active]::after {
   transform: scaleX(1);
   background: var(--game, var(--signal));
   animation: tab-bar 0.24s steps(4) both;
@@ -394,7 +394,7 @@ body::before {
   .moon-rise,
   .drop-letter,
   .step-in,
-  .game-tab[aria-current="page"]::after {
+  .game-tab[data-active]::after {
     animation: none;
   }
   .shooting-star {
