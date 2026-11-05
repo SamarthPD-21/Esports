@@ -1,11 +1,11 @@
 import "server-only";
 import { cacheLife, cacheTag } from "next/cache";
 import { GAME_LIST, GAMES, type GameId } from "@/games/registry";
-import { parseRegistrations } from "@/lib/sync/parse";
+import { parseRegistrations, type ParsedTab } from "@/lib/sync/parse";
 import { fetchTab } from "@/lib/sync/sheet";
 import { gameTag, RESULTS_TAG, TOURNAMENT_TAG } from "@/lib/tags";
 import { resultTabs } from "./parse";
-import { rosterFromRegistrations, type Roster } from "./roster";
+import { phoneSet, rosterFromRegistrations, type Roster } from "./roster";
 
 // The two Google Sheets the site reads, each cached for a minute
 // (cacheLife "tournament"), so organisers see their edits within ~1 minute.
@@ -103,19 +103,37 @@ export interface RosterResult extends Roster {
   fetchedAt: string;
 }
 
+/** Every game's registrations tab, parsed. Server-side only: it holds contact details. */
+async function getRegistrations(): Promise<{ tabs: { game: GameId; parsed?: ParsedTab; error?: string }[]; phones: string[] }> {
+  "use cache";
+  cacheLife("tournament");
+  cacheTag(TOURNAMENT_TAG);
+  const raw = await Promise.all(
+    GAME_LIST.map(async (def): Promise<{ game: GameId; rows?: string[][]; error?: string }> => {
+      try {
+        return { game: def.id, rows: await fetchTab(def) };
+      } catch (e) {
+        const error = e instanceof Error ? e.message : String(e);
+        console.error(`Registrations (${def.short}): ${error}`);
+        return { game: def.id, error };
+      }
+    }),
+  );
+  return {
+    tabs: raw.map((r) => ({ game: r.game, error: r.error, parsed: r.rows && parseRegistrations(GAMES[r.game], r.rows) })),
+    // A player may type their phone number as a game ID in one game and register it in another.
+    phones: [...phoneSet(raw.flatMap((r) => (r.rows ? [r.rows] : [])))],
+  };
+}
+
 /** One game's teams from the Unstop registrations sheet. */
 export async function getRoster(game: GameId): Promise<RosterResult> {
   "use cache";
   cacheLife("tournament");
   cacheTag(TOURNAMENT_TAG, gameTag(game));
   const fetchedAt = new Date().toISOString();
-  const def = GAMES[game];
-  try {
-    const parsed = parseRegistrations(def, await fetchTab(def));
-    return { ...rosterFromRegistrations(def, parsed), issueCount: parsed.issues.length, fetchedAt };
-  } catch (e) {
-    const error = e instanceof Error ? e.message : String(e);
-    console.error(`Registrations (${def.short}): ${error}`);
-    return { teams: [], aliases: [], error, issueCount: 0, fetchedAt };
-  }
+  const { tabs, phones } = await getRegistrations();
+  const own = tabs.find((r) => r.game === game)!;
+  if (!own.parsed) return { teams: [], aliases: [], error: own.error, issueCount: 0, fetchedAt };
+  return { ...rosterFromRegistrations(GAMES[game], own.parsed, new Set(phones)), issueCount: own.parsed.issues.length, fetchedAt };
 }

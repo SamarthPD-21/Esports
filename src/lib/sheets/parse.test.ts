@@ -181,7 +181,7 @@ Pia Roy,pia@example.com,9100000003,Z College,Individual,Confirmed,Free,No,Pia,pi
   assert.equal(r.teams[0].id, "smashkarts-ninakart");
   assert.equal(r.teams[0].eligible, true);
   const text = JSON.stringify(r.teams);
-  for (const secret of ["@example.com", "9100000001", "Z College"]) assert.ok(!text.includes(secret), `no ${secret}`);
+  for (const secret of ["@example.com", "9100000001", "9100000003", "Z College"]) assert.ok(!text.includes(secret), `no ${secret}`);
   const index = teamIndex(r.teams, r.aliases);
   assert.equal(index.get("nina gill"), "smashkarts-ninakart", "real name works in the results sheet");
   assert.equal(index.get("sk-2"), r.teams[1].id, "so does the game ID");
@@ -197,4 +197,17 @@ test("the sheet template parses cleanly", async () => {
   const lobby = parseLobbySheet(GAMES.freefire, index, { lobbies: TEMPLATE.Lobbies, results: TEMPLATE.Results });
   assert.deepEqual(lobby.warnings, []);
   assert.equal(lobby.matches.filter((m) => m.status === "completed").length, 1);
+});
+
+test("roster: a game ID that is a phone number from any tab is hidden", async () => {
+  const { phoneSet } = await import("./roster.ts");
+  const other = parseCsv(`x,y\nName,Phone\nSomeone,+91 98765 43210\n`);
+  const csv = `Unstop,,,,,,,,Form answers,,
+Name,Email,Phone,College,Entry type,Status,Paid,Checked in,NAME,In-game display name,SKID
+Ravi Nath,ravi@example.com,9100000009,Z College,Individual,Confirmed,Free,No,Ravi,raviK,9876543210
+Sana Iqbal,sana@example.com,9100000010,Z College,Individual,Confirmed,Free,No,Sana,sanaQ,7000000001
+`;
+  const game = GAMES.smashkarts;
+  const r = rosterFromRegistrations(game, parseRegistrations(game, parseCsv(csv)), phoneSet([other]));
+  assert.deepEqual(r.teams.map((t) => t.players[0].gameUid), ["", "7000000001"]);
 });

@@ -20,8 +20,30 @@ const PHONE_RE = /^(\+?91[\s-]?)?[6-9]\d{9}$/;
 /** The value, unless it looks like contact details. */
 const safe = (s: string | undefined, phone = true) =>
   s && !EMAIL_RE.test(s) && !(phone && PHONE_RE.test(s.replace(/[\s-]/g, ""))) ? s : undefined;
+/** Last 10 digits, for comparing phone numbers however they were typed. */
+const digits = (s: string | undefined) => (s ?? "").replace(/\D/g, "").slice(-10);
 
-export function rosterFromRegistrations(game: GameDef, parsed: ParsedTab): Roster {
+/**
+ * Every phone number in the raw tabs (rows of cells), as 10 digits. Raw rows,
+ * not parsed teams, so withdrawn and skipped registrations count too.
+ */
+export function phoneSet(tabs: string[][][]): Set<string> {
+  const out = new Set<string>();
+  for (const rows of tabs) {
+    const h = rows.findIndex((r) => r.some((c) => c.trim() === "Phone"));
+    if (h < 0) continue;
+    const col = rows[h].findIndex((c) => c.trim() === "Phone");
+    for (const r of rows.slice(h + 1)) {
+      const d = digits(r[col]);
+      if (d.length === 10) out.add(d);
+    }
+  }
+  return out;
+}
+
+/** `phones`: numbers from every game's tab (see phoneSet); game IDs equal to one are hidden. */
+export function rosterFromRegistrations(game: GameDef, parsed: ParsedTab, phones = new Set<string>()): Roster {
+  phones = new Set([...phones, ...parsed.teams.flatMap((t) => t.players.map((p) => digits(p.phone)))]);
   const taken = new Set<string>();
   const aliases: [string, string][] = [];
   const teams = parsed.teams.map((pt, n): Team => {
@@ -49,7 +71,8 @@ export function rosterFromRegistrations(game: GameDef, parsed: ParsedTab): Roste
       players: pt.players.map((p, i) => ({
         teamId: id,
         ign: safe(p.ign) || `Player ${i + 1}`,
-        gameUid: safe(p.uid, false) ?? "",
+        // Game IDs can be 10 digits, so only hide one that is somebody's phone number.
+        gameUid: (phones.has(digits(p.uid)) ? undefined : safe(p.uid, false)) ?? "",
         role: p.role === "substitute" ? "sub" : "main",
       })),
     };
