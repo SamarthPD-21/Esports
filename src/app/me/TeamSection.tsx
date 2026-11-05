@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { Referees } from "@/components/Referees";
 import { TeamBadge } from "@/components/TeamBadge";
 import { GAMES } from "@/games/registry";
 import type { TeamSummary } from "@/lib/player";
@@ -42,6 +43,12 @@ export function TeamSection({ team, children }: { team: TeamSummary; children: R
       </header>
       <p className={`text-sm ${TONE[e.tone]}`}>{e.text}</p>
       {children}
+      <details className="panel group/refs p-4" style={{ "--game": game.accent } as React.CSSProperties}>
+        <summary className="caps cursor-pointer text-xs font-bold text-muted hover:text-text">Your {game.short} referees</summary>
+        <div className="mt-4">
+          <Referees game={team.gameId} compact />
+        </div>
+      </details>
     </section>
   );
 }

@@ -5,6 +5,10 @@ export interface StaffRow {
   role: "referee" | "admin";
   /** Games a referee covers; null means every game. */
   games: string[] | null;
+  name?: string | null;
+  phone?: string | null;
+  discord?: string | null;
+  listed?: boolean;
 }
 
 export const refTag = (g: GameDef) => `${g.handle}-ref`;

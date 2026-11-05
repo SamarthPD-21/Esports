@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { MatchCard } from "@/components/MatchCard";
+import { Referees } from "@/components/Referees";
 import { SectionHeading } from "@/components/SectionHeading";
 import { GAMES, type GameId } from "@/games/registry";
 import { getTournament, teamMap } from "@/lib/data";
@@ -84,6 +85,8 @@ export async function GameOverview({ game }: { game: GameId }) {
           )}
         </div>
       </section>
+
+      <Referees game={game} />
     </>
   );
 }

@@ -369,9 +369,28 @@ export const saveStaff = staff(async (form, { db, email: me }) => {
   if (email === me.toLowerCase() && role !== "admin") throw new Error("You can't remove your own admin role.");
   const games = role === "admin" ? null : gamesFromForm(form.getAll("game").map(String));
   if (games && games.length === 0) throw new Error("Pick at least one game, or All games.");
-  check(await db.from("staff").upsert({ email, role, games }));
+  // Contact fields only change when the form has them, so a role change keeps them.
+  const profile = form.has("name")
+    ? { name: str(form, "name") || null, phone: str(form, "phone") || null, discord: str(form, "discord") || null, listed: form.get("listed") === "on" }
+    : {};
+  check(await db.from("staff").upsert({ email, role, games, ...profile }));
   return `${email}: ${staffTags({ role, games }).join(", ")}.`;
 }, { admin: true });
+
+/** A staff member's own name and contact details, shown to their games' players. */
+export const saveMyProfile = staff(async (form, { db }) => {
+  const phone = str(form, "phone");
+  if (phone && !/^[+\d][\d\s-]{6,}$/.test(phone)) throw new Error("Phone: digits, spaces and an optional + only.");
+  check(
+    await db.rpc("update_my_staff_profile", {
+      p_name: str(form, "name"),
+      p_phone: phone,
+      p_discord: str(form, "discord"),
+      p_listed: form.get("listed") === "on",
+    }),
+  );
+  return "Contact details saved.";
+});
 
 export const removeStaff = staff(async (form, { db, email }) => {
   const target = str(form, "email");

@@ -87,7 +87,9 @@ CODM keeps its own dashboard: veto, substitutions and Veto Power.
 
 **Tonight (`/ref`)** lists the next match day's lobbies and matches, but only for the games the referee runs.
 
-**Staff (`/admin/staff`)** gives accounts roles by email: `admin`, or game tags such as `codm-ref`, `valo-ref`, `bgmi-ref`, `ff-ref`, `karts-ref` and `fifa-ref` (or all games). A referee only sees and edits their own games; the database enforces this too, down to who can read player contact details.
+**Staff (`/admin/staff`)** gives accounts roles by email: `admin`, or game tags such as `codm-ref`, `valo-ref`, `bgmi-ref`, `ff-ref`, `karts-ref` and `fifa-ref` (or all games). Admins run everything. A referee runs their own games end to end (stages, draws, brackets, publishing results, that game's registration sync) and can't touch any other game; the database enforces this too, down to who can read player contact details.
+
+**Referees on game pages:** every game's Overview lists its referees and organisers. Names are public; WhatsApp, Discord and email only show to that game's team leaders (also on their dashboard) and staff. Staff fill in their own details on the control room home; admins can edit anyone's on the Staff page.
 
 ![Referee: tonight](docs/screenshots/referee-tonight.png)
 

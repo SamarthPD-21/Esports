@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { ActionForm, inputClass } from "@/components/ActionForm";
+import { StaffContactFields } from "@/components/StaffContactFields";
 import { GAME_LIST, isGameId } from "@/games/registry";
 import { getAdminOverview } from "@/lib/admin";
 import { requireAdmin } from "@/lib/auth";
@@ -109,20 +110,27 @@ async function Staff() {
             {rows.map((s) => (
               <li key={s.email} className="border-b border-line py-3">
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-                  <span className="min-w-0 flex-1 truncate text-sm">
-                    {s.email}
-                    {s.email === me && <span className="ml-2 text-xs text-faint">you</span>}
+                  <span className="min-w-0 flex-1 text-sm">
+                    <span className="block truncate font-bold">
+                      {s.name || s.email.split("@")[0]}
+                      {s.email === me && <span className="ml-2 text-xs font-normal text-faint">you</span>}
+                      {s.listed === false && <span className="ml-2 text-xs font-normal text-faint">not listed</span>}
+                    </span>
+                    <span className="block truncate text-xs text-muted">
+                      {[s.email, s.phone, s.discord && `Discord ${s.discord}`].filter(Boolean).join(" · ")}
+                    </span>
                   </span>
                   <span className="flex flex-wrap gap-1.5">
                     {staffTags(s).map((t) => <Tag key={t} tag={t} />)}
                   </span>
                 </div>
                 <details className="group/edit mt-2">
-                  <summary className="cursor-pointer text-xs text-muted hover:text-text">Change role</summary>
+                  <summary className="cursor-pointer text-xs text-muted hover:text-text">Edit role and contact</summary>
                   <div className="mt-3 flex flex-col gap-4 border-l-2 border-line pl-4">
                     <ActionForm action={saveStaff} submit="Save role" className="group flex flex-col gap-4">
                       <input type="hidden" name="email" value={s.email} />
                       <RoleFields role={s.role} games={s.games} idPrefix={s.email} />
+                      <StaffContactFields name={s.name} phone={s.phone} discord={s.discord} listed={s.listed} />
                     </ActionForm>
                     {s.email !== me && (
                       <ActionForm action={removeStaff} submit={`Remove ${s.email}`} tone="danger">
@@ -144,6 +152,7 @@ async function Staff() {
               <input name="email" type="email" required placeholder="name@college.edu" className={inputClass} />
             </label>
             <RoleFields idPrefix="new" />
+            <StaffContactFields />
           </ActionForm>
           <p className="mt-4 text-xs text-faint">Already on staff? Adding them again replaces their role.</p>
         </section>

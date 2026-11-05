@@ -1,5 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { ActionForm } from "@/components/ActionForm";
+import { StaffContactFields } from "@/components/StaffContactFields";
+import { createClient } from "@/lib/supabase/server";
+import { saveMyProfile } from "./actions";
 import { Suspense } from "react";
 import { GAME_LIST } from "@/games/registry";
 import { canStaff, requireStaff } from "@/lib/auth";
@@ -19,7 +23,7 @@ async function Home() {
   const games = GAME_LIST.filter((g) => canStaff(viewer, g.id));
   return (
     <>
-      <h1 className="font-display text-3xl font-bold">Control room</h1>
+      <h1 className="font-display text-3xl font-bold">Your games</h1>
       <p className="mt-1 text-sm text-muted">Signed in as {viewer.email} ({viewer.staffRole}).</p>
 
       <ul className="panel mt-6 divide-y divide-line">
@@ -36,9 +40,29 @@ async function Home() {
       </ul>
 
       <div className="mt-6 flex flex-wrap gap-3 text-sm">
-        <Link href="/ref" className="rounded-sm bg-signal px-4 py-2 font-semibold text-bg hover:bg-text">Tonight&apos;s matches</Link>
-        {viewer.staffRole === "admin" && <Link href="/admin/sync" className="rounded-sm border border-line-strong px-4 py-2 font-semibold hover:border-text">Registrations sync</Link>}
+        <Link href="/ref" className="btn">Tonight&apos;s matches</Link>
+        <Link href="/admin/sync" className="btn btn-ghost">Registrations sync</Link>
       </div>
+
+      <MyContact email={viewer.email} />
     </>
+  );
+}
+
+/** The signed-in staff member's own details, shown on their games' pages. */
+async function MyContact({ email }: { email: string }) {
+  const db = await createClient();
+  const { data } = await db.from("staff").select("name, phone, discord, listed").eq("email", email.toLowerCase()).maybeSingle();
+  const me = (data ?? {}) as { name?: string | null; phone?: string | null; discord?: string | null; listed?: boolean };
+  return (
+    <section className="panel mt-10 p-5">
+      <h2 className="font-display text-2xl">Your contact details</h2>
+      <p className="mt-1 text-sm text-muted">
+        Team leaders of your games see these under Referees, so they can reach you about a match. Everyone else only sees your name.
+      </p>
+      <ActionForm action={saveMyProfile} submit="Save details" className="mt-4 flex flex-col gap-4">
+        <StaffContactFields name={me.name} phone={me.phone} discord={me.discord} listed={me.listed ?? true} />
+      </ActionForm>
+    </section>
   );
 }
