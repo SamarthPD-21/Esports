@@ -1,6 +1,30 @@
-# CODM Carnage 2.0 — Rift Ops · Project Context
+# Yugaantar 2026 Esports · Project Context
 
-Running log for the tournament site. Update the **Status** and **Changelog** sections as work happens.
+Running log for the esports site. Update the **Status** and **Changelog** sections as work happens.
+
+## Multi-game platform (from 5 Nov 2026)
+
+The site now runs every Yugaantar esports event: CODM, Valorant, BGMI, Free Fire MAX, Smash Karts and FIFA. Rule docs for each are in `docs/`; each game's facts are in `src/games/registry.ts`.
+
+- **Two shapes, two engines.** Head-to-head games (CODM, Valorant, FIFA) keep the CODM engine (`src/lib/tournament.ts`) and tables, now tagged with `game_id`; brackets of any size with byes come from `src/lib/knockout.ts`. Lobby games (Free Fire, BGMI, Smash Karts) use `lobby_*` tables and `src/lib/lobby/` (points tables, ordered tiebreakers, advancement rules, fixed or reshuffled lobbies). Solo games register each player as a team of one.
+- **Registrations** come from the Unstop sheet (one tab per game, two header rows) through `src/lib/sync/`, every 5 minutes via `/api/sync` (Supabase cron) or *Sync now*. Teams match by name, players by email; nothing is deleted.
+- **Logins:** only team leaders and solo players (Unstop role *Leader*), plus staff. One login can lead teams in several games. Staff can be limited to games (`staff.games`).
+- **Branches:** `main` = this platform; `sheets` = display-only version read from sheets; `backend` = the CODM-only version before the rebuild.
+- **Cache Components gotcha:** game routes must read `params` inside `<Suspense>`. After a tag invalidation Next re-renders the generic `/[game]` shell, and awaiting params outside Suspense there made every game page 500 until the next deploy. Fixed in `19928ec`; `next build` does not catch it, so check with `next start` after a publish.
+
+### Open questions (multi-game)
+- **Free Fire points and tiebreakers:** the 84/104-team rulebooks say 8-7-6-5-4-3-2-1 and kills → Clash Squad decider; the 17–23 Nov operations plan says 12-9-8-7-6-5-4-3-2-1 and Booyahs → kills → latest match. The site defaults to the operations plan (latest doc); change per stage in admin if needed.
+- **Free Fire team count:** 84 vs 104 team docs, and the ops plan's 9 groups (5 × 12, 4 × 11). The draw makes as few lobbies of ≤12 as fit, so 104 teams → 9 lobbies automatically.
+- **Free Fire weekend start:** the ops plan moves Sat 21 and Sun 22 to 9:30 PM. The draw uses 8:30 PM for every evening; move those lobbies' times by redrawing that evening or editing them.
+- **BGMI:** the SOP reshuffles groups after every match, but the BGMI schedule plays half the groups on 17 Nov and half on 18 Nov. Reshuffling needs everyone on the same evening; the site plays the whole qualifier on one evening by default. The SOP's tiebreakers (finishes first) also differ from the BGMI doc's (chicken dinners first); the site uses the BGMI doc.
+- **Valorant:** BO3 or BO1 offline (two docs). No seeding rule, so the bracket is a random draw; the admin can seed instead.
+- **Smash Karts:** registration closes 27 Nov but rounds 1–2 are "online"; dates are needed.
+- **FIFA:** no rules document yet. Set up as a solo knockout, BO1.
+- **Privacy:** the registrations sheet is public ("anyone with the link"), exposing names, emails and phones. Share it with a service account instead and set `GOOGLE_SERVICE_ACCOUNT_JSON`.
+
+---
+
+# CODM Carnage 2.0 — Rift Ops
 
 - Event: Yugaantar 2026 (Theme: Game Verse) presents CODM Carnage 2.0 — Rift Ops
 - Rulebook: `docs/rulebook.pdf` (copy served at `/rulebook.pdf`)
@@ -210,6 +234,24 @@ Sheet gotchas:
 - Custom primitives (`.panel`, `.rail`, `.link`, `.rift-line`) live in `@layer components` so Tailwind utilities can override them.
 
 ## Changelog
+- **2026-11-05/06:** Multi-game rebuild on branch `platform`, merged into `main`. Feature commits:
+  - data model and game registry;
+  - lobby points engine;
+  - lobby data loader;
+  - knockouts with byes;
+  - event hub and per-game pages;
+  - Unstop sync;
+  - leader dashboard;
+  - lobby control room, referee entry and leaderboards.
+
+  Checked in the browser: real-sheet sync (all 6 tabs, idempotent), a Free Fire night end to end on a phone (create stages → fill → draw → enter → publish → public standings), the BGMI reshuffled draw, the Valorant 46-team bracket (18 byes, doc schedule), and leader dashboards. Fixed along the way:
+  - ties across lobbies;
+  - tie markers before play;
+  - phone-width overflow;
+  - bye walkovers listed as 0–0;
+  - game pages failing after a publish in production.
+  
+  84 unit tests.
 - **2026-11-03:** New visual identity replacing the violet-cyan gradient look (see "Visual design"). Fixed along the way: white text on primary buttons, `.panel` silently overriding border-colour utilities, and arrows lost from `.join()` separators during the sweep. Browser suites updated for the new copy and pass; README screenshots retaken.
 - **2026-11-02 (later):** README rewritten with screenshots (`docs/screenshots/`, taken from the local stack in a staged match-day state). Fixed while reviewing them: tie flags showed on groups still in progress; "1 matches" on the schedule; a missing full stop on the dashboard; a truncated mode select in Content; the planner said "0 matches" once fixtures existed; the seed didn't set the registration deadline.
 - **2026-11-02:** Applied the organisers' format doc and the 8–10 PM / 5-referee window. Standings: wins → h2h → tiebreaker matches → coin toss. Seeding sets and the same-group QF swap. Scheduler rewritten for fixed evening slots, with a per-team daily cap and spill detection. Group draw by registration count. Bracket at the offline times with the 3rd-place match. Key dates on home; schedule, standings and seeding sections on Rules. Sample data moved to 17–29 Nov. Found and fixed: admin forms were filled from the cached tournament, so saving after an out-of-band DB edit wrote old teams back; staff pages now read uncached. 30 unit tests. New browser suites (match day 13, format 15, draw/fixtures 9) pass on a fresh DB. Pushed `backend`.

@@ -246,11 +246,11 @@ otp_expiry = 3600
 
 # Login emails carry a 6-digit code and a link to a confirm page (see README).
 [auth.email.template.magic_link]
-subject = "Your CODM Carnage 2.0 login code"
+subject = "Your Yugaantar Esports login code"
 content_path = "./supabase/templates/login.html"
 
 [auth.email.template.confirmation]
-subject = "Your CODM Carnage 2.0 login code"
+subject = "Your Yugaantar Esports login code"
 content_path = "./supabase/templates/login.html"
 
 # Uncomment to customize email template

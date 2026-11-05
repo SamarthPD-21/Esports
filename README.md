@@ -1,225 +1,194 @@
-# CODM Carnage 2.0 — Rift Ops
+# Yugaantar 2026 Esports
 
-Tournament site for **Yugaantar 2026 · CODM Carnage 2.0: Rift Ops**, a Call of Duty: Mobile squad tournament: online BO1 group stage (17–21 Nov 2026), then an offline bracket at the Yugaantar Gaming Arena (27–29 Nov).
+The esports site for **Yugaantar 2026 · Gameverse** at Scaler School of Technology. One site runs all six events:
 
-It runs the whole event in one place:
-- **Public pages:** schedule, live standings and bracket for everyone.
-- **Player dashboards:** room IDs, check-in and the map veto for each team.
-- **Referee panel:** check-in, veto, lobby and scores. Standings, seeds and the bracket update by themselves from the scores.
+| Game | Entry | Format |
+|---|---|---|
+| Call of Duty: Mobile | squads of 5+1 | online BO1 groups, then an offline bracket (CODM Carnage 2.0: Rift Ops) |
+| Valorant | teams of 5 | single elimination: BO1 online, Semifinals and Final offline |
+| BGMI | squads of 4+1 | battle royale lobbies of up to 20, reshuffled every match, cumulative points |
+| Free Fire MAX | squads of 4+1 | battle royale groups of up to 12, top 2 through, 3rd places to a Wildcard LCQ |
+| Smash Karts | solo | free-for-all lobbies of 20, reshuffled every match, 20 → 1 points |
+| FIFA | solo | knockout on campus |
 
-![Home page](docs/screenshots/home.png)
+It covers the whole event in one place:
+- **Public pages:** schedules, live leaderboards and brackets for every game.
+- **Registration sync:** teams and players come straight from the Unstop sheet.
+- **Leader dashboards:** check-in, room details and results for team leaders and solo players.
+- **Referee screens:** results are entered from a phone, and every table updates as soon as one is published.
+
+![Event hub](docs/screenshots/hub.png)
 
 ## Contents
 
 - [Branches](#branches)
 - [What's on the site](#whats-on-the-site)
-  - [Public pages](#public-pages)
-  - [Player dashboard](#player-dashboard)
-  - [Referee and admin panel](#referee-and-admin-panel)
-- [Tournament format](#tournament-format)
 - [How data flows](#how-data-flows)
 - [Running the event](#running-the-event)
+- [Game formats](#game-formats)
 - [Local development](#local-development)
 - [Tests](#tests)
 - [Production setup](#production-setup)
-- [CSV import formats](#csv-import-formats)
 - [Project layout](#project-layout)
 
 ## Branches
 
 | Branch | What it is |
 |---|---|
-| `main` | Static site fed by a Google Sheet. No logins: organisers type map scores into the sheet and the site catches up within a minute. |
-| `backend` (this one) | Supabase (Postgres + Auth). Same public pages, plus player logins, the player dashboard and the referee/admin panel. |
+| `main` | The full platform: Supabase (Postgres + Auth), every game, logins, referee and admin screens. |
+| `sheets` | A display-only version. No database and no logins: rosters come from the Unstop sheet and results from a results sheet per game. |
+| `backend` | The CODM-only version from before the multi-game rebuild. |
 
-Both branches compute standings, seeds and bracket slots from map results with the same engine (`src/lib/tournament.ts`), so nobody ever types a table by hand.
-
-Rules come from [`docs/rulebook.pdf`](docs/rulebook.pdf), plus [`docs/format-and-schedule.docx`](docs/format-and-schedule.docx) for format, dates, tiebreakers and seeding. `context.md` is the running project log: decisions, open questions for organisers, changelog.
+The rule documents for each game are in [`docs/`](docs). The site shows a short version of each, and the PDFs are served from `public/rules/`. `context.md` is the running project log: decisions, open questions for organisers, changelog.
 
 ## What's on the site
 
 ### Public pages
 
-**Schedule.** Every match grouped by day, with the day's mode, map scores and the public veto result.
+**Hub (`/`).** Every game with its status and confirmed team count, plus the next match day across all games.
 
-![Schedule](docs/screenshots/schedule.png)
+**Game pages (`/<game>`).** Each game has five tabs: Overview, Schedule, Standings, Teams and Rules. The Standings tab adapts to the format:
+- **Lobby games:** one leaderboard per lobby, or one overall table when lobbies reshuffle.
+  - Qualifying rows are marked with where they're going, e.g. *→ Semifinals* or *→ Wildcard LCQ*, as projected until the stage is complete.
+  - Long tables (Smash Karts has ~360 players) show the top 40 and a *Find your team* box.
+- **Valorant and FIFA:** the bracket, round by round. Byes are listed on one line.
+- **CODM:** group tables, seeding and the offline bracket.
 
-**Group standings.** Wins, head-to-head and form, with the projected overall seeding underneath. A ⚑ appears only when a finished group has a tie that affects qualifying or seeding.
+![Free Fire standings](docs/screenshots/lobby-standings.png)
 
-![Group standings](docs/screenshots/groups.png)
+![Valorant bracket](docs/screenshots/valorant-bracket.png)
 
-**Bracket.** The Quarterfinals fill from the seeds while groups are still running (marked PROJ), and lock in when the groups finish. Winners and losers move on as results come in.
+The **Schedule** tab groups lobbies by evening, time and match number. **Teams** lists everyone registered; each team page shows its roster, results per stage and upcoming lobbies.
 
-![Bracket](docs/screenshots/bracket.png)
+![Lobby schedule](docs/screenshots/lobby-schedule.png)
 
-**Rules.** The rulebook in readable form. The format and schedule sections show:
-- how groups are formed;
-- the mode of each day;
-- the evening slot times;
-- the offline schedule;
-- tiebreaker and seeding rules.
+### Leader dashboard (`/me`)
 
-![Rules: groups and schedule](docs/screenshots/rules-schedule.png)
+Only **team leaders and solo players** log in, with the email they registered on Unstop. They get a 6-digit code by email; there's no password and no sign-up. Team members don't need an account, since everything they need is public.
 
-![Rules: standings and seeding](docs/screenshots/rules-standings.png)
+At the top of the page is one **"Do this now"** card. It shows whichever matters most right now:
+- check in for tonight;
+- the room ID and password, with copy buttons;
+- a result that was just posted;
+- the countdown to the next match.
 
-**Team pages.** Roster, results and fixtures for each squad.
+Below it there's one section per team the person leads; a person can lead teams in several games. Each section shows:
+- eligibility, e.g. *Forming, 3 of 4 players*;
+- the team's lobbies or matches, evening by evening;
+- one check-in per evening for lobby games;
+- published placements, kills and points;
+- a dispute button while the window is open.
 
-![Team page](docs/screenshots/team.png)
+CODM keeps its own dashboard: veto, substitutions and Veto Power.
 
-### Player dashboard
+<img src="docs/screenshots/dashboard-lobby-mobile.png" alt="Leader dashboard on a phone" width="320">
 
-Players log in with the email their captain registered. They get a **6-digit code** by email. There's no password and no sign-up, so only imported players and staff can log in.
+### Referee screens
 
-<img src="docs/screenshots/login-code.png" alt="Login code step" width="640">
+**Tonight (`/ref`)** lists the next match day's lobbies and matches, but only for the games the referee runs. Staff can be limited to particular games.
 
-`/me` shows the player's next match with a countdown, plus:
-- the mode for that day;
-- check-in status, with a self check-in button from 60 min before;
-- the lobby invite and its join-by time;
-- the veto result;
-- the room ID and password, shown only to the two teams from 15 minutes before.
+![Referee: tonight](docs/screenshots/referee-tonight.png)
 
-It also has the team's record per mode and its match history. Captains can report substitutions and submit the Semifinal Veto Power choice.
+**Lobby result entry** is built for a phone:
+1. Tap teams in finishing order, and tap again to undo.
+2. Set kills with a stepper.
+3. Add point adjustments with a reason (e.g. −2 for hitting the Smash Karts host kart) and paste the screenshot link.
+4. *Save draft*, then *Publish*. Publishing needs every placement filled in and unique.
 
-| Desktop | Phone |
-|---|---|
-| ![Player dashboard](docs/screenshots/dashboard.png) | <img src="docs/screenshots/dashboard-mobile.png" alt="Player dashboard on a phone" width="300"> |
+The same page sets the room details, marks the lobby live or cancelled, shows who checked in, edits the lineup and resolves disputes. If two referees save the same lobby, the second is told to reload instead of overwriting.
 
-### Referee and admin panel
+<img src="docs/screenshots/referee-entry-mobile.png" alt="Lobby result entry on a phone" width="320">
 
-**Match list.** Every match with its status, plus counters for results awaiting approval, open disputes and live matches.
+**Head-to-head matches** (CODM, Valorant, FIFA) use the match page: check-in, room, map scores, and the CODM map veto.
 
-![Admin match list](docs/screenshots/admin-overview.png)
+### Admin
 
-**Match page.** Everything a referee needs for one lobby:
-- **Check-in & lobby:** check each team in and mark *Joined*. The page works out the late-penalty tier from whichever window a team missed by more.
-- **Room details:** room ID and password, and when the in-game invite went out.
-- **Map veto (BO1):** who bans first, the coin toss, and four bans. The remaining map is filled in for score entry and shown publicly.
-- **Map results:** score and screenshot link. Referees save results as pending; admins publish.
+**Games (`/admin`)** leads to each game's control room. For lobby games the control room:
+- creates the stages from the game's doc;
+- fills entrants from eligible teams, or from the previous stage's qualifiers;
+- draws lobbies and schedules them, with the doc's times filled in;
+- edits points tables, tiebreakers and advancement rules;
+- lists every lobby with its result state.
 
-![Admin match page](docs/screenshots/admin-match.png)
+For Valorant and FIFA it draws the bracket, seeded or random. Valorant's online rounds are scheduled from its doc: 4 lobbies, 60-minute slots from 1 PM.
 
-**Setup.** Runs once before the group stage, in order:
-1. Import teams, then players.
-2. Draw the groups.
-3. Generate fixtures. The planner shows each evening's matches and finish time before anything is created.
-4. Generate the knockout bracket.
+![Admin: Free Fire control room](docs/screenshots/admin-lobbies.png)
 
-![Admin setup](docs/screenshots/admin-setup.png)
+**Registrations (`/admin/sync`)** shows each game's last sync, eligible teams, *Preview changes* and *Sync now*, and the problems to fix on Unstop.
 
-**Content & staff.**
-- Settings: qualifiers, tiebreakers, coin-toss results and perspective.
-- The mode of each match day.
-- The map pool.
-- Announcements.
-- Staff accounts.
-
-![Admin content and staff](docs/screenshots/admin-content.png)
-
-## Tournament format
-
-From the organisers' format doc, with the online evenings fixed at **8–10 PM IST** and about **five referees**.
-
-**Groups by registration count.** Every format sends exactly 8 teams to the offline Quarterfinals.
-
-| Registered teams | Groups | Qualify |
-|---|---|---|
-| 8 or fewer | 1 group, round robin (seeding only) | All |
-| 9–24 | 4 groups of 3–6 | Top 2 per group |
-| 25–48 | 8 groups of 4–6 | Group winner |
-
-**Group stage (online, BO1).** Tue 17 – Sat 21 Nov, one mode per day: HP, S&D, Control, HP, S&D. Sun 22 Nov is kept for tiebreakers and reschedules.
-
-| Slot | Check in by | Room ID shared | Starts |
-|---|---|---|---|
-| 1 | 7:30 PM | 7:45–7:55 PM | 8:00 PM |
-| 2 | 8:10 PM | 8:25–8:35 PM | 8:40 PM |
-| 3 | 8:50 PM | 9:05–9:15 PM | 9:20 PM |
-
-Five lobbies × three slots = 15 matches a night, 75 over the five evenings. No team plays more than 2 matches a day, and every team gets a free slot between matches.
-
-| Teams | Groups | Matches | Evenings used |
-|---|---|---|---|
-| 16 | 4 × 4 | 24 | 3 |
-| 24 | 4 × 6 | 60 | 5 |
-| 32 | 8 × 4 | 48 | 4 |
-| 38 | 8 × 4–5 | 72 | 5 (full) |
-| 40+ | 8 × 5–6 | 80+ | spills into Sunday: cap registrations around 36 |
-
-**Standings.**
-1. Wins (1 point each).
-2. Head-to-head between the level teams.
-3. A BO1 tiebreaker match on Sun 22 Nov. In a three-way tie, the team with the most points won gets a bye to the final tiebreaker.
-4. Referee coin toss.
-
-**Seeds 1–8.**
-- With 4 groups, group winners take seeds 1–4 and runners-up 5–8. With 8 groups, the winners are ranked together.
-- Within each set: wins, then points won, then coin toss.
-- Two teams from the same group never meet in a Quarterfinal.
-- The higher seed bans first in every knockout veto and holds Veto Power in its Semifinal.
-
-**Offline.**
-
-| Day | Series |
-|---|---|
-| Fri 27 Nov | QF1 (S1 v S8) 10:30 · QF2 (S4 v S5) 12:30 · QF3 (S2 v S7) 2:30 · QF4 (S3 v S6) 4:30 (all BO3) |
-| Sat 28 Nov | SF1 11:00 · SF2 2:00 (BO3) |
-| Sun 29 Nov | 3rd place 11:30 (BO3) · Grand Final 3:00 PM (BO5) |
-
-Prizes: ₹3,000 / ₹2,000 / ₹1,000.
+![Admin: registrations](docs/screenshots/admin-sync.png)
 
 ## How data flows
 
 ```
-Registration form ──CSV──► Admin → Setup: import ──► teams, players, player_contacts (email)
-                                                     │
-Setup: draw groups · generate fixtures · bracket ────► matches (sides are team ids or slots: A1, S3, W:QF1, L:SF1)
-                                                     │
-Match day: referee ► check-in · veto · room · map scores (pending) ► admin publishes (final)
-                                                     │
-          tournament engine: standings, seeds, bracket slots ◄── public reads see final maps only
-                                                     │
-          public pages (cached; every staff write refreshes them at once) + /me dashboards
+Unstop ──► registrations sheet (one tab per game)
+              │  every 5 min (Supabase cron → /api/sync) or "Sync now"
+              ▼
+         teams, players, player_contacts  (eligible = confirmed + full roster + one leader)
+              │
+ Admin: stages, lobbies, bracket ──► lobby_matches (lineups public) / matches
+              │
+ Referee: placements + kills (draft) ──► publish ──► lobby_results / maps
+              │
+ Engines: lobby standings + advancement, h2h standings + seeds + brackets
+              │
+ Public pages (cached per game; a publish refreshes that game at once) + /me dashboards
 ```
 
-Security:
-- Row Level Security is on for every table. The public can read teams, matches and *published* map results.
-- Contacts, room details, check-ins, disputes, vetoes and sub requests are staff-only in the database.
-- Player actions (own team, deadlines, captain-only) are checked in server code before the service role writes them.
-- Only imported players and added staff can receive a login code. The login form responds the same way for unknown emails, so nobody can probe who is registered.
+**The sync** matches teams by name and players by email.
+- Nothing is ever deleted: rows that disappear from the sheet are marked missing.
+- Withdrawn duplicates that Unstop leaves behind are ignored.
+- A renamed team is recognised by its leader's email.
+- Fields an admin locked, and disqualified teams, are never touched.
+- After a game's roster lock time, changes are listed for an admin instead of applied.
+
+**Security**
+- Row Level Security is on for every table. The public reads teams, schedules, lineups and *published* results.
+- Contacts, room details, check-ins, disputes and drafts are staff-only in the database.
+- Leader actions are checked in server code (own team, leader only, inside the time window) before the service role writes them.
+- The login form responds the same way to unknown emails.
 
 ## Running the event
 
-### Before the group stage
+### Before the first match
 
-1. **Sun 15 Nov, after registration closes:** import Teams, then Players (Admin → Setup).
-2. **Draw groups** on the recorded call. The draw picks 1, 4 or 8 groups from the team count and sets qualifiers per group to match. It locks once fixtures exist.
-3. **Generate fixtures.** The planner defaults to:
-   - Tue 17 Nov, 5 evenings;
-   - slots at 8:00, 8:40 and 9:20 PM;
-   - 5 lobbies.
+1. Share the registrations sheet with the service account, or keep it public, and check **Registrations** shows every game syncing.
+2. Fix what the issues list flags on Unstop: duplicate emails, missing IGNs or game IDs, rosters that are too small.
+3. After registration closes:
+   - **Lobby games:** open the game's control room → *Create stages* → *Fill from eligible teams* → *Draw lobbies*.
+   - **Valorant, FIFA:** *Draw bracket*.
+   - **CODM:** Setup → draw groups → generate fixtures → generate bracket.
+4. Add referees under Content & staff, and limit each to their games.
 
-   Set the lobbies to the number of referees you actually have. The preview warns if anything spills past the last evening.
-4. **Content:** check the mode of each match day. Keep exactly 5 maps per mode in the map pool, because the BO1 veto bans 4. Set the perspective.
-5. **Generate bracket:** QF–Final plus the 3rd-place match, at the offline times.
+### A lobby night (Free Fire, BGMI, Smash Karts)
 
-### Each match (online)
+1. Leaders check in from `/me`, once for the whole evening.
+2. The referee opens the lobby from `/ref`, enters the room ID and password, and marks the lobby live. Leaders see the room details from the game's reveal time (15 minutes before for most games).
+3. After the match the referee taps in the finishing order and kills, pastes the screenshot link and publishes. An admin publishes instead if referees aren't allowed to.
+4. When every lobby of a stage is published, the next stage's *Fill from …* takes the qualifiers, and the LCQ fills the same way.
 
-1. **T−60 to T−30:** teams tap *Check in my team* on `/me`, or the referee checks them in from the match page.
-2. **Before the lobby:** the referee records the veto: who bans first, the coin-toss winner, four bans, and a screenshot link.
-3. **T−15 to T−5:** enter the room ID and password; both teams see them from T−15. Tap *Invite sent now* when the in-game invite goes out. Then mark *Joined* for each team as it arrives; teams have 10 minutes.
-4. **After the map:** enter the score. An admin publishes it, and standings, seeds and the bracket update at once. Teams have 10 minutes to raise a dispute from `/me`.
+### A head-to-head match (CODM, Valorant, FIFA)
 
-### Ties
+Check-in, room and scores happen on the match page. Brackets move on their own: sides are references like `W:VAL-R64-01`, and byes are walked over automatically.
 
-When a finished group shows a ⚑ tie:
-1. Add a tiebreaker match for Sun 22 through a Matches CSV with stage `tiebreaker`. Its result orders the level teams without adding wins.
-2. If a coin toss is still needed, record it under Content → Settings as `winner > loser`, e.g. `rift-reapers > null-sector`.
+## Game formats
 
-### Knockouts
+Each game's facts live in [`src/games/registry.ts`](src/games/registry.ts): roster size, sheet tab, check-in and room times, prizes, key dates, rules summary and the stages for lobby games. Points tables, tiebreakers and advancement rules can be changed per stage in the admin panel.
 
-Sides are slot references (`S1`, `W:QF1`, `L:SF1`), so they fill on their own. Referees enter each map as it finishes. A BO3 closes at 2 map wins and a BO5 at 3.
+| | Lobby | Points | Tiebreakers | Advancement |
+|---|---|---|---|---|
+| **Free Fire MAX** | 12, fixed groups | Booyah 12, 9, 8, 7, 6, 5, 4, 3, 2, 1 + 1 per kill | Booyahs, kills, latest match | Qualifiers: top 2 per group → Semifinals, 3rd → Wildcard LCQ (top 6 through); Semifinals: top 6 per lobby → Grand Final |
+| **BGMI** | 20, reshuffled | 10, 6, 5, 4, 3, 2, 1, 1, 1, 1 + 1 per kill | chicken dinners, placement points, finishes, latest match | top 32 → Semifinals → top 16 → Final |
+| **Smash Karts** | 20 + host kart, reshuffled | 20 → 1 by rank | kills, best rank | top 120 → top 40 → top 20 |
+
+The Free Fire docs disagree on some points. The defaults follow the latest one, the 17–23 Nov operations plan; the 84/104-team rulebooks use 8-7-6… instead. See *Open questions* in `context.md`.
+
+**CODM** is unchanged:
+- groups by registration count, one mode per evening (8–10 PM, 3 slots × 5 lobbies);
+- wins → head-to-head → tiebreaker match → coin toss;
+- seeds 1–8 into an offline bracket on 27–29 Nov.
+
+The details are on `/codm/rules`.
 
 ## Local development
 
@@ -227,99 +196,82 @@ Needs Node 22.18+ (scripts and tests run TypeScript directly) and Docker.
 
 ```bash
 npm install
-npx supabase start          # local Postgres + Auth + Mailpit (first run pulls images)
-npx supabase status         # copy API URL / anon key / service_role key into .env.local (see .env.example)
-npm run db:reset            # regenerate supabase/seed.sql from the sample data and reload the DB
+npx supabase start          # local Postgres + Auth + Mailpit
+npx supabase status         # copy the API URL and keys into .env.local (see .env.example)
+npm run db:reset            # rebuild supabase/seed.sql and reload the database
 npm run dev                 # http://localhost:3000
 ```
 
-The sample data is 16 teams in 4 groups on the real calendar. Two rounds are played and round 3 is partly played, so the bracket shows projected slots.
-
-Test logins (local only). Login emails land in Mailpit at http://127.0.0.1:54324.
+The seed has the CODM sample tournament plus invented registrations for every other game, some of them still forming. Login emails land in Mailpit at http://127.0.0.1:54324.
 
 | Email | Role |
 |---|---|
 | admin@example.com | admin |
-| ref@example.com | referee |
-| rr.viper@example.com | Rift Reapers captain |
-| `<tag>.<callsign>@example.com` | any sample player, e.g. rr.nyx@example.com |
+| ref@example.com | referee, every game |
+| ff.ref@example.com | referee, Free Fire only |
+| rr.viper@example.com | CODM captain (Rift Reapers) |
+| `lead.<team-id>@example.com` | leader of any other seeded team, e.g. lead.freefire-ash-unit@example.com |
 
-Supabase only resends a code to the same address after 60 seconds.
+To try the sync locally, set `SYNC_SECRET` in `.env.local` and call `curl -H "Authorization: Bearer $SYNC_SECRET" "localhost:3000/api/sync?dry=1"`. Leave out `dry=1` to write.
 
 ## Tests
 
 ```bash
-npm test          # engine, rulebook timing, veto, fixtures, format rule
+npm test          # engines, sync parsing, rule timings
 npm run typecheck
 npm run lint
 ```
 
-The unit tests cover:
-- series scoring, standings, tiebreaker matches and coin tosses;
-- seeding sets and the same-group Quarterfinal swap;
-- late-penalty tiers, check-in and lobby windows, and the BO1 veto;
-- the scheduler: lobby limits, a free slot between matches, at most 2 a day, spill detection;
-- the group-count rule.
+The tests cover:
+- **Lobby engine:** points, every tiebreaker, advancement rules (including the Free Fire LCQ) and pool-scoped ties.
+- **Lobby dealing:** reshuffles that avoid repeat opponents, scheduling, and checks on entered results.
+- **Brackets:** any size up to 128, with byes spread out and walked over.
+- **Sync parsing:** run against the real header rows of the Unstop sheet, with invented people.
+- **CODM:** standings, seeds, scheduler, veto and late-penalty timings.
 
 ## Production setup
 
-1. **Supabase:** create a project, then run `npx supabase link --project-ref <ref>` and `npx supabase db push`.
-2. **Staff:** in the SQL editor, run `insert into staff (email, role) values ('you@college.edu', 'admin');`. Add everyone else from Admin → Content & staff.
-3. **Auth → URL Configuration:** set Site URL to `https://<your-domain>`. Add `https://<your-domain>/auth/confirm` (and the Vercel preview domain) to Redirect URLs.
-4. **Auth → SMTP: required.** Supabase's built-in mailer only sends to members of your Supabase organisation.
-   - Use a provider such as Resend or Brevo; the free tiers are enough.
-   - Send from your own domain with SPF and DKIM set up, or the emails land in spam.
-5. **Auth → Email Templates:** paste `supabase/templates/login.html` into both *Magic Link* and *Confirm signup*. Use the subject "Your CODM Carnage 2.0 login code".
-   - The email carries a 6-digit code plus a link to `/auth/confirm`, which logs in only when the player presses *Continue*.
-   - The default template's link breaks in Gmail's in-app browser, and college mail scanners can use it up before the player clicks.
-6. **Auth → Rate Limits:**
-   - Raise the email limit (custom SMTP starts at 30 per hour).
-   - Raise sign-ins and verifications per IP to about 150 per 5 minutes, since a venue on one Wi-Fi shares an IP.
-7. **Free plan:** projects pause after 7 days without traffic. Open the site in the days before each match day.
-8. **Vercel:** set the four environment variables from `.env.example`:
-   - `NEXT_PUBLIC_SUPABASE_URL`
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-   - `SUPABASE_SERVICE_ROLE_KEY`
-   - `NEXT_PUBLIC_SITE_URL`
-9. Follow [Before the group stage](#before-the-group-stage).
+1. **Supabase:** create a project in Mumbai (ap-south-1), then run `npx supabase link --project-ref <ref>` and `npx supabase db push`.
+2. **First admin:** in the SQL editor, run `insert into staff (email, role) values ('you@college.edu', 'admin');`. Add everyone else from Admin → Content & staff.
+3. **Auth → URL Configuration:** set the Site URL to `https://<your-domain>`, and add `https://<your-domain>/auth/confirm` to Redirect URLs.
+4. **Auth → SMTP (required):** the built-in mailer only reaches your own Supabase organisation.
+   - Brevo (300 a day free), Amazon SES or a Gmail app password all work.
+   - Leaders log in about once for the whole event, so a few hundred emails cover it.
+5. **Auth → Email Templates:** paste `supabase/templates/login.html` into *Magic Link* and *Confirm signup*. Use the subject "Your Yugaantar Esports login code".
+6. **Auth → Rate Limits:** raise the email limit, and raise sign-ins per IP to about 150 per 5 minutes (a venue shares one Wi-Fi IP).
+7. **Vercel:** import the repo and set the environment variables from `.env.example`:
+   - `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `NEXT_PUBLIC_SITE_URL`;
+   - `SYNC_SECRET`;
+   - `GOOGLE_SERVICE_ACCOUNT_JSON`, if the sheet is private;
+   - `REGISTRATION_SHEET_ID`, if it isn't the default sheet.
+8. **Sync every 5 minutes:** run [`supabase/snippets/sync-cron.sql`](supabase/snippets/sync-cron.sql) once in the SQL editor, with your site URL and secret.
+9. **Free plan:** projects pause after 7 days without traffic, which the sync job prevents.
 
-## CSV import formats
-
-Admin → Setup → Import. Export the registration Google Form or Sheet as CSV. Headers are matched by name, in any order.
-
-| Kind | Columns |
-|---|---|
-| Teams | team_id, name, tag, group, logo_url |
-| Players | team_id, ign, codm_uid, role (main/sub), captain (yes), email, phone, age |
-| Matches | match_id, stage (group / tiebreaker / qf / sf / third / final), group, round, best_of, team_a, team_b, date, time, status, forfeit_winner, veto_note, notes |
-| Maps | match_id, game, mode, map, score_a, score_b (published immediately) |
-
-Dates can be `YYYY-MM-DD` or `DD/MM/YYYY`, and times can be 24-hour or `6:30 PM`. All times are IST.
+Public pages are cached per game and refreshed whenever a result is published, so match-night traffic barely touches the database.
 
 ## Project layout
 
 ```
 src/
-  app/                    pages (Next.js App Router)
-    page.tsx              home
-    schedule/ groups/ bracket/ teams/ rules/
-    login/ auth/confirm/  emailed-code login
-    me/                   player dashboard and player actions
-    admin/                referee/admin panel; actions.ts holds every staff write
-  components/             MatchCard, GroupTable, ActionForm, …
-  content/event.ts        fixed event facts: stages, key dates, slots, offline times, rule text
+  app/
+    page.tsx                 event hub
+    [game]/                  game pages: overview, schedule, standings, teams, rules
+    me/                      leader dashboard and leader actions
+    ref/                     referee home: tonight's lobbies and matches
+    admin/                   games, per-game control rooms, lobby result entry, sync, CODM setup
+    api/sync/                registration sync endpoint (cron)
+  games/registry.ts          every game's facts and lobby stage defaults
   lib/
-    tournament.ts         engine: series, standings, tiebreakers, seeds, bracket slots
-    fixtures.ts           round robin scheduler, group-count rule, draw, bracket skeleton
-    rules.ts              rulebook timings: check-in, room release, late tiers, veto
-    parse.ts              CSV / sheet parsing into the engine's input
-    db/load.ts            Postgres → engine input
-    data.ts               cached tournament read for pages, uncached for staff pages
+    lobby/                   lobby engine: standings, tiebreakers, advancement, dealing; data loader
+    sync/                    Unstop sheet: fetch, parse, apply
+    knockout.ts              single-elimination brackets with byes
+    tournament.ts            head-to-head engine: series, groups, seeds, slot references
+    data.ts                  cached reads for public pages
+  views/                     page bodies shared by the game routes (CODM, lobby, knockout)
+  components/                MatchCard, StandingsTable, KnockoutBracket, …
 supabase/
-  migrations/             schema and Row Level Security
-  seed.sql                generated from the sample data (npm run seed-sql)
-  templates/login.html    login email
-docs/
-  rulebook.pdf  format-and-schedule.docx  screenshots/
-context.md                running project log and open questions
+  migrations/                schema and Row Level Security
+  snippets/sync-cron.sql     scheduled sync
+  seed.sql                   generated local data (npm run seed-sql)
+docs/                        organisers' rule documents, screenshots
 ```
