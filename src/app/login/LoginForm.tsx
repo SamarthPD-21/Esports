@@ -23,7 +23,7 @@ function EmailStep({ onReset }: { onReset: () => void }) {
   return (
     <form action={action} className="panel flex flex-col gap-4 p-6">
       <label className="flex flex-col gap-2">
-        <span className="text-sm font-medium">Email used at registration</span>
+        <span className="text-sm font-medium">Email you registered with on Unstop</span>
         <input type="email" name="email" required autoComplete="email" defaultValue={state.email} placeholder="you@example.com" className={input} />
       </label>
       {state.error && <p className="text-sm text-live" role="alert">{state.error}</p>}
@@ -40,7 +40,7 @@ function CodeForm({ email, onBack }: { email: string; onBack: () => void }) {
       <div role="status">
         <p className="font-cond text-xl font-bold">Check your inbox</p>
         <p className="mt-2 text-sm text-muted">
-          If <span className="text-text">{email}</span> is registered for the tournament, a login code is on its way. Check Spam and Promotions too.
+          If <span className="text-text">{email}</span> leads a team or is a solo entry, a login code is on its way. Check Spam and Promotions too.
         </p>
       </div>
       <label className="flex flex-col gap-2">
