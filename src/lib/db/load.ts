@@ -1,16 +1,20 @@
 import type { PostgrestClient } from "@supabase/postgrest-js";
 import { DEFAULT_CONFIG, parseCoinToss, parseTiebreakers } from "../parse";
+import type { GameId } from "../../games/registry";
 import type { MatchInput, Mode, RawTournament, Stage, Team } from "../types";
 
-/** Reads the public tables (RLS hides pending results) into the shape the engine expects. */
-export async function loadRawTournament(db: PostgrestClient): Promise<{ raw: RawTournament; warnings: string[] }> {
+/**
+ * Reads one head-to-head game's public tables (RLS hides pending results) into
+ * the shape the engine expects. Config, map pool and match days are CODM's.
+ */
+export async function loadRawTournament(db: PostgrestClient, game: GameId = "codm"): Promise<{ raw: RawTournament; warnings: string[] }> {
   const [teams, players, matches, maps, config, announcements, pool, days] = await Promise.all([
-    db.from("teams").select("id, name, tag, group_name, logo_url").order("name"),
-    db.from("players").select("id, team_id, ign, codm_uid, role, is_captain").order("role").order("ign"),
-    db.from("matches").select("*").order("scheduled_at", { nullsFirst: false }).order("id"),
-    db.from("maps").select("match_id, game, mode, map, score_a, score_b, status").order("game"),
+    db.from("teams").select("id, name, tag, group_name, logo_url, status, eligible").eq("game_id", game).order("name"),
+    db.from("players").select("id, team_id, ign, game_uid, role, is_captain, teams!inner(game_id)").eq("teams.game_id", game).order("role").order("ign"),
+    db.from("matches").select("*").eq("game_id", game).order("scheduled_at", { nullsFirst: false }).order("id"),
+    db.from("maps").select("match_id, game, mode, map, score_a, score_b, status, matches!inner(game_id)").eq("matches.game_id", game).order("game"),
     db.from("config").select("key, value"),
-    db.from("announcements").select("date, title, body").order("date", { ascending: false }),
+    db.from("announcements").select("date, title, body").or(`game_id.is.null,game_id.eq.${game}`).order("date", { ascending: false }),
     db.from("map_pool").select("mode, map").order("map"),
     db.from("match_days").select("day, mode, note").order("day"),
   ]);
@@ -29,8 +33,10 @@ export async function loadRawTournament(db: PostgrestClient): Promise<{ raw: Raw
       tag: t.tag,
       group: t.group_name ?? "",
       logoUrl: t.logo_url ?? undefined,
+      status: t.status,
+      eligible: t.eligible,
       captain: ps.find((p) => p.is_captain)?.ign,
-      players: ps.map((p) => ({ teamId: t.id, ign: p.ign, codmUid: p.codm_uid, role: p.role })),
+      players: ps.map((p) => ({ teamId: t.id, ign: p.ign, gameUid: p.game_uid, role: p.role })),
     };
   });
 
@@ -49,7 +55,7 @@ export async function loadRawTournament(db: PostgrestClient): Promise<{ raw: Raw
     notes: m.notes ?? undefined,
     maps: (maps.data ?? [])
       .filter((x) => x.match_id === m.id && x.status === "final")
-      .map((x) => ({ game: x.game, mode: x.mode as Mode, map: x.map, scoreA: x.score_a, scoreB: x.score_b })),
+      .map((x) => ({ game: x.game, mode: (x.mode ?? undefined) as Mode, map: x.map, scoreA: x.score_a, scoreB: x.score_b })),
   }));
 
   const qpg = Number(cfg.get("qualifiers_per_group"));

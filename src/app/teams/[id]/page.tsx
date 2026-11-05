@@ -74,7 +74,7 @@ async function TeamDetail({ params }: Pick<PageProps<"/teams/[id]">, "params">) 
                     {p.ign}
                     {team.captain === p.ign && <span className="ml-2 text-[10px] font-semibold text-steel">Captain</span>}
                   </p>
-                  {p.codmUid && <p className="tnum font-cond text-xs text-faint">UID {p.codmUid}</p>}
+                  {p.gameUid && <p className="tnum font-cond text-xs text-faint">UID {p.gameUid}</p>}
                 </div>
                 {p.role === "sub" && (
                   <span className="rounded border border-line px-1.5 py-0.5 text-[10px] font-semibold text-muted">Sub</span>

@@ -19,7 +19,7 @@ export default function SetupPage() {
 
 const FORMATS = [
   { kind: "Teams", cols: "team_id, name, tag, group, logo_url" },
-  { kind: "Players", cols: "team_id, ign, codm_uid, role (main/sub), captain (yes), email, phone, age" },
+  { kind: "Players", cols: "team_id, ign, game_uid, role (main/sub), captain (yes), email, phone, age" },
   { kind: "Matches", cols: "match_id, stage, group, round, best_of, team_a, team_b, date, time, status, forfeit_winner, veto_note, notes" },
   { kind: "Maps", cols: "match_id, game, mode, map, score_a, score_b (published immediately)" },
 ];

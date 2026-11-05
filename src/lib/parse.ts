@@ -22,7 +22,7 @@ export type TabName = (typeof TABS)[number];
 /** Column headers per tab, in template order. Header matching is case/space-insensitive. */
 export const COLUMNS: Record<TabName, string[]> = {
   Teams: ["team_id", "name", "tag", "group", "logo_url", "captain"],
-  Players: ["team_id", "ign", "codm_uid", "role"],
+  Players: ["team_id", "ign", "game_uid", "role"],
   Matches: [
     "match_id", "stage", "group", "round", "best_of", "team_a", "team_b",
     "date", "time", "status", "forfeit_winner", "veto_note", "notes",
@@ -216,7 +216,7 @@ export function parseTournament(tabs: Partial<Record<TabName, string>>): {
     }
     const role = (r.role ?? "").toLowerCase().startsWith("sub") ? "sub" : "main";
     const list = playersByTeam.get(teamId) ?? [];
-    list.push({ teamId, ign: r.ign, codmUid: r.codm_uid ?? "", role });
+    list.push({ teamId, ign: r.ign, gameUid: r.game_uid ?? "", role });
     playersByTeam.set(teamId, list);
   }
 

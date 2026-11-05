@@ -10,7 +10,7 @@ export type PlayerRole = "main" | "sub";
 export interface Player {
   teamId: string;
   ign: string;
-  codmUid: string;
+  gameUid: string;
   role: PlayerRole;
 }
 
@@ -20,6 +20,9 @@ export interface Team {
   tag: string;
   group: string;
   logoUrl?: string;
+  /** From the registration sheet; withdrawn and disqualified teams don't play. */
+  status?: "confirmed" | "forming" | "withdrawn" | "disqualified";
+  eligible?: boolean;
   captain?: string;
   players: Player[];
 }

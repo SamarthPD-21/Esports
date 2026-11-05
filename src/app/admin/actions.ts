@@ -203,7 +203,7 @@ export const importCsv = staff(async (form, { db }) => {
       const player = check<{ id: string }>(
         await db.from("players").upsert(
           {
-            team_id: teamId, ign: r.ign, codm_uid: r.codm_uid ?? "",
+            team_id: teamId, ign: r.ign, game_uid: r.game_uid ?? "",
             role: (r.role ?? "").toLowerCase().startsWith("sub") ? "sub" : "main",
             is_captain: /^(y|yes|true|1|captain)$/i.test(r.captain ?? ""),
           },
