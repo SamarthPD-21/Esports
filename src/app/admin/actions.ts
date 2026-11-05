@@ -1,7 +1,9 @@
 "use server";
 
 import { refresh, updateTag } from "next/cache";
-import { requireAdmin, requireStaff } from "@/lib/auth";
+import { canStaff, requireAdmin, requireStaff } from "@/lib/auth";
+import { GAMES, isGameId } from "@/games/registry";
+import { gamesFromForm, staffTags } from "@/lib/staff";
 import { TOURNAMENT_TAG } from "@/lib/data";
 import { drawGroups, groupFormat, knockoutSkeleton, roundRobin } from "@/lib/fixtures";
 import { KNOCKOUT_TIMES } from "@/content/event";
@@ -19,12 +21,37 @@ type Action = (prev: ActionState, form: FormData) => Promise<ActionState>;
 const str = (form: FormData, key: string) => String(form.get(key) ?? "").trim();
 const intOrNull = (s: string) => (/^\d+$/.test(s) ? Number(s) : null);
 
-/** Wraps a staff mutation: authorises, reports errors, refreshes public pages. */
-function staff(fn: (form: FormData, ctx: { db: Awaited<ReturnType<typeof createClient>>; email: string; isAdmin: boolean }) => Promise<string>, opts: { admin?: boolean } = {}): Action {
+type Db = Awaited<ReturnType<typeof createClient>>;
+
+/** The game a form's `id` belongs to: a match, or a dispute's match. */
+async function gameOfForm(db: Db, form: FormData, scope: "match" | "dispute"): Promise<string | undefined> {
+  let matchId = str(form, "id");
+  if (matchId && scope === "dispute") {
+    const d = check<{ match_id: string } | null>(await db.from("disputes").select("match_id").eq("id", matchId).maybeSingle());
+    matchId = d?.match_id ?? "";
+  }
+  if (!matchId) return undefined;
+  const m = check<{ game_id: string } | null>(await db.from("matches").select("game_id").eq("id", matchId).maybeSingle());
+  return m?.game_id;
+}
+
+/**
+ * Wraps a staff mutation: authorises, reports errors, refreshes public pages.
+ * Referees act only on matches of their own games.
+ */
+function staff(
+  fn: (form: FormData, ctx: { db: Db; email: string; isAdmin: boolean }) => Promise<string>,
+  opts: { admin?: boolean; scope?: "match" | "dispute" } = {},
+): Action {
   return async (_prev, form) => {
     try {
       const viewer = opts.admin ? await requireAdmin() : await requireStaff();
       const db = await createClient();
+      // Admins cover every game; their actions don't carry a match id.
+      const game = opts.admin ? undefined : await gameOfForm(db, form, opts.scope ?? "match");
+      if (game && !canStaff(viewer, game)) {
+        throw new Error(`You aren't on the staff for ${isGameId(game) ? GAMES[game].name : game}.`);
+      }
       const ok = await fn(form, { db, email: viewer.email, isAdmin: viewer.staffRole === "admin" });
       updateTag(TOURNAMENT_TAG);
       refresh();
@@ -172,7 +199,7 @@ export const resolveDispute = staff(async (form, { db }) => {
   if (status !== "upheld" && status !== "rejected") throw new Error("Pick upheld or rejected.");
   check(await db.from("disputes").update({ status, resolution: str(form, "resolution") || null, resolved_at: new Date().toISOString() }).eq("id", str(form, "id")));
   return `Dispute ${status}.`;
-});
+}, { scope: "dispute" });
 
 // ---------------------------------------------------------------------------
 // Setup (admins)
@@ -333,12 +360,16 @@ export const saveMapPool = staff(async (form, { db }) => {
   return `Map pool saved (${rows.length} maps).`;
 }, { admin: true });
 
-export const addStaff = staff(async (form, { db }) => {
+/** Adds a staff member or changes their role and games. */
+export const saveStaff = staff(async (form, { db, email: me }) => {
   const email = str(form, "email").toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error("Enter an email address.");
   const role = str(form, "role") === "admin" ? "admin" : "referee";
-  if (!/^[^\s@]+@[^\s@]+$/.test(email)) throw new Error("Enter an email.");
-  check(await db.from("staff").upsert({ email, role }));
-  return `${email} added as ${role}.`;
+  if (email === me.toLowerCase() && role !== "admin") throw new Error("You can't remove your own admin role.");
+  const games = role === "admin" ? null : gamesFromForm(form.getAll("game").map(String));
+  if (games && games.length === 0) throw new Error("Pick at least one game, or All games.");
+  check(await db.from("staff").upsert({ email, role, games }));
+  return `${email}: ${staffTags({ role, games }).join(", ")}.`;
 }, { admin: true });
 
 export const removeStaff = staff(async (form, { db, email }) => {

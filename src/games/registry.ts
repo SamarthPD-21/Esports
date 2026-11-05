@@ -24,6 +24,8 @@ export interface GameDef {
   name: string;
   /** Short name for tabs and chips. */
   short: string;
+  /** Short handle for staff tags such as "valo-ref". */
+  handle: string;
   shape: GameShape;
   /** Individual entry (each player is a team of one). */
   solo: boolean;
@@ -81,6 +83,7 @@ export const GAMES: Record<GameId, GameDef> = {
     id: "codm",
     name: "Call of Duty: Mobile",
     short: "CODM",
+    handle: "codm",
     shape: "h2h",
     solo: false,
     roster: { min: 5, max: 6 },
@@ -108,6 +111,7 @@ export const GAMES: Record<GameId, GameDef> = {
     id: "valorant",
     name: "Valorant",
     short: "Valorant",
+    handle: "valo",
     shape: "h2h",
     solo: false,
     roster: { min: 5, max: 5 },
@@ -159,6 +163,7 @@ export const GAMES: Record<GameId, GameDef> = {
     id: "bgmi",
     name: "BGMI",
     short: "BGMI",
+    handle: "bgmi",
     shape: "lobby",
     solo: false,
     roster: { min: 4, max: 5 },
@@ -237,6 +242,7 @@ export const GAMES: Record<GameId, GameDef> = {
     id: "freefire",
     name: "Free Fire MAX",
     short: "Free Fire",
+    handle: "ff",
     shape: "lobby",
     solo: false,
     roster: { min: 4, max: 5 },
@@ -328,6 +334,7 @@ export const GAMES: Record<GameId, GameDef> = {
     id: "smashkarts",
     name: "Smash Karts",
     short: "Smash Karts",
+    handle: "karts",
     shape: "lobby",
     solo: true,
     roster: { min: 1, max: 1 },
@@ -409,6 +416,7 @@ export const GAMES: Record<GameId, GameDef> = {
     id: "fifa",
     name: "FIFA",
     short: "FIFA",
+    handle: "fifa",
     shape: "h2h",
     solo: true,
     roster: { min: 1, max: 1 },

@@ -6,8 +6,8 @@ import { ActionForm, inputClass } from "@/components/ActionForm";
 import { StatusChip } from "@/components/StatusChip";
 import { MODE_NAME } from "@/content/event";
 import { getMatchPrivate } from "@/lib/admin";
-import { requestNow, requireStaff } from "@/lib/auth";
-import { isGameId } from "@/games/registry";
+import { canStaff, requestNow, requireStaff } from "@/lib/auth";
+import { GAMES, isGameId } from "@/games/registry";
 import { loadTournament, matchDayFor } from "@/lib/data";
 import { createPublicClient } from "@/lib/supabase/server";
 import { dayKey, fmtTime } from "@/lib/format";
@@ -49,6 +49,7 @@ async function Editor({ params }: Pick<PageProps<"/admin/matches/[id]">, "params
   const { id } = await params;
   const { data: row } = await createPublicClient().from("matches").select("game_id").eq("id", id.toUpperCase()).maybeSingle();
   const game = row && isGameId(row.game_id) ? row.game_id : "codm";
+  if (!canStaff(viewer, game)) return <p className="panel p-5 text-sm text-muted">You aren&apos;t on the staff for {GAMES[game].name}.</p>;
   const codm = game === "codm";
   const t = await loadTournament(game);
   const m = t.matches.find((x) => x.id === id.toUpperCase());

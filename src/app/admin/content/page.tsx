@@ -1,14 +1,13 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { ActionForm, inputClass } from "@/components/ActionForm";
-import { getAdminOverview } from "@/lib/admin";
 import { requireAdmin } from "@/lib/auth";
 import { loadTournament } from "@/lib/data";
 import { MODE_NAME } from "@/content/event";
 import { dayKey, fmtDay } from "@/lib/format";
-import { addAnnouncement, addStaff, deleteAnnouncement, removeStaff, saveConfig, saveMapPool, saveMatchDays } from "../actions";
+import { addAnnouncement, deleteAnnouncement, saveConfig, saveMapPool, saveMatchDays } from "../actions";
 
-export const metadata: Metadata = { title: "Content & staff" };
+export const metadata: Metadata = { title: "Content" };
 
 export default function ContentPage() {
   return (
@@ -19,8 +18,8 @@ export default function ContentPage() {
 }
 
 async function Content() {
-  const viewer = await requireAdmin();
-  const [t, o] = await Promise.all([loadTournament(), getAdminOverview()]);
+  await requireAdmin();
+  const t = await loadTournament();
   const c = t.config;
   const groupDays = [...new Set(t.matches.filter((m) => m.stage === "group" && m.scheduledAt).map((m) => dayKey(m.scheduledAt!)))].sort();
   const dayIso = (day: string) => `${day}T12:00:00+05:30`;
@@ -30,7 +29,7 @@ async function Content() {
 
   return (
     <>
-      <h1 className="font-display text-3xl font-bold">Content &amp; staff</h1>
+      <h1 className="font-display text-3xl font-bold">Content</h1>
       <div className="mt-6 grid gap-5 lg:grid-cols-2">
         <section className="panel p-5">
           <h2 className="font-cond text-lg font-bold">Settings</h2>
@@ -101,29 +100,6 @@ async function Content() {
           <AnnouncementDeletes />
         </section>
 
-        <section className="panel p-5">
-          <h2 className="font-cond text-lg font-bold">Staff</h2>
-          <p className="mt-1 text-xs text-muted">Referees enter results and check-ins; admins also publish results, import data and manage staff.</p>
-          <ul className="mt-4 flex flex-col gap-2">
-            {o.staff.map((s) => (
-              <li key={s.email} className="flex items-center justify-between gap-2 text-sm">
-                <span>{s.email} <span className="text-xs text-faint">{s.role}</span></span>
-                {s.email !== viewer.email.toLowerCase() && (
-                  <ActionForm action={removeStaff} submit="Remove" tone="danger" className="flex items-center gap-2">
-                    <input type="hidden" name="email" value={s.email} />
-                  </ActionForm>
-                )}
-              </li>
-            ))}
-          </ul>
-          <ActionForm action={addStaff} submit="Add staff" className="mt-4 grid grid-cols-[1fr_auto] gap-2 border-t border-line pt-4">
-            <input name="email" type="email" required placeholder="email@college.edu" className={inputClass} />
-            <select name="role" className={inputClass} defaultValue="referee">
-              <option value="referee">Referee</option>
-              <option value="admin">Admin</option>
-            </select>
-          </ActionForm>
-        </section>
       </div>
     </>
   );

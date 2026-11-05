@@ -85,7 +85,9 @@ CODM keeps its own dashboard: veto, substitutions and Veto Power.
 
 ### Referee screens
 
-**Tonight (`/ref`)** lists the next match day's lobbies and matches, but only for the games the referee runs. Staff can be limited to particular games.
+**Tonight (`/ref`)** lists the next match day's lobbies and matches, but only for the games the referee runs.
+
+**Staff (`/admin/staff`)** gives accounts roles by email: `admin`, or game tags such as `codm-ref`, `valo-ref`, `bgmi-ref`, `ff-ref`, `karts-ref` and `fifa-ref` (or all games). A referee only sees and edits their own games; the database enforces this too, down to who can read player contact details.
 
 ![Referee: tonight](docs/screenshots/referee-tonight.png)
 
@@ -158,7 +160,7 @@ Unstop ──► registrations sheet (one tab per game)
    - **Lobby games:** open the game's control room → *Create stages* → *Fill from eligible teams* → *Draw lobbies*.
    - **Valorant, FIFA:** *Draw bracket*.
    - **CODM:** Setup → draw groups → generate fixtures → generate bracket.
-4. Add referees under Content & staff, and limit each to their games.
+4. Add referees under Staff and tag each with their games (e.g. `valo-ref`).
 
 ### A lobby night (Free Fire, BGMI, Smash Karts)
 
