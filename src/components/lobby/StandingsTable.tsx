@@ -47,12 +47,12 @@ export function StandingsTable({
         {rows.length === 0 ? (
           <p className="px-4 py-5 text-sm text-muted">No entrants yet.</p>
         ) : (
-          <table id={id} className="w-full min-w-[420px] text-sm">
+          <table id={id} className="w-full table-fixed text-sm sm:table-auto">
             <thead>
               <tr className="text-[11px] text-faint">
-                <th className="w-10 py-2 pl-4 text-left font-medium">#</th>
+                <th className="w-11 py-2 pl-4 text-left font-medium">#</th>
                 <th className="py-2 text-left font-medium">{unit === "player" ? "Player" : "Team"}</th>
-                <th className="py-2 text-center font-medium" title="Placement in each match">Matches</th>
+                <th className="hidden py-2 text-center font-medium sm:table-cell" title="Placement in each match">Matches</th>
                 <th className="w-12 py-2 text-right font-medium">Kills</th>
                 <th className="w-14 py-2 pr-4 text-right font-medium">Pts</th>
               </tr>
@@ -95,7 +95,7 @@ export function StandingsTable({
                         </div>
                       </div>
                     </td>
-                    <td className="py-2.5 text-center">
+                    <td className="hidden py-2.5 text-center sm:table-cell">
                       <span className="tnum inline-flex gap-1.5 font-cond text-xs text-muted">
                         {Array.from({ length: rounds }, (_, k) => r.placements[k]).map((p, k) => (
                           <span key={k} className={`w-4 ${p === 1 ? "font-bold text-text" : p === undefined ? "text-faint" : ""}`}>{p ?? "–"}</span>
