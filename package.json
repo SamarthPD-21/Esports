@@ -9,7 +9,7 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "test": "node --test src/lib/*.test.ts",
+    "test": "node --test 'src/**/*.test.ts'",
     "export-template": "node scripts/export-template.ts",
     "seed-sql": "node scripts/seed-sql.ts",
     "db:reset": "npm run seed-sql && supabase db reset",
