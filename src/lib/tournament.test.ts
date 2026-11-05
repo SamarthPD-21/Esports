@@ -213,3 +213,59 @@ test("bracket: teams from one group don't meet in a Quarterfinal", async () => {
   const pairs = [[1, 8], [4, 5], [2, 7], [3, 6]].map(([x, y]) => [slots[x - 1], slots[y - 1]]);
   assert.ok(pairs.every(([x, y]) => group[x] !== group[y]));
 });
+
+test("byes: a lone bye walks the other side through, two byes cancel", () => {
+  const ko = (id: string, a: string, b: string, stage: MatchInput["stage"] = "r16"): MatchInput => ({ id, stage, bestOf: 1, sideA: a, sideB: b, maps: [] });
+  const t = buildTournament(
+    raw([team("a"), team("b"), team("c")], [
+      ko("R1", "a", "BYE"),
+      ko("R2", "bye", "b"),
+      ko("R3", "BYE", "BYE"),
+      ko("R4", "c", "W:R3"),
+      ko("NEXT", "W:R1", "W:R2", "qf"),
+      ko("LOSER", "L:R1", "W:R4", "qf"),
+    ]),
+    meta,
+  );
+  assert.deepEqual(t.warnings, []);
+  const m = new Map(t.matches.map((x) => [x.id, x]));
+  assert.deepEqual(m.get("R1")!.b, { ref: "BYE", label: "Bye", projected: false, bye: true });
+  assert.equal(m.get("R1")!.status, "completed");
+  assert.equal(m.get("R1")!.winner, "A");
+  assert.deepEqual(m.get("R1")!.maps, []);
+  assert.equal(m.get("R2")!.winner, "B");
+  assert.equal(m.get("R3")!.status, "cancelled");
+  assert.equal(m.get("R3")!.winner, undefined);
+  // The empty slot from R3 is a bye too, so c goes through.
+  assert.equal(m.get("R4")!.winner, "A");
+  assert.equal(m.get("NEXT")!.a.teamId, "a");
+  assert.equal(m.get("NEXT")!.b.teamId, "b");
+  assert.equal(m.get("NEXT")!.status, "scheduled");
+  // The loser of a bye match is a bye.
+  assert.equal(m.get("LOSER")!.a.bye, true);
+  assert.equal(m.get("LOSER")!.winner, "B");
+  assert.equal(m.get("LOSER")!.b.teamId, "c");
+});
+
+test("byes: waits for the other side, and a hand-set override still wins", () => {
+  const t = buildTournament(
+    raw([team("a"), team("b")], [
+      { id: "R1", stage: "r32", bestOf: 1, sideA: "a", sideB: "b", maps: [] },
+      { id: "R2", stage: "r16", bestOf: 1, sideA: "W:R1", sideB: "BYE", maps: [] },
+      { id: "R3", stage: "r16", bestOf: 1, sideA: "a", sideB: "BYE", statusOverride: "cancelled", maps: [] },
+    ]),
+    meta,
+  );
+  const m = new Map(t.matches.map((x) => [x.id, x]));
+  assert.equal(m.get("R2")!.status, "scheduled");
+  assert.equal(m.get("R3")!.status, "cancelled");
+});
+
+test("parse: early knockout stages and their labels", async () => {
+  const { STAGE_LABEL } = await import("./tournament.ts");
+  const { raw: r } = parseTournament({
+    Matches: "match_id,stage,team_a,team_b\nVAL-R64-01,Round of 64,BYE,x\nVAL-R32-01,r32,W:VAL-R64-01,y\nVAL-R8-01,R8,a,b\n",
+  });
+  assert.deepEqual(r.matches.map((x) => [x.stage, x.bestOf]), [["r64", 1], ["r32", 1], ["qf", 3]]);
+  assert.equal(STAGE_LABEL.r64, "Round of 64");
+});

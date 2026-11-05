@@ -297,11 +297,27 @@ export function quarterfinalSlots(seeds: string[], groupOf: (id: string) => stri
 export const STAGE_LABEL: Record<string, string> = {
   group: "Group Stage",
   tiebreak: "Tiebreaker",
+  r128: "Round of 128",
+  r64: "Round of 64",
+  r32: "Round of 32",
+  r16: "Round of 16",
   qf: "Quarterfinal",
   sf: "Semifinal",
   third: "3rd Place",
   final: "Grand Final",
 };
+
+/**
+ * A bye walks the other side through with no maps played, once that side is
+ * known. Two byes leave nobody to play. Hand-set overrides still win.
+ */
+function byeResult(m: MatchInput, a: ResolvedSide, b: ResolvedSide, s: SeriesResult): SeriesResult {
+  if (m.statusOverride || (!a.bye && !b.bye)) return s;
+  if (a.bye && b.bye) return { status: "cancelled", mapWinsA: 0, mapWinsB: 0 };
+  const other = a.bye ? b : a;
+  if (!other.teamId) return { status: "scheduled", mapWinsA: 0, mapWinsB: 0 };
+  return { status: "completed", mapWinsA: 0, mapWinsB: 0, winner: a.bye ? "B" : "A" };
+}
 
 export function buildTournament(
   raw: RawTournament,
@@ -344,6 +360,7 @@ export function buildTournament(
   function resolveSide(ref: string, ctx: string): ResolvedSide {
     ref = ref.trim();
     if (!ref) return { ref, label: "TBD", projected: false };
+    if (/^BYE$/i.test(ref)) return { ref: "BYE", label: "Bye", projected: false, bye: true };
     if (teamById.has(ref)) return { ref, teamId: ref, label: teamById.get(ref)!.name, projected: false };
 
     const wl = /^([WL]):(.+)$/i.exec(ref);
@@ -356,8 +373,11 @@ export function buildTournament(
         return { ref, label, projected: false };
       }
       const m = resolveMatch(src);
+      // An empty bracket slot (two byes, or the loser of a bye) is itself a bye.
+      if (m && m.a.bye && m.b.bye) return { ref, label: "Bye", projected: false, bye: true };
       if (!m?.winner) return { ref, label, projected: false };
       const side = (kind === "W") === (m.winner === "A") ? m.a : m.b;
+      if (side.bye) return { ref, label: "Bye", projected: false, bye: true };
       return { ref, teamId: side.teamId, label, projected: side.projected };
     }
 
@@ -407,7 +427,7 @@ export function buildTournament(
     }
     const vetoHolder = m.stage === "sf" ? higherSeed : undefined;
 
-    const match: Match = { ...rest, a, b, ...s, higherSeed, vetoHolder };
+    const match: Match = { ...rest, a, b, ...byeResult(m, a, b, s), higherSeed, vetoHolder };
     resolving.delete(id);
     resolved.set(id, match);
     return match;

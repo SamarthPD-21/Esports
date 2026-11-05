@@ -119,13 +119,17 @@ export function parseMode(s: string): Mode | undefined {
 const STAGE_ALIASES: Record<string, Stage> = {
   group: "group", groups: "group", "group stage": "group", gs: "group",
   tiebreak: "tiebreak", tiebreaker: "tiebreak", tb: "tiebreak", playoff: "tiebreak",
-  qf: "qf", quarterfinal: "qf", quarterfinals: "qf", quarter: "qf",
+  r128: "r128", "round of 128": "r128", ro128: "r128",
+  r64: "r64", "round of 64": "r64", ro64: "r64",
+  r32: "r32", "round of 32": "r32", ro32: "r32",
+  r16: "r16", "round of 16": "r16", ro16: "r16",
+  qf: "qf", r8: "qf", quarterfinal: "qf", quarterfinals: "qf", quarter: "qf",
   sf: "sf", semifinal: "sf", semifinals: "sf", semi: "sf",
   third: "third", "3rd": "third", "3rd place": "third", "third place": "third",
   final: "final", finals: "final", "grand final": "final", gf: "final",
 };
 
-const DEFAULT_BEST_OF: Record<Stage, 1 | 3 | 5> = { group: 1, tiebreak: 1, qf: 3, sf: 3, third: 3, final: 5 };
+const DEFAULT_BEST_OF: Record<Stage, 1 | 3 | 5> = { group: 1, tiebreak: 1, r128: 1, r64: 1, r32: 1, r16: 1, qf: 3, sf: 3, third: 3, final: 5 };
 
 function parseDate(s: string): string | undefined {
   let m = /^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(s);
@@ -273,7 +277,7 @@ export function parseTournament(tabs: Partial<Record<TabName, string>>): {
     const id = (r.match_id ?? "").toUpperCase();
     const stage = STAGE_ALIASES[(r.stage ?? "").toLowerCase()];
     if (!id || !stage) {
-      warn(`${r.__line}: needs match_id and a stage (group, qf, sf, third, final)`);
+      warn(`${r.__line}: needs match_id and a stage (group, r64, r32, r16, qf, sf, third, final)`);
       continue;
     }
     const bo = int(r.best_of);

@@ -4,7 +4,8 @@
 
 export type Mode = "HP" | "SND" | "CTRL";
 /** "tiebreak" = a BO1 played on the buffer day between teams level on wins and head-to-head. */
-export type Stage = "group" | "tiebreak" | "qf" | "sf" | "third" | "final";
+/** r128..r16 = early knockout rounds (Round of 128 .. Round of 16) for open brackets. */
+export type Stage = "group" | "tiebreak" | "r128" | "r64" | "r32" | "r16" | "qf" | "sf" | "third" | "final";
 export type PlayerRole = "main" | "sub";
 
 export interface Player {
@@ -42,6 +43,7 @@ export interface MapResult {
  *   S3      → overall seed #3
  *   W:QF1   → winner of match QF1
  *   L:SF2   → loser of match SF2
+ *   BYE     → no opponent; the other side goes through
  */
 export type SlotRef = string;
 
@@ -72,6 +74,8 @@ export interface ResolvedSide {
   label: string;
   /** True when the slot depends on a group that hasn't finished yet. */
   projected: boolean;
+  /** A bye: written as BYE, or the empty side of an earlier bye match. */
+  bye?: boolean;
 }
 
 export interface Match extends Omit<MatchInput, "sideA" | "sideB"> {
