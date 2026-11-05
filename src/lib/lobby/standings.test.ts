@@ -220,3 +220,17 @@ test("live and scheduled results do not count yet", () => {
   assert.equal(res.rows[0].points, 0);
   assert.equal(res.rows[0].played, 0);
 });
+
+test("fixed pools: identical results in different lobbies are not a tie", () => {
+  const s = stage({ points: FF_POINTS, tiebreakers: ["wins", "kills", "lastMatch"] });
+  const entrants: LobbyEntrant[] = [
+    { teamId: "a1", pool: "A" }, { teamId: "a2", pool: "A" },
+    { teamId: "b1", pool: "B" }, { teamId: "b2", pool: "B" },
+  ];
+  const res = computeLobbyStandings(s, entrants, [
+    match(1, "A", [["a1", 1, 2], ["a2", 2, 1]]),
+    match(1, "B", [["b1", 1, 2], ["b2", 2, 1]]),
+  ]);
+  assert.ok(res.rows.every((r) => !r.tied));
+  assert.deepEqual(res.rows.map((r) => r.poolPosition), [1, 1, 2, 2]);
+});

@@ -123,14 +123,17 @@ export function computeLobbyStandings(stage: LobbyStage, entrants: LobbyEntrant[
 
   const sorter = makeSorter(settings.tiebreakers);
   const sorted = [...rows.values()].sort(sorter);
-  sorted.forEach((row, i) => {
-    row.position = i + 1;
-    const prev = sorted[i - 1];
-    if (prev && compareRows(settings.tiebreakers, prev, row) === 0) {
-      prev.tied = true;
-      row.tied = true;
-    }
-  });
+  sorted.forEach((row, i) => (row.position = i + 1));
+  // Two entrants only compete for a spot inside their own pool, so ties are
+  // checked between pool neighbours (or overall when lobbies reshuffle).
+  const markTies = (list: LobbyStandingRow[]) =>
+    list.forEach((row, i) => {
+      const prev = list[i - 1];
+      if (prev && compareRows(settings.tiebreakers, prev, row) === 0) {
+        prev.tied = true;
+        row.tied = true;
+      }
+    });
 
   let pools: string[] = [];
   if (fixedPools) {
@@ -141,8 +144,13 @@ export function computeLobbyStandings(stage: LobbyStage, entrants: LobbyEntrant[
       list.push(row);
       byPool.set(key, list);
     }
-    for (const list of byPool.values()) list.forEach((row, i) => (row.poolPosition = i + 1));
+    for (const list of byPool.values()) {
+      list.forEach((row, i) => (row.poolPosition = i + 1));
+      markTies(list);
+    }
     pools = [...byPool.keys()].filter((p) => p !== "").sort();
+  } else {
+    markTies(sorted);
   }
 
   applyAdvancement(sorted, settings.advance, sorter);
