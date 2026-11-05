@@ -3,8 +3,6 @@ import { Suspense } from "react";
 import { GameTabs, GameTabsShell } from "@/components/GameTabs";
 import { GAME_IDS, GAMES, isGameId } from "@/games/registry";
 
-export const dynamicParams = false;
-
 export function generateStaticParams() {
   return GAME_IDS.map((game) => ({ game }));
 }

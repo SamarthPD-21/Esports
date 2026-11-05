@@ -4,8 +4,6 @@ import { GAME_IDS, GAMES } from "@/games/registry";
 import { H2HAdmin } from "@/views/admin/H2HAdmin";
 import { LobbyAdmin } from "@/views/admin/LobbyAdmin";
 
-export const dynamicParams = false;
-
 export function generateStaticParams() {
   return GAME_IDS.map((game) => ({ game }));
 }
