@@ -53,5 +53,38 @@ for (const m of raw.mapPool) out.push(`insert into map_pool (mode, map) values (
 // Mode of the day for all five group evenings, as published on 15 Nov.
 for (const d of GROUP_DAY_MODES) out.push(`insert into match_days (day, mode) values (${q(d.day)}, ${q(d.mode)});`);
 
+// Invented registrations for the other games, so every flow can be tried locally.
+const WORDS = ["Ash", "Blitz", "Cobalt", "Dusk", "Ember", "Frost", "Gale", "Haze", "Ion", "Jolt", "Krait", "Lynx", "Mako", "Nova", "Onyx", "Pike", "Quake", "Rook", "Sable", "Talon"];
+const KINDS = ["Squad", "Unit", "Crew", "Five", "Pack", "Syndicate"];
+const OTHER: { game: string; teams: number; size: number; forming: number; uid: (i: number) => string }[] = [
+  { game: "valorant", teams: 50, size: 5, forming: 4, uid: (i) => `Player${i}#IND` },
+  { game: "freefire", teams: 36, size: 5, forming: 6, uid: (i) => String(1_200_000_000 + i) },
+  { game: "bgmi", teams: 44, size: 5, forming: 5, uid: (i) => String(5_100_000_000 + i) },
+  { game: "smashkarts", teams: 70, size: 1, forming: 0, uid: (i) => `SK${10_000 + i}` },
+  { game: "fifa", teams: 12, size: 1, forming: 0, uid: (i) => `fifa_${i}` },
+];
+let n = 0;
+for (const o of OTHER) {
+  for (let t = 0; t < o.teams; t++) {
+    const name = o.size === 1 ? `${WORDS[t % 20]} ${KINDS[Math.floor(t / 20) % 6]}${Math.floor(t / 120) || ""} ${t + 1}` : `${WORDS[t % 20]} ${KINDS[Math.floor(t / 20) % 6]}${t >= 120 ? t : ""}`;
+    const id = `${o.game}-${name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
+    const forming = t >= o.teams - o.forming;
+    const size = forming ? 2 : o.size;
+    out.push(
+      `insert into teams (id, game_id, name, tag, status, eligible, eligibility_note, sheet_key) values (${q(id)}, ${q(o.game)}, ${q(name)}, ${q(name.split(" ").map((w) => w[0]).join("").slice(0, 4).toUpperCase())}, ${q(forming ? "forming" : "confirmed")}, ${!forming}, ${q(forming ? `Forming, ${size} of ${o.size} players` : "")}, ${q(name.toLowerCase())});`,
+    );
+    for (let p = 0; p < size; p++) {
+      n++;
+      const ign = o.size === 1 ? name.replace(/ \d+$/, "").replace(" ", "") + (t + 1) : `${name.split(" ")[0]}${p + 1}`;
+      const email = p === 0 ? `lead.${id}@example.com` : `p${n}@example.com`;
+      out.push(
+        `with p as (insert into players (team_id, ign, game_uid, role, is_captain) values (${q(id)}, ${q(ign)}, ${q(o.uid(n))}, ${q(p === 5 ? "sub" : "main")}, ${p === 0}) returning id)` +
+          ` insert into player_contacts (player_id, email, phone) select id, ${q(email)}, ${q(`97${String(1e8 + n).slice(1)}`)} from p;`,
+      );
+    }
+  }
+}
+out.push("insert into staff (email, role, games) values ('ff.ref@example.com', 'referee', '{freefire}');", "");
+
 writeFileSync("supabase/seed.sql", out.join("\n") + "\n");
 console.log(`supabase/seed.sql: ${raw.teams.length} teams, ${raw.matches.length} matches`);
