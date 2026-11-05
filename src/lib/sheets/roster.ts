@@ -14,13 +14,21 @@ export interface Roster {
   aliases: [string, string][];
 }
 
+// Players sometimes type their email or phone number into a form field.
+const EMAIL_RE = /[^\s@]+@[^\s@]+\.[^\s@]+/;
+const PHONE_RE = /^(\+?91[\s-]?)?[6-9]\d{9}$/;
+/** The value, unless it looks like contact details. */
+const safe = (s: string | undefined, phone = true) =>
+  s && !EMAIL_RE.test(s) && !(phone && PHONE_RE.test(s.replace(/[\s-]/g, ""))) ? s : undefined;
+
 export function rosterFromRegistrations(game: GameDef, parsed: ParsedTab): Roster {
   const taken = new Set<string>();
   const aliases: [string, string][] = [];
-  const teams = parsed.teams.map((pt): Team => {
+  const teams = parsed.teams.map((pt, n): Team => {
     const leader = pt.players.find((p) => p.role === "leader");
     // Solo entries are named after the person; show their in-game name instead.
-    const name = game.solo ? pt.players[0]?.ign || pt.players[0]?.name || pt.name : pt.name;
+    const solo = pt.players[0];
+    const name = (game.solo ? safe(solo?.ign) || safe(solo?.name) : safe(pt.name)) || `Entry ${n + 1}`;
     const id = teamIdFor(game.id, name, taken);
     const elig = eligibility(game, pt);
     if (game.solo) {
@@ -37,11 +45,11 @@ export function rosterFromRegistrations(game: GameDef, parsed: ParsedTab): Roste
       status: pt.status,
       eligible: elig.eligible,
       eligibilityNote: elig.note,
-      captain: leader?.ign,
+      captain: safe(leader?.ign),
       players: pt.players.map((p, i) => ({
         teamId: id,
-        ign: p.ign || `Player ${i + 1}`,
-        gameUid: p.uid ?? "",
+        ign: safe(p.ign) || `Player ${i + 1}`,
+        gameUid: safe(p.uid, false) ?? "",
         role: p.role === "substitute" ? "sub" : "main",
       })),
     };

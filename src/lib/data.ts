@@ -1,53 +1,29 @@
 // The single place pages get tournament data from.
-// backend branch: Supabase (public tables, approved results only). Falls back to the
-// bundled sample when Supabase isn't configured so the site still builds.
+// sheets branch: teams from the Unstop registrations sheet, results from the
+// organisers' results sheet. Without a results sheet CODM shows the bundled
+// sample, so the site still builds and has something to show.
 
 import { cacheLife, cacheTag } from "next/cache";
-import { loadRawTournament } from "./db/load";
-import { dayKey } from "./format";
-import { parseTournament } from "./parse";
-import { SAMPLE_TABS } from "./sample-data";
-import { supabaseConfigured } from "./supabase/env";
 import type { GameId } from "../games/registry";
-import { createPublicClient } from "./supabase/server";
-import { buildTournament } from "./tournament";
+import { dayKey } from "./format";
+import { loadTournament as load } from "./sheets/load";
+import { gameTag, TOURNAMENT_TAG } from "./tags";
 import type { Match, MatchDay, Team, Tournament } from "./types";
 
-/** Invalidated with updateTag() by every staff write, so results appear immediately. */
-export const TOURNAMENT_TAG = "tournament";
-/** Narrower tag for writes that only touch one game. */
-export const gameTag = (game: string) => `game:${game}`;
+export { gameTag, TOURNAMENT_TAG };
 
-/** A head-to-head game's teams, matches and standings. */
+/** A game's teams; for head-to-head games also matches and standings. */
 export async function getTournament(game: GameId = "codm"): Promise<Tournament> {
   "use cache";
   cacheLife("tournament");
   cacheTag(TOURNAMENT_TAG, gameTag(game));
-  return loadTournament(game);
+  return (await load(game)).data;
 }
 
-/**
- * Uncached read, for staff pages: their forms are filled from it, and saving
- * a form filled from a stale copy would write old values back (e.g. after an
- * edit made straight in the database).
- */
+/** Uncached read. */
 export async function loadTournament(game: GameId = "codm"): Promise<Tournament> {
-  const fetchedAt = new Date().toISOString();
-  if (supabaseConfigured()) {
-    try {
-      const { raw, warnings } = await loadRawTournament(createPublicClient(), game);
-      return buildTournament(raw, { source: "database", fetchedAt, warnings });
-    } catch (e) {
-      const { raw } = parseTournament(sampleTabs(game));
-      return buildTournament(raw, { source: "sample", fetchedAt, warnings: [(e as Error).message] });
-    }
-  }
-  const { raw, warnings } = parseTournament(sampleTabs(game));
-  return buildTournament(raw, { source: "sample", fetchedAt, warnings });
+  return (await load(game)).data;
 }
-
-/** The bundled sample is a CODM tournament; other games start empty. */
-const sampleTabs = (game: GameId) => (game === "codm" ? SAMPLE_TABS : {});
 
 export function teamMap(t: Tournament): Map<string, Team> {
   return new Map(t.teams.map((x) => [x.id, x]));

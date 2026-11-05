@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { SectionHeading } from "@/components/SectionHeading";
-import { getRegistrationCloses } from "@/components/lobby/data";
 import { eveningsOf, lobbyLabel } from "@/components/lobby/slots";
 import { StandingsTable } from "@/components/lobby/StandingsTable";
 import { GAMES, type GameId } from "@/games/registry";
@@ -14,12 +13,11 @@ export async function LobbyOverview({ game }: { game: GameId }) {
   const stage = currentStage(g);
 
   if (!stage || !g.matches.length) {
-    const closes = await getRegistrationCloses(game);
     return (
       <section className="mt-12">
         <SectionHeading title="Lobbies" />
         <p className="text-muted">
-          Lobbies are drawn after registration closes{closes ? ` on ${fmtDay(closes)}` : ""}.
+          Lobbies are drawn after registration closes.
         </p>
       </section>
     );

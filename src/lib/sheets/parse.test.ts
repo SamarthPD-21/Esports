@@ -173,10 +173,11 @@ test("roster: public fields only, solo players named by IGN", () => {
 Name,Email,Phone,College,Entry type,Status,Paid,Checked in,NAME,In-game display name,SKID
 Nina Gill,nina@example.com,9100000001,Z College,Individual,Confirmed,Free,No,Nina,ninaKart,SK-1
 Omar Haq,omar@example.com,9100000002,Z College,Individual,Confirmed,Free,No,Omar,,SK-2
+Pia Roy,pia@example.com,9100000003,Z College,Individual,Confirmed,Free,No,Pia,pia@example.com,9100000003
 `;
   const game = GAMES.smashkarts;
   const r = rosterFromRegistrations(game, parseRegistrations(game, parseCsv(csv)));
-  assert.deepEqual(r.teams.map((t) => t.name), ["ninaKart", "Omar Haq"]);
+  assert.deepEqual(r.teams.map((t) => t.name), ["ninaKart", "Omar Haq", "Pia Roy"], "an email typed as IGN is not shown");
   assert.equal(r.teams[0].id, "smashkarts-ninakart");
   assert.equal(r.teams[0].eligible, true);
   const text = JSON.stringify(r.teams);
