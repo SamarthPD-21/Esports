@@ -111,7 +111,7 @@ export function LobbySection({ d, now }: { d: LobbyDashboard; now: number }) {
           {[
             { k: s.stage.name, v: s.row.poolPosition ? `#${s.row.poolPosition} in ${s.row.pool}` : `#${s.row.position} of ${s.of}` },
             { k: "Points", v: String(s.row.points) },
-            { k: s.complete ? "Advanced to" : "On course for", v: s.row.advancesTo ?? (s.row.played ? "Out" : "–") },
+            { k: s.complete ? "Advanced to" : "On course for", v: s.row.advancesTo ?? (!s.row.played ? "–" : s.complete ? "Eliminated" : "Below the cut") },
           ].map((x, i) => (
             <div key={x.k} className={`flex min-w-0 flex-col gap-0.5 py-3 ${i ? "border-l border-line pl-3" : "pr-3"}`}>
               <dt className="truncate text-xs text-muted">{x.k}</dt>
