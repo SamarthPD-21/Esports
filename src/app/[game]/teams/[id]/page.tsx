@@ -7,8 +7,7 @@ import { TeamBadge } from "@/components/TeamBadge";
 import { gameOf } from "@/games/params";
 import { GAMES } from "@/games/registry";
 import { getTournament, matchesForTeam, teamMap } from "@/lib/data";
-
-export const dynamicParams = true;
+import { LobbyTeamResults } from "@/views/lobby/LobbyTeamResults";
 
 export async function generateStaticParams({ params }: { params: { game: string } }) {
   const t = await getTournament(gameOf(params.game));
@@ -29,6 +28,7 @@ async function TeamDetail({ params }: Pick<PageProps<"/[game]/teams/[id]">, "par
   const teams = teamMap(t);
   const team = teams.get(id);
   if (!team) notFound();
+  const lobby = GAMES[game].shape === "lobby";
 
   const row = t.groups.flatMap((g) => g.rows).find((r) => r.teamId === id);
   const seed = t.seeds.indexOf(id);
@@ -52,21 +52,21 @@ async function TeamDetail({ params }: Pick<PageProps<"/[game]/teams/[id]">, "par
         <TeamBadge team={team} size="lg" />
         <div className="min-w-0">
           <p className="font-cond text-base font-semibold text-muted">
-            [{team.tag}] · Group {team.group}
+            [{team.tag}]{!lobby && team.group ? ` · Group ${team.group}` : ""}
           </p>
           <h1 className="font-display text-4xl font-bold tracking-tight sm:text-5xl">{team.name}</h1>
         </div>
       </header>
       <div className="rift-line mt-6 mb-8" />
 
-      <dl className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+      {!lobby && <dl className="grid grid-cols-2 gap-3 sm:grid-cols-5">
         {stats.map((s) => (
           <div key={s.k} className="panel p-4">
             <dt className="text-[11px] text-faint">{s.k}</dt>
             <dd className="tnum mt-1 font-cond text-xl font-semibold">{s.v}</dd>
           </div>
         ))}
-      </dl>
+      </dl>}
 
       <div className="mt-10 grid gap-8 lg:grid-cols-[1fr_1.6fr]">
         <section>
@@ -90,7 +90,7 @@ async function TeamDetail({ params }: Pick<PageProps<"/[game]/teams/[id]">, "par
           </ul>
         </section>
 
-        <section className="flex flex-col gap-8">
+        {lobby ? <LobbyTeamResults game={game} team={team} /> : <section className="flex flex-col gap-8">
           <div>
             <h2 className="mb-4 font-cond text-xl font-bold">Upcoming</h2>
             {upcoming.length === 0 ? (
@@ -111,7 +111,7 @@ async function TeamDetail({ params }: Pick<PageProps<"/[game]/teams/[id]">, "par
               </div>
             )}
           </div>
-        </section>
+        </section>}
       </div>
 
       <p className="mt-10">

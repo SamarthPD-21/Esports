@@ -15,6 +15,8 @@ export interface StageTemplate {
   id: string;
   name: string;
   settings: LobbyStageSettings;
+  /** Defaults for the draw form, from the game's schedule doc. */
+  schedule?: { firstDay: string; start: string; gap: number; perDay: number; skip?: string };
 }
 
 export interface GameDef {
@@ -209,6 +211,8 @@ export const GAMES: Record<GameId, GameDef> = {
           lobbySize: 20, matches: 3, maps: BGMI_MAPS, reshuffle: true, points: BGMI_POINTS, tiebreakers: [...BGMI_TIEBREAKERS],
           advance: [{ kind: "topOverall", count: 32, to: "Semifinals" }],
         },
+        // Matches at 9, 10 and 11 PM, every group in parallel.
+        schedule: { firstDay: "2026-11-17", start: "21:00", gap: 60, perDay: 4 },
       },
       {
         id: "semifinals",
@@ -217,6 +221,7 @@ export const GAMES: Record<GameId, GameDef> = {
           lobbySize: 20, matches: 3, maps: BGMI_MAPS, reshuffle: true, points: BGMI_POINTS, tiebreakers: [...BGMI_TIEBREAKERS],
           advance: [{ kind: "topOverall", count: 16, to: "Final" }],
         },
+        schedule: { firstDay: "2026-11-23", start: "21:00", gap: 60, perDay: 4 },
       },
       {
         id: "final",
@@ -289,6 +294,8 @@ export const GAMES: Record<GameId, GameDef> = {
             { kind: "rankPerPool", rank: 3, to: "Wildcard LCQ" },
           ],
         },
+        // Two groups a night at 8:30, 9:20 and 10:10 PM; no matches on Fri 20 Nov (exams).
+        schedule: { firstDay: "2026-11-17", start: "20:30", gap: 50, perDay: 2, skip: "2026-11-20" },
       },
       {
         id: "lcq",
@@ -297,6 +304,7 @@ export const GAMES: Record<GameId, GameDef> = {
           lobbySize: 12, matches: 2, maps: ["Bermuda", "Purgatory"], reshuffle: false, points: FF_POINTS, tiebreakers: [...FF_TIEBREAKERS],
           advance: [{ kind: "topOverall", count: 6, to: "Semifinals" }],
         },
+        schedule: { firstDay: "2026-11-23", start: "20:30", gap: 60, perDay: 1 },
       },
       {
         id: "semifinals",
