@@ -134,3 +134,14 @@ test("tagFor makes 2-4 character initials", () => {
   assert.equal(tagFor("Q"), "QX");
   assert.equal(tagFor("***"), "TM");
 });
+
+test("contact details typed into public fields are caught", async () => {
+  const { phoneKey, unsafeIgn, unsafeUid } = await import("./parse.ts");
+  assert.equal(unsafeIgn("someone@example.com"), true);
+  assert.equal(unsafeIgn("+91 98765 43210"), true);
+  assert.equal(unsafeIgn("Ghost.42"), false);
+  const phones = new Set([phoneKey("+91 98765 43210")]);
+  assert.equal(unsafeUid("9876543210", phones), true);
+  assert.equal(unsafeUid("1234567890", phones), false, "a 10-digit game ID that isn't a known phone stays");
+  assert.equal(unsafeUid("Player#IND", phones), false);
+});

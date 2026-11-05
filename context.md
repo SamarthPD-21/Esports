@@ -234,6 +234,7 @@ Sheet gotchas:
 - Custom primitives (`.panel`, `.rail`, `.link`, `.rift-line`) live in `@layer components` so Tailwind utilities can override them.
 
 ## Changelog
+- **2026-11-06:** `sheets` branch built: display-only, rosters from the Unstop sheet and results from one results sheet (two tabs per game), no database or logins. Its privacy check against the real sheet found two players with an email typed as their IGN or a phone number as their game ID. The same filter now runs in `main`'s sync: those values are hidden and listed as issues (`contact_in_field`); a real sync left 0 email- or phone-like values in public fields. Lobby rooms, check-ins and disputes are now limited to that game's staff in RLS too.
 - **2026-11-05/06:** Multi-game rebuild on branch `platform`, merged into `main`. Feature commits:
   - data model and game registry;
   - lobby points engine;

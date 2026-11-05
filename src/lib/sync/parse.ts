@@ -314,3 +314,26 @@ export function tagFor(name: string): string {
   if (words.length === 1) return words[0].slice(0, 3).toUpperCase().padEnd(2, "X");
   return words.slice(0, 4).map((w) => w[0]).join("").toUpperCase();
 }
+
+// Players sometimes type their email or phone number into a form field that
+// ends up public (IGN, game ID). These keep contact details off the site.
+const EMAIL_LIKE = /\S+@\S+\.\S+/;
+
+/** Last 10 digits, for comparing phone numbers however they were typed. */
+export function phoneKey(s: string | undefined): string {
+  const d = (s ?? "").replace(/\D/g, "");
+  return d.length >= 10 ? d.slice(-10) : "";
+}
+
+/** An IGN is unsafe if it is an email or a phone number. */
+export function unsafeIgn(s: string | undefined): boolean {
+  return !!s && (EMAIL_LIKE.test(s) || /^\+?[\d\s-]{10,15}$/.test(s.trim()));
+}
+
+/**
+ * Game IDs can be 10 digits, so a number is only hidden when it is somebody's
+ * phone number (`phones` holds phoneKey values).
+ */
+export function unsafeUid(s: string | undefined, phones: Set<string>): boolean {
+  return !!s && (EMAIL_LIKE.test(s) || (phoneKey(s) !== "" && phones.has(phoneKey(s))));
+}

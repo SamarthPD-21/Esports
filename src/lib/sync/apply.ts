@@ -2,7 +2,7 @@ import "server-only";
 import { randomUUID } from "node:crypto";
 import { GAME_IDS, gameOrThrow, type GameId } from "@/games/registry";
 import { createServiceClient } from "@/lib/supabase/server";
-import { eligibility, parseRegistrations, tagFor, teamIdFor, type ParsedIssue } from "./parse";
+import { eligibility, parseRegistrations, phoneKey, tagFor, teamIdFor, unsafeIgn, unsafeUid, type ParsedIssue } from "./parse";
 import { fetchTab } from "./sheet";
 
 // Applies one tab of the registrations sheet to the database.
@@ -141,7 +141,7 @@ export async function syncAll(opts: SyncOptions = {}): Promise<SyncSummary[]> {
 
 async function run(db: Db, gameId: GameId, dryRun: boolean, now: string): Promise<SyncSummary> {
   const game = gameOrThrow(gameId);
-  const [rows, gameRow, teams, idRows] = await Promise.all([
+  const [rows, gameRow, teams, idRows, contactRows] = await Promise.all([
     fetchTab(game),
     db.from("games").select("roster_locks_at").eq("id", gameId).maybeSingle().then(check<{ roster_locks_at: string | null } | null>),
     db
@@ -154,8 +154,13 @@ async function run(db: Db, gameId: GameId, dryRun: boolean, now: string): Promis
       .then(check<TeamRow[]>),
     // Generated ids always start with the game id, so only those can clash.
     db.from("teams").select("id").like("id", `${gameId}-%`).then(check<{ id: string }[]>),
+    // Every known phone number, all games: a game ID equal to one is hidden.
+    db.from("player_contacts").select("phone").not("phone", "is", null).then(check<{ phone: string }[]>),
   ]);
   const parsed = parseRegistrations(game, rows);
+  const phones = new Set(
+    [...contactRows.map((c) => c.phone), ...parsed.teams.flatMap((t) => t.players.map((p) => p.phone))].map(phoneKey).filter(Boolean),
+  );
   if (parsed.issues.some((i) => i.kind === "no_header" || (i.kind === "missing_column" && parsed.teams.length === 0))) {
     throw new Error(parsed.issues[0].message);
   }
@@ -282,12 +287,16 @@ async function run(db: Db, gameId: GameId, dryRun: boolean, now: string): Promis
     const teamId = teamIdOf.get(pt.key)!;
     for (const p of pt.players) {
       const want = {
-        ign: p.ign || p.name,
-        game_uid: p.uid ?? "",
+        ign: (!unsafeIgn(p.ign) && p.ign) || (!unsafeIgn(p.name) && p.name) || "Player",
+        game_uid: unsafeUid(p.uid, phones) ? "" : p.uid ?? "",
         discord: p.discord ?? null,
         role: (p.role === "substitute" ? "sub" : "main") as PlayerRow["role"],
         is_captain: p.role === "leader",
       };
+      if (unsafeIgn(p.ign) || unsafeUid(p.uid, phones)) {
+        const field = unsafeIgn(p.ign) ? "in-game name" : "game ID";
+        issues.push({ kind: "contact_in_field", message: `${pt.name}: a player entered contact details as their ${field}. It's hidden on the site; ask them to fix it on Unstop.`, teamId });
+      }
       const contact = { email: p.email, phone: p.phone ?? null, college: p.college ?? null };
       const hit = byEmail.get(p.email);
 
