@@ -27,8 +27,8 @@ export function GameTabsShell({ game, pathname }: { game: string; pathname: stri
             <Link
               href={base + t.path}
               aria-current={active(t.path) ? "page" : undefined}
-              className={`caps block border-b-4 px-2 py-3 text-[0.68rem] font-bold whitespace-nowrap min-[380px]:px-2.5 sm:px-3.5 sm:text-[0.72rem] ${
-                active(t.path) ? "border-[var(--game)] text-text" : "border-transparent text-muted hover:text-text"
+              className={`game-tab caps relative block px-2 py-3 pb-4 text-[0.68rem] font-bold whitespace-nowrap min-[380px]:px-2.5 sm:px-3.5 sm:text-[0.72rem] ${
+                active(t.path) ? "text-text" : "text-muted hover:text-text"
               }`}
             >
               {t.label}

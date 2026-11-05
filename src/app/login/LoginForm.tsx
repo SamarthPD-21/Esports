@@ -5,8 +5,8 @@ import { useHydrated } from "@/lib/use-hydrated";
 import { sendLoginCode, verifyLoginCode, type LoginState } from "./actions";
 
 const input =
-  "rounded-sm border border-line-strong bg-surface-2 px-3 py-2.5 text-text outline-none placeholder:text-faint focus:border-signal";
-const button = "rounded-sm bg-signal px-5 py-2.5 text-sm font-semibold text-bg disabled:opacity-60";
+  "border border-line-strong bg-deep px-3 py-2.5 text-text outline-none placeholder:text-faint focus:border-signal";
+const button = "btn disabled:opacity-60";
 
 export function LoginForm() {
   // Bumping the key starts over with an empty email form.
@@ -36,7 +36,7 @@ function CodeForm({ email, onBack }: { email: string; onBack: () => void }) {
   const [state, action, pending] = useActionState<LoginState, FormData>(verifyLoginCode, { email });
   const hydrated = useHydrated();
   return (
-    <form action={action} className="panel flex flex-col gap-4 p-6">
+    <form action={action} className="panel step-in flex flex-col gap-4 p-6">
       <div role="status">
         <p className="font-cond text-xl font-bold">Check your inbox</p>
         <p className="mt-2 text-sm text-muted">

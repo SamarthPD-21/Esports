@@ -69,7 +69,7 @@ export function StandingsTable({
                     data-team={`${name} ${team?.tag ?? ""}`.toLowerCase()}
                     data-more={i >= TOP ? "1" : undefined}
                     hidden={i >= TOP}
-                    className={`border-t ${cutLine ? "border-dashed border-t-[var(--game)]" : "border-line"}`}
+                    className={`border-t hover:bg-surface-2/70 ${cutLine ? "border-dashed border-t-[var(--game)]" : "border-line"}`}
                   >
                     <td className={`py-2.5 pl-4 ${r.advancesTo ? "border-l-2 border-l-[var(--game)]" : "border-l-2 border-l-transparent"}`}>
                       <span className={`tnum font-cond text-sm ${r.advancesTo ? "text-[var(--game)]" : "text-faint"}`}>

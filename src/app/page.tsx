@@ -7,6 +7,8 @@ import { getLobbyGame } from "@/lib/lobby/data";
 import { STAGE_LABEL } from "@/lib/tournament";
 import { EVENT } from "@/content/event";
 import { PixelCloud } from "@/components/PixelCloud";
+import { DropTitle } from "@/components/fx/DropTitle";
+import { ShootingStar, Stars } from "@/components/fx/Stars";
 
 interface Slot {
   game: GameDef;
@@ -54,21 +56,26 @@ export default function Hub() {
     <>
       <section className="relative mx-[calc(50%-50vw)] overflow-hidden bg-[linear-gradient(180deg,#0e2a66_0%,#1a4590_58%,#2a64ad_100%)]">
         <div className="pointer-events-none absolute inset-0" aria-hidden>
-          <div className="absolute -top-10 -right-12 size-36 rounded-full bg-moon opacity-90 shadow-[0_0_90px_40px_rgb(227_237_166/0.28)] sm:top-16 sm:right-[8%] sm:size-64" />
-          <PixelCloud className="drift absolute top-[9%] left-[46%] w-20 opacity-90 sm:top-[12%] sm:w-32" />
+          <Stars className="[mask-image:linear-gradient(90deg,transparent_0_62%,black_80%)] sm:[mask-image:linear-gradient(90deg,rgb(0_0_0/0.3)_0_46%,black_60%)]" />
+          <ShootingStar />
+          <div className="absolute -top-10 -right-12 sm:top-16 sm:right-[8%]">
+            <div className="moon-rise size-36 rounded-full bg-moon shadow-[0_0_90px_40px_rgb(227_237_166/0.28)] sm:size-64" />
+          </div>
+          <PixelCloud className="drift absolute top-[12%] left-[46%] hidden w-32 opacity-90 sm:block" />
           <PixelCloud className="drift absolute top-[58%] right-[4%] w-28 opacity-80 [animation-delay:-4s] sm:right-[22%] sm:w-44" />
-          <PixelCloud className="absolute bottom-10 left-[38%] hidden w-32 opacity-60 sm:block" />
+          <PixelCloud className="drift absolute bottom-10 left-[38%] hidden w-32 opacity-60 [animation-delay:-7s] sm:block" />
         </div>
         <div className="relative mx-auto max-w-6xl px-4 pt-16 pb-20 sm:pt-24 sm:pb-28">
-          <p className="caps text-[0.7rem] text-muted">Scaler School of Technology presents</p>
-          <h1 className="mt-4 font-display text-[clamp(4.5rem,19vw,11rem)] text-moon [text-shadow:4px_4px_0_var(--color-deep)] sm:[text-shadow:6px_6px_0_var(--color-deep)]">
-            Esports
-          </h1>
-          <p className="caps mt-3 text-sm text-text">{EVENT.festival} · {EVENT.theme}</p>
-          <p className="mt-5 max-w-lg text-lg text-muted">
+          <p className="caps step-in text-[0.7rem] text-muted [animation-delay:0.15s]">Scaler School of Technology presents</p>
+          <DropTitle
+            text="Esports"
+            className="mt-4 font-display text-[clamp(4.5rem,19vw,11rem)] text-moon [text-shadow:4px_4px_0_var(--color-deep)] sm:[text-shadow:6px_6px_0_var(--color-deep)]"
+          />
+          <p className="caps step-in mt-3 text-sm text-text [animation-delay:1s]">{EVENT.festival} · {EVENT.theme}</p>
+          <p className="step-in mt-5 max-w-lg text-lg text-muted [animation-delay:1.1s]">
             Six games, online qualifiers from 17 November, finals on campus. Schedules, live standings and brackets for every event.
           </p>
-          <div className="mt-8 flex flex-wrap gap-3">
+          <div className="step-in mt-8 flex flex-wrap gap-3 [animation-delay:1.25s]">
             <Link href="/me" className="btn">My matches</Link>
             <a href="#match-day" className="btn btn-ghost">Next match day</a>
           </div>
@@ -93,7 +100,7 @@ export default function Hub() {
 function GameCard({ g, children }: { g: GameDef; children?: React.ReactNode }) {
   return (
     <li style={{ "--game": g.accent } as React.CSSProperties}>
-      <Link href={`/${g.id}`} className="panel group flex h-full flex-col border-t-4 border-t-[var(--game)] p-5 transition-transform hover:-translate-y-1">
+      <Link href={`/${g.id}`} className="panel lift group flex h-full flex-col border-t-4 border-t-[var(--game)] p-5">
         <span className="flex items-start justify-between gap-3">
           <span className="font-display text-[2.6rem] group-hover:text-[var(--game)]">{g.short}</span>
           <span className="tag mt-1 text-muted">{entryLabel(g)}</span>

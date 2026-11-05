@@ -77,7 +77,7 @@ export function MatchCard({ game, match, teams, showStage = true }: { game: stri
     : `${STAGE_LABEL[match.stage]}${match.stage === "tiebreak" && match.group ? `, Group ${match.group}` : ""}`;
 
   return (
-    <article className={`panel rail flex flex-col gap-3 p-4 ${RAIL[match.status]}`}>
+    <article className={`panel rail flex flex-col gap-3 p-4 ${match.status === "live" ? "live-glow" : ""} ${RAIL[match.status]}`}>
       <div className="flex items-baseline justify-between gap-2 font-cond text-sm">
         <span className="truncate font-semibold text-muted">
           {showStage ? stage : `Best of ${match.bestOf}`}

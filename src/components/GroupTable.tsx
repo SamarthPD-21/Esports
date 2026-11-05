@@ -28,7 +28,7 @@ export function GroupTable({ game, table, teams, compact = false }: { game: stri
           {rows.map((r) => {
             const team = teams.get(r.teamId);
             return (
-              <tr key={r.teamId} className={`border-t border-line ${r.qualified ? "bg-signal/[0.06]" : ""}`}>
+              <tr key={r.teamId} className={`border-t border-line hover:bg-surface-2/70 ${r.qualified ? "bg-signal/[0.06]" : ""}`}>
                 <td className="py-2.5 pl-4">
                   <span className={`tnum font-cond text-xs ${r.qualified ? "text-signal" : "text-faint"}`}>{r.position}</span>
                 </td>
