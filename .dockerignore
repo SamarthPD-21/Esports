@@ -1,0 +1,8 @@
+.git
+.next
+.claude
+node_modules
+.env*
+docs/screenshots
+supabase/.temp
+supabase/.branches

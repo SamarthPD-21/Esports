@@ -1,0 +1,123 @@
+# The esports site with its own database, logins and demo tournament.
+#
+#   docker compose up --build
+#
+# Site:         http://localhost:3000   (ESPORTS_PORT to change)
+# Login codes:  http://localhost:8025   (MAIL_PORT to change)
+#
+# Demo logins: admin@example.com (everything), valo.ref@example.com (Valorant
+# referee), lead.freefire-ash-squad@example.com (a Free Fire team leader).
+# `docker compose down -v` wipes the database; the next start loads the demo again.
+#
+# Demo secrets only (Supabase's well-known local keys). Never use these in production.
+
+services:
+  db:
+    image: public.ecr.aws/supabase/postgres:17.11.0.006
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_HOST: /var/run/postgresql
+    volumes:
+      - ./docker/db/roles.sql:/docker-entrypoint-initdb.d/init-scripts/99-roles.sql:ro
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres", "-h", "localhost"]
+      interval: 3s
+      timeout: 5s
+      retries: 40
+
+  auth:
+    image: public.ecr.aws/supabase/gotrue:v2.197.0
+    depends_on:
+      db: { condition: service_healthy }
+    environment:
+      GOTRUE_API_HOST: 0.0.0.0
+      GOTRUE_API_PORT: 9999
+      API_EXTERNAL_URL: http://localhost:${ESPORTS_PORT:-3000}
+      GOTRUE_DB_DRIVER: postgres
+      GOTRUE_DB_DATABASE_URL: postgres://supabase_auth_admin:postgres@db:5432/postgres
+      GOTRUE_SITE_URL: http://localhost:${ESPORTS_PORT:-3000}
+      GOTRUE_DISABLE_SIGNUP: "false"
+      GOTRUE_JWT_SECRET: super-secret-jwt-token-with-at-least-32-characters-long
+      GOTRUE_JWT_EXP: 3600
+      GOTRUE_JWT_AUD: authenticated
+      GOTRUE_JWT_DEFAULT_GROUP_NAME: authenticated
+      GOTRUE_JWT_ADMIN_ROLES: service_role
+      GOTRUE_EXTERNAL_EMAIL_ENABLED: "true"
+      GOTRUE_MAILER_AUTOCONFIRM: "true"
+      GOTRUE_MAILER_OTP_LENGTH: 6
+      GOTRUE_MAILER_OTP_EXP: 3600
+      GOTRUE_MAILER_SUBJECTS_MAGIC_LINK: Your Yugaantar Esports login code
+      GOTRUE_MAILER_SUBJECTS_CONFIRMATION: Your Yugaantar Esports login code
+      GOTRUE_MAILER_TEMPLATES_MAGIC_LINK: http://gateway:8000/templates/login.html
+      GOTRUE_MAILER_TEMPLATES_CONFIRMATION: http://gateway:8000/templates/login.html
+      GOTRUE_SMTP_HOST: mail
+      GOTRUE_SMTP_PORT: 1025
+      GOTRUE_SMTP_USER: demo
+      GOTRUE_SMTP_PASS: demo
+      GOTRUE_SMTP_ADMIN_EMAIL: esports@example.com
+      GOTRUE_SMTP_SENDER_NAME: Yugaantar Esports
+      GOTRUE_SMTP_MAX_FREQUENCY: 1s
+      GOTRUE_RATE_LIMIT_EMAIL_SENT: 1000
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9999/health"]
+      interval: 3s
+      timeout: 5s
+      retries: 40
+
+  # Applies the migrations and loads the demo tournament, then exits.
+  setup:
+    image: public.ecr.aws/supabase/postgres:17.11.0.006
+    depends_on:
+      auth: { condition: service_healthy }
+    environment:
+      POSTGRES_PASSWORD: postgres
+    entrypoint: ["/setup.sh"]
+    volumes:
+      - ./docker/db/setup.sh:/setup.sh:ro
+      - ./supabase/migrations:/migrations:ro
+      - ./docker/db/demo-data.sql:/demo/demo-data.sql:ro
+
+  rest:
+    image: public.ecr.aws/supabase/postgrest:v16.5
+    depends_on:
+      setup: { condition: service_completed_successfully }
+    environment:
+      PGRST_DB_URI: postgres://authenticator:postgres@db:5432/postgres
+      PGRST_DB_SCHEMAS: public
+      PGRST_DB_EXTRA_SEARCH_PATH: public,extensions
+      PGRST_DB_ANON_ROLE: anon
+      PGRST_JWT_SECRET: super-secret-jwt-token-with-at-least-32-characters-long
+      PGRST_DB_USE_LEGACY_GUCS: "false"
+
+  gateway:
+    image: caddy:2.10-alpine
+    depends_on: [auth, rest]
+    volumes:
+      - ./docker/gateway/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./supabase/templates:/srv/templates:ro
+
+  mail:
+    image: public.ecr.aws/supabase/mailpit:v1.31.3
+    ports:
+      - "${MAIL_PORT:-8025}:8025"
+
+  app:
+    build: .
+    depends_on:
+      setup: { condition: service_completed_successfully }
+      gateway: { condition: service_started }
+      mail: { condition: service_started }
+    environment:
+      NEXT_PUBLIC_SUPABASE_URL: http://gateway:8000
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0
+      SUPABASE_SERVICE_ROLE_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU
+      NEXT_PUBLIC_SITE_URL: http://localhost:${ESPORTS_PORT:-3000}
+      SYNC_SECRET: demo-sync-secret
+      # Demo data only: never pull the real Unstop registrations in here.
+      REGISTRATION_SYNC: "off"
+    ports:
+      - "${ESPORTS_PORT:-3000}:3000"
+
+volumes:
+  db-data:

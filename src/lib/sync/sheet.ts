@@ -21,6 +21,8 @@ const DEFAULT_GIDS: Record<GameId, string> = {
 const sheetId = () => process.env.REGISTRATION_SHEET_ID?.trim() || DEFAULT_SHEET_ID;
 
 export async function fetchTab(game: GameDef): Promise<string[][]> {
+  // The Docker demo runs on invented teams; never mix real registrations in.
+  if (process.env.REGISTRATION_SYNC === "off") throw new Error("Registration sync is off here (demo data), so the sample teams stay as they are.");
   return process.env.GOOGLE_SERVICE_ACCOUNT_JSON?.trim() ? fetchViaApi(game) : fetchViaCsv(game);
 }
 

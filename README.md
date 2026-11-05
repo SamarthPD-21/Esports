@@ -26,6 +26,7 @@ It covers the whole event in one place:
 - [How data flows](#how-data-flows)
 - [Running the event](#running-the-event)
 - [Game formats](#game-formats)
+- [Try it with Docker](#try-it-with-docker)
 - [Local development](#local-development)
 - [Tests](#tests)
 - [Production setup](#production-setup)
@@ -36,6 +37,7 @@ It covers the whole event in one place:
 | Branch | What it is |
 |---|---|
 | `main` | The full platform: Supabase (Postgres + Auth), every game, logins, referee and admin screens. |
+| `Dev` | `main` plus a Docker setup that runs the whole site with a demo tournament. |
 | `sheets` | A display-only version. No database and no logins: rosters come from the Unstop sheet and results from a results sheet per game. |
 | `backend` | The CODM-only version from before the multi-game rebuild. |
 
@@ -195,6 +197,24 @@ The Free Fire docs disagree on some points. The defaults follow the latest one, 
 - seeds 1–8 into an offline bracket on 27–29 Nov.
 
 The details are on `/codm/rules`.
+
+## Try it with Docker
+
+On the `Dev` branch, one command runs the site with its own database, logins and a demo tournament (invented teams, Free Fire and BGMI qualifiers part-played, the Valorant bracket drawn):
+
+```sh
+docker compose up --build
+```
+
+- Site: http://localhost:3000. The first start builds the site, about a minute.
+- Login codes: http://localhost:8025 (a mail catcher; nothing is really sent).
+- Logins: `admin@example.com` (everything), `valo.ref@example.com` (Valorant referee), `lead.freefire-ash-squad@example.com` (a Free Fire team leader).
+- Other ports: `ESPORTS_PORT=3400 MAIL_PORT=8026 docker compose up --build`.
+- Start over: `docker compose down -v` wipes the database; the next start loads the demo again.
+
+It runs Postgres, Supabase's auth and API services, a small gateway and a mail catcher next to the app (`compose.yaml`, `docker/`). Registration sync is switched off there, so the real Unstop sheet never mixes into the demo. The keys in `compose.yaml` are Supabase's public demo keys: fine for this, never for production.
+
+To ship your own local state as the demo, run `docker/db/export-demo.sh` while `supabase start` is running. It refuses if the database holds real contact details.
 
 ## Local development
 

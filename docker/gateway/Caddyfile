@@ -1,0 +1,14 @@
+# Stands in for Supabase's API gateway: one address for auth and the database
+# API, plus the login email template the auth service fetches.
+:8000 {
+	handle_path /auth/v1/* {
+		reverse_proxy auth:9999
+	}
+	handle_path /rest/v1/* {
+		reverse_proxy rest:3000
+	}
+	handle_path /templates/* {
+		root * /srv/templates
+		file_server
+	}
+}
