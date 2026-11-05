@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { CalendarButtons } from "@/components/CalendarButtons";
 import { Referees } from "@/components/Referees";
 import { TeamBadge } from "@/components/TeamBadge";
 import { GAMES } from "@/games/registry";
@@ -41,7 +42,10 @@ export function TeamSection({ team, children }: { team: TeamSummary; children: R
           {game.solo ? "Your page" : "Team page"}
         </Link>
       </header>
-      <p className={`text-sm ${TONE[e.tone]}`}>{e.text}</p>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p className={`text-sm ${TONE[e.tone]}`}>{e.text}</p>
+        <CalendarButtons game={team.gameId} teamId={team.id} compact />
+      </div>
       {children}
       <details className="panel group/refs p-4" style={{ "--game": game.accent } as React.CSSProperties}>
         <summary className="caps cursor-pointer text-xs font-bold text-muted hover:text-text">Your {game.short} referees</summary>

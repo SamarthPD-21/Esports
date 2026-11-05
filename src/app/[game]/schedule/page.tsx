@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import { MatchCard } from "@/components/MatchCard";
+import { MySchedule } from "@/components/MySchedule";
 import { PageHeader } from "@/components/SectionHeading";
 import { gameOf } from "@/games/params";
 import { GAMES } from "@/games/registry";
@@ -24,7 +25,14 @@ export default function SchedulePage({ params }: PageProps<"/[game]/schedule">) 
 
 async function SchedulePageBody({ params }: Pick<PageProps<"/[game]/schedule">, "params">) {
   const game = gameOf((await params).game);
-  if (GAMES[game].shape === "lobby") return <LobbySchedule game={game} />;
+  if (GAMES[game].shape === "lobby") {
+    return (
+      <>
+        <MySchedule game={game} />
+        <LobbySchedule game={game} />
+      </>
+    );
+  }
   const t = await getTournament(game);
   const teams = teamMap(t);
 
@@ -40,6 +48,8 @@ async function SchedulePageBody({ params }: Pick<PageProps<"/[game]/schedule">, 
       <PageHeader meta={`${done} of ${t.matches.length} played`} title="Schedule & results">
         All times are IST. Room details go to team leaders {GAMES[game].roomReveal} minutes before each match.
       </PageHeader>
+
+      <MySchedule game={game} />
 
       <nav className="mb-8 flex flex-wrap gap-2" aria-label="Jump to day">
         {[...days.keys()].map((k) => (

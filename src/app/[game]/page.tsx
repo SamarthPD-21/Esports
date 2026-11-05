@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { MySchedule } from "@/components/MySchedule";
 import { gameOf } from "@/games/params";
 import { CodmOverview } from "@/views/codm/Overview";
 import { GameOverview } from "@/views/GameOverview";
@@ -15,5 +16,10 @@ export default function GamePage({ params }: PageProps<"/[game]">) {
 
 async function GamePageBody({ params }: Pick<PageProps<"/[game]">, "params">) {
   const game = gameOf((await params).game);
-  return game === "codm" ? <CodmOverview /> : <GameOverview game={game} />;
+  return (
+    <>
+      <MySchedule game={game} />
+      {game === "codm" ? <CodmOverview /> : <GameOverview game={game} />}
+    </>
+  );
 }
