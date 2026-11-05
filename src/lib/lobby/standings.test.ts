@@ -234,3 +234,9 @@ test("fixed pools: identical results in different lobbies are not a tie", () => 
   assert.ok(res.rows.every((r) => !r.tied));
   assert.deepEqual(res.rows.map((r) => r.poolPosition), [1, 1, 2, 2]);
 });
+
+test("nobody is tied before anyone has played", () => {
+  const s = stage({ points: BGMI_POINTS, tiebreakers: ["wins"], reshuffle: true });
+  const res = computeLobbyStandings(s, [{ teamId: "a" }, { teamId: "b" }], []);
+  assert.ok(res.rows.every((r) => !r.tied));
+});

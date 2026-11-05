@@ -129,7 +129,7 @@ export function computeLobbyStandings(stage: LobbyStage, entrants: LobbyEntrant[
   const markTies = (list: LobbyStandingRow[]) =>
     list.forEach((row, i) => {
       const prev = list[i - 1];
-      if (prev && compareRows(settings.tiebreakers, prev, row) === 0) {
+      if (prev && row.played > 0 && compareRows(settings.tiebreakers, prev, row) === 0) {
         prev.tied = true;
         row.tied = true;
       }
