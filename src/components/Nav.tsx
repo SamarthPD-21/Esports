@@ -17,7 +17,7 @@ export function NavShell({ pathname }: { pathname: string }) {
   const active = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-line-strong bg-deep/95 backdrop-blur-sm">
+    <header className="sticky top-0 z-40 border-b border-line-strong bg-deep">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4">
         <Link href="/" className="group flex items-baseline gap-2" onClick={() => setOpen(false)}>
           <span className="font-display text-[1.9rem] text-moon [text-shadow:2px_2px_0_var(--color-surface-2)] group-hover:text-signal">Yugaantar</span>

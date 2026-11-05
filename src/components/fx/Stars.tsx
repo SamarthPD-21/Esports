@@ -1,6 +1,6 @@
 /**
  * Pixel stars that blink on a two-frame cycle. Positions are fixed so server
- * and client render the same markup; each star gets its own delay and period.
+ * and client render the same markup.
  */
 const FIELD: [number, number, number][] = [
   // [left %, top %, size px]
@@ -10,21 +10,19 @@ const FIELD: [number, number, number][] = [
 ];
 
 export function Stars({ count = FIELD.length, className = "" }: { count?: number; className?: string }) {
+  const stars = FIELD.slice(0, count);
+  // Three layers that blink as a whole, each on its own beat: three animations
+  // the compositor runs by itself, instead of one per star on the main thread.
   return (
     <div className={`pointer-events-none absolute inset-0 ${className}`} aria-hidden>
-      {FIELD.slice(0, count).map(([x, y, s], i) => (
-        <span
-          key={i}
-          className="twinkle absolute bg-text"
-          style={{
-            left: `${x}%`,
-            top: `${y}%`,
-            width: s,
-            height: s,
-            animationDelay: `${((i * 37) % 260) / 100}s`,
-            animationDuration: `${2.2 + (i % 4) * 0.6}s`,
-          }}
-        />
+      {[0, 1, 2].map((layer) => (
+        <span key={layer} className={`twinkle twinkle-${layer} absolute inset-0`}>
+          {stars
+            .filter((_, i) => i % 3 === layer)
+            .map(([x, y, size]) => (
+              <span key={`${x}-${y}`} className="absolute bg-text" style={{ left: `${x}%`, top: `${y}%`, width: size, height: size }} />
+            ))}
+        </span>
       ))}
     </div>
   );
