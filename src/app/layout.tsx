@@ -11,8 +11,8 @@ const barlowCond = Barlow_Condensed({ variable: "--font-barlow-cond", subsets: [
 const stencil = Big_Shoulders_Stencil({ variable: "--font-stencil", subsets: ["latin"], axes: ["opsz"], adjustFontFallback: false });
 
 export const metadata: Metadata = {
-  title: { default: `${EVENT.name} — ${EVENT.edition}`, template: `%s · ${EVENT.name}` },
-  description: `${EVENT.festival} presents ${EVENT.name}: ${EVENT.edition}. ${EVENT.tagline} Teams, groups, schedule, bracket and rules.`,
+  title: { default: `Esports · ${EVENT.festival}`, template: `%s · ${EVENT.festival} Esports` },
+  description: `${EVENT.festival} esports: CODM, Valorant, BGMI, Free Fire MAX, Smash Karts and FIFA. Schedules, live standings, brackets and rules.`,
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

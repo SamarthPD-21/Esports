@@ -1,15 +1,20 @@
 import type { Metadata } from "next";
 import { MatchCard } from "@/components/MatchCard";
 import { PageHeader } from "@/components/SectionHeading";
+import { gameOf } from "@/games/params";
+import { GAMES } from "@/games/registry";
 import { getTournament, teamMap } from "@/lib/data";
+import { LobbySchedule } from "@/views/lobby/LobbySchedule";
 import { MODE_NAME } from "@/content/event";
 import { dayKey, fmtDay } from "@/lib/format";
 import type { Match } from "@/lib/types";
 
 export const metadata: Metadata = { title: "Schedule" };
 
-export default async function SchedulePage() {
-  const t = await getTournament();
+export default async function SchedulePage({ params }: PageProps<"/[game]/schedule">) {
+  const game = gameOf((await params).game);
+  if (GAMES[game].shape === "lobby") return <LobbySchedule game={game} />;
+  const t = await getTournament(game);
   const teams = teamMap(t);
 
   const days = new Map<string, Match[]>();
@@ -22,7 +27,7 @@ export default async function SchedulePage() {
   return (
     <>
       <PageHeader meta={`${done} of ${t.matches.length} played`} title="Schedule & results">
-        All times are IST. Room ID/password is shared with teams 15–5 minutes before each match.
+        All times are IST. Room details go to team leaders {GAMES[game].roomReveal} minutes before each match.
       </PageHeader>
 
       <nav className="mb-8 flex flex-wrap gap-2" aria-label="Jump to day">
@@ -48,7 +53,7 @@ export default async function SchedulePage() {
                 )}
               </h2>
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {ms.map((m) => <MatchCard key={m.id} match={m} teams={teams} />)}
+                {ms.map((m) => <MatchCard key={m.id} game={game} match={m} teams={teams} />)}
               </div>
             </section>
           );

@@ -16,8 +16,8 @@ function stageState(t: Tournament, key: string): "done" | "live" | "upcoming" {
   return "upcoming";
 }
 
-export default async function Home() {
-  const t = await getTournament();
+export async function CodmOverview() {
+  const t = await getTournament("codm");
   const teams = teamMap(t);
   const name = (id?: string, label?: string) => (id ? teams.get(id)?.name ?? id : label ?? "TBD");
 
@@ -54,10 +54,10 @@ export default async function Home() {
             &ldquo;{EVENT.tagline}&rdquo; Online groups every evening, then an offline bracket at the {EVENT.venue}.
           </p>
           <div className="mt-7 flex flex-wrap gap-3">
-            <Link href="/schedule" className="rounded-sm bg-signal px-5 py-2.5 text-sm font-semibold text-bg hover:bg-text">
+            <Link href="/codm/schedule" className="rounded-sm bg-signal px-5 py-2.5 text-sm font-semibold text-bg hover:bg-text">
               See the schedule
             </Link>
-            <Link href="/bracket" className="rounded-sm border border-line-strong px-5 py-2.5 text-sm font-semibold hover:border-text">
+            <Link href="/codm/standings#bracket" className="rounded-sm border border-line-strong px-5 py-2.5 text-sm font-semibold hover:border-text">
               View bracket
             </Link>
             {t.config.registrationUrl && (
@@ -113,7 +113,7 @@ export default async function Home() {
       {/* Key dates */}
       <section className="mt-16">
         <SectionHeading note="All times IST" title="Key dates">
-          <Link href="/rules#schedule" className="link text-sm">Full schedule</Link>
+          <Link href="/codm/rules#schedule" className="link text-sm">Full schedule</Link>
         </SectionHeading>
         <ol className="panel divide-y divide-line">
           {KEY_DATES.map((d) => (
@@ -130,11 +130,11 @@ export default async function Home() {
       {t.groups.length > 0 && (
         <section className="mt-16">
           <SectionHeading note={`Top ${t.config.qualifiersPerGroup} per group advance`} title="Group standings">
-            <Link href="/groups" className="link text-sm">Full tables</Link>
+            <Link href="/codm/standings" className="link text-sm">Full tables</Link>
           </SectionHeading>
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             {t.groups.map((g) => (
-              <GroupTable key={g.group} table={g} teams={teams} compact />
+              <GroupTable key={g.group} game="codm" table={g} teams={teams} compact />
             ))}
           </div>
         </section>
@@ -144,11 +144,11 @@ export default async function Home() {
       {recent.length > 0 && (
         <section className="mt-16">
           <SectionHeading title="Recent results">
-            <Link href="/schedule" className="link text-sm">All matches</Link>
+            <Link href="/codm/schedule" className="link text-sm">All matches</Link>
           </SectionHeading>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {recent.map((m) => (
-              <MatchCard key={m.id} match={m} teams={teams} />
+              <MatchCard key={m.id} game="codm" match={m} teams={teams} />
             ))}
           </div>
         </section>

@@ -12,6 +12,17 @@ const nextConfig: NextConfig = {
       expire: 60 * 60 * 24,
     },
   },
+  // The site used to be CODM only; keep old links working.
+  async redirects() {
+    return [
+      { source: "/groups", destination: "/codm/standings", permanent: true },
+      { source: "/bracket", destination: "/codm/standings", permanent: true },
+      { source: "/schedule", destination: "/codm/schedule", permanent: true },
+      { source: "/rules", destination: "/codm/rules", permanent: true },
+      { source: "/teams", destination: "/codm/teams", permanent: true },
+      { source: "/teams/:id", destination: "/codm/teams/:id", permanent: true },
+    ];
+  },
   images: {
     remotePatterns: [{ protocol: "https", hostname: "**" }],
   },

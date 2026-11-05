@@ -1,14 +1,11 @@
-import type { Metadata } from "next";
 import { GroupTable } from "@/components/GroupTable";
 import { PageHeader } from "@/components/SectionHeading";
 import { getTournament, teamMap } from "@/lib/data";
 
-export const metadata: Metadata = { title: "Groups" };
-
 const TB_LABEL = { h2h: "head-to-head result", playoff: "tiebreaker match on the buffer day", diff: "score difference", scored: "total score" };
 
-export default async function GroupsPage() {
-  const t = await getTournament();
+export async function CodmGroups() {
+  const t = await getTournament("codm");
   const teams = teamMap(t);
   const ties = t.groups.filter((g) => g.complete).flatMap((g) => g.ties.map((tie) => ({ group: g.group, ...tie })));
   const names = (ids: string[]) => ids.map((id) => teams.get(id)?.name ?? id).join(", ");
@@ -33,7 +30,7 @@ export default async function GroupsPage() {
 
       <div className="grid gap-5 lg:grid-cols-2">
         {t.groups.map((g) => (
-          <GroupTable key={g.group} table={g} teams={teams} />
+          <GroupTable key={g.group} game="codm" table={g} teams={teams} />
         ))}
       </div>
 

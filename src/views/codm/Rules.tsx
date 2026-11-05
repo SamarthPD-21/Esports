@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import { PageHeader } from "@/components/SectionHeading";
 import {
   BANNED,
@@ -21,8 +20,6 @@ import { CHECK_IN_BEFORE_MIN, ROOM_RELEASE_BEFORE_MIN, ROOM_LATEST_BEFORE_MIN } 
 import { getTournament } from "@/lib/data";
 import { fmtDay, fmtTime } from "@/lib/format";
 import type { Mode } from "@/lib/types";
-
-export const metadata: Metadata = { title: "Rules" };
 
 const TOC = [
   ["format", "Format"],
@@ -58,8 +55,8 @@ function Bullets({ items }: { items: readonly string[] }) {
   );
 }
 
-export default async function RulesPage() {
-  const t = await getTournament();
+export async function CodmRules() {
+  const t = await getTournament("codm");
   const w = ONLINE_WINDOW;
   const slots = Array.from({ length: w.slots }, (_, i) => {
     const at = Date.parse(`${w.firstDay}T${w.firstMatch}:00+05:30`) + i * w.slotMinutes * 60_000;
@@ -80,7 +77,7 @@ export default async function RulesPage() {
             {label}
           </a>
         ))}
-        <a href="/rulebook.pdf" className="rounded-sm border border-line-strong px-3 py-1 text-xs font-semibold hover:border-signal">
+        <a href="/rules/codm.pdf" className="rounded-sm border border-line-strong px-3 py-1 text-xs font-semibold hover:border-signal">
           Full rulebook (PDF)
         </a>
       </nav>

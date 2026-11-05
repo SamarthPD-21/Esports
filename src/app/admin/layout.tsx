@@ -1,9 +1,11 @@
 import Link from "next/link";
 
 const LINKS = [
-  { href: "/admin", label: "Matches" },
+  { href: "/admin", label: "Games" },
+  { href: "/ref", label: "Tonight" },
+  { href: "/admin/sync", label: "Registrations" },
   { href: "/admin/disputes", label: "Disputes" },
-  { href: "/admin/setup", label: "Setup" },
+  { href: "/admin/setup", label: "CODM setup" },
   { href: "/admin/content", label: "Content & staff" },
 ];
 

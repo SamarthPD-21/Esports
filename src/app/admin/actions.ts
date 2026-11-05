@@ -134,7 +134,9 @@ export const saveMaps = staff(async (form, { db, email, isAdmin }) => {
   for (let g = 1; g <= bestOf; g++) {
     const a = intOrNull(str(form, `a${g}`));
     const b = intOrNull(str(form, `b${g}`));
-    const mode = parseMode(str(form, `mode${g}`));
+    // Only CODM has modes; other games send no mode field.
+    const modeRaw = str(form, `mode${g}`);
+    const mode = modeRaw ? parseMode(modeRaw) : null;
     if (a === null || b === null) {
       if (str(form, `a${g}`) || str(form, `b${g}`)) throw new Error(`Game ${g}: enter both scores as whole numbers.`);
       // Blank row: remove any pending entry for this game.
@@ -142,7 +144,7 @@ export const saveMaps = staff(async (form, { db, email, isAdmin }) => {
       continue;
     }
     if (a === b) throw new Error(`Game ${g}: maps can't end tied (overtime decides).`);
-    if (!mode) throw new Error(`Game ${g}: pick a mode.`);
+    if (modeRaw && !mode) throw new Error(`Game ${g}: pick a mode.`);
     check(
       await db.from("maps").upsert({
         match_id: matchId, game: g, mode, map: str(form, `map${g}`), score_a: a, score_b: b,

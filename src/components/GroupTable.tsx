@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { GroupTable as Table, Team } from "@/lib/types";
 import { TeamBadge } from "./TeamBadge";
 
-export function GroupTable({ table, teams, compact = false }: { table: Table; teams: Map<string, Team>; compact?: boolean }) {
+export function GroupTable({ game, table, teams, compact = false }: { game: string; table: Table; teams: Map<string, Team>; compact?: boolean }) {
   const rows = table.rows;
   return (
     <div className="panel overflow-hidden">
@@ -33,7 +33,7 @@ export function GroupTable({ table, teams, compact = false }: { table: Table; te
                   <span className={`tnum font-cond text-xs ${r.qualified ? "text-signal" : "text-faint"}`}>{r.position}</span>
                 </td>
                 <td className="py-2.5">
-                  <Link href={`/teams/${r.teamId}`} className="flex min-w-0 items-center gap-2.5 hover:text-signal">
+                  <Link href={`/${game}/teams/${r.teamId}`} className="flex min-w-0 items-center gap-2.5 hover:text-signal">
                     <TeamBadge team={team} size="sm" />
                     <span className="truncate font-medium">{team?.name ?? r.teamId}</span>
                     {r.unresolvedTie && table.complete && (

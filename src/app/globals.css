@@ -67,7 +67,7 @@ body {
   /* A short signal tab on a seam line, under page titles. */
   .rift-line {
     height: 2px;
-    background: linear-gradient(90deg, var(--signal) 0 56px, var(--line) 56px);
+    background: linear-gradient(90deg, var(--game, var(--signal)) 0 56px, var(--line) 56px);
   }
 
   /* Inline text link: chalk with a seam underline that lights up on hover. */

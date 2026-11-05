@@ -108,7 +108,7 @@ async function Dashboard() {
               <p className="font-cond text-lg font-semibold">Your next match</p>
               {next.scheduledAt && <Countdown to={next.scheduledAt} className="tnum font-cond text-2xl font-semibold text-signal" />}
             </div>
-            <MatchCard match={next} teams={teams} />
+            <MatchCard game="codm" match={next} teams={teams} />
             {next.stage === "group" && (
               <p className="text-sm text-muted">
                 Mode for this match day: {nextDay ? <span className="font-semibold text-steel">{MODE_NAME[nextDay.mode]}</span> : "not announced yet"}
@@ -213,7 +213,7 @@ async function Dashboard() {
         <section className="mt-10">
           <h2 className="mb-4 font-cond text-xl font-bold">Later matches</h2>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {d.upcoming.slice(1).map((m) => <MatchCard key={m.id} match={m} teams={teams} />)}
+            {d.upcoming.slice(1).map((m) => <MatchCard key={m.id} game="codm" match={m} teams={teams} />)}
           </div>
         </section>
       )}
@@ -226,7 +226,7 @@ async function Dashboard() {
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {d.history.map((m) => (
               <div key={m.id} className="flex flex-col gap-2">
-                <MatchCard match={m} teams={teams} />
+                <MatchCard game="codm" match={m} teams={teams} />
                 {disputeOpen(d.endedAt[m.id], now) && !d.disputes.some((x) => x.matchId === m.id) && (
                   <details className="panel p-4">
                     <summary className="cursor-pointer text-sm font-semibold text-live">Dispute this result (10-min window)</summary>

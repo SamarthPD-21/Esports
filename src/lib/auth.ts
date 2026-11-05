@@ -3,17 +3,31 @@ import { redirect } from "next/navigation";
 import { connection } from "next/server";
 import { createClient } from "./supabase/server";
 
+export interface ViewerPlayer {
+  id: string;
+  teamId: string;
+  gameId: string;
+  ign: string;
+  role: "main" | "sub";
+  isCaptain: boolean;
+}
+
 export interface Viewer {
   userId: string;
   email: string;
   staffRole?: "referee" | "admin";
-  player?: {
-    id: string;
-    teamId: string;
-    ign: string;
-    role: "main" | "sub";
-    isCaptain: boolean;
-  };
+  /** Games a referee may work on; undefined means every game. */
+  staffGames?: string[];
+  /** Every team this login leads (a person can lead teams in several games). */
+  players: ViewerPlayer[];
+  /** The CODM team, kept for the CODM-specific dashboard. */
+  player?: ViewerPlayer;
+}
+
+/** Whether the viewer may run matches for this game. */
+export function canStaff(v: Viewer, game: string): boolean {
+  if (!v.staffRole) return false;
+  return v.staffRole === "admin" || !v.staffGames || v.staffGames.includes(game);
 }
 
 /**
@@ -29,27 +43,29 @@ export async function getViewer(): Promise<Viewer | null> {
   const user = data.user;
   if (!user?.email) return null;
 
-  const [{ data: staff }, playerRes] = await Promise.all([
-    db.from("staff").select("role").eq("email", user.email.toLowerCase()).maybeSingle(),
-    db.from("players").select("id, team_id, ign, role, is_captain").eq("user_id", user.id).maybeSingle(),
+  // Links any leader rows registered with this email since the last visit.
+  await db.rpc("claim_player");
+  const [{ data: staff }, { data: rows }] = await Promise.all([
+    db.from("staff").select("role, games").eq("email", user.email.toLowerCase()).maybeSingle(),
+    db.from("players").select("id, team_id, ign, role, is_captain, teams!inner(game_id)").eq("user_id", user.id),
   ]);
 
-  let player = playerRes.data;
-  if (!player) {
-    // Registered after their first login, or first visit since the email was added.
-    const { data: pid } = await db.rpc("claim_player");
-    if (pid) {
-      ({ data: player } = await db.from("players").select("id, team_id, ign, role, is_captain").eq("id", pid).maybeSingle());
-    }
-  }
+  const players: ViewerPlayer[] = (rows ?? []).map((p) => ({
+    id: p.id,
+    teamId: p.team_id,
+    gameId: (p.teams as unknown as { game_id: string }).game_id,
+    ign: p.ign,
+    role: p.role,
+    isCaptain: p.is_captain,
+  }));
 
   return {
     userId: user.id,
     email: user.email,
     staffRole: staff?.role,
-    player: player
-      ? { id: player.id, teamId: player.team_id, ign: player.ign, role: player.role, isCaptain: player.is_captain }
-      : undefined,
+    staffGames: staff?.games ?? undefined,
+    players,
+    player: players.find((p) => p.gameId === "codm"),
   };
 }
 

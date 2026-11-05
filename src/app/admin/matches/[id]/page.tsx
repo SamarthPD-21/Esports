@@ -7,7 +7,9 @@ import { StatusChip } from "@/components/StatusChip";
 import { MODE_NAME } from "@/content/event";
 import { getMatchPrivate } from "@/lib/admin";
 import { requestNow, requireStaff } from "@/lib/auth";
+import { isGameId } from "@/games/registry";
 import { loadTournament, matchDayFor } from "@/lib/data";
+import { createPublicClient } from "@/lib/supabase/server";
 import { dayKey, fmtTime } from "@/lib/format";
 import { lateTier, roomOverdue, vetoTurns, DEFAULT_BO3_ORDER, LOBBY_JOIN_MIN } from "@/lib/rules";
 import { STAGE_LABEL } from "@/lib/tournament";
@@ -45,7 +47,10 @@ function Panel({ title, children, note }: { title: string; children: React.React
 async function Editor({ params }: Pick<PageProps<"/admin/matches/[id]">, "params">) {
   const viewer = await requireStaff();
   const { id } = await params;
-  const t = await loadTournament();
+  const { data: row } = await createPublicClient().from("matches").select("game_id").eq("id", id.toUpperCase()).maybeSingle();
+  const game = row && isGameId(row.game_id) ? row.game_id : "codm";
+  const codm = game === "codm";
+  const t = await loadTournament(game);
   const m = t.matches.find((x) => x.id === id.toUpperCase());
   if (!m) notFound();
   const p = await getMatchPrivate(m.id);
@@ -66,7 +71,7 @@ async function Editor({ params }: Pick<PageProps<"/admin/matches/[id]">, "params
 
   return (
     <>
-      <Link href="/admin" className="link text-sm">← All matches</Link>
+      <Link href={`/admin/${game}`} className="link text-sm">← All matches</Link>
       <header className="mt-3 mb-6 flex flex-wrap items-center gap-3">
         <h1 className="font-display text-3xl font-bold">
           {m.id} · {sides[0].team?.name ?? m.a.label} <span className="text-faint">vs</span> {sides[1].team?.name ?? m.b.label}
@@ -93,7 +98,7 @@ async function Editor({ params }: Pick<PageProps<"/admin/matches/[id]">, "params
                   <thead>
                     <tr className="text-left text-[11px] text-faint">
                       <th className="pb-2 font-medium">G</th>
-                      <th className="pb-2 font-medium">Mode</th>
+                      {codm && <th className="pb-2 font-medium">Mode</th>}
                       <th className="pb-2 font-medium">Map</th>
                       <th className="pb-2 font-medium">{sides[0].team?.tag ?? "A"}</th>
                       <th className="pb-2 font-medium">{sides[1].team?.tag ?? "B"}</th>
@@ -108,11 +113,13 @@ async function Editor({ params }: Pick<PageProps<"/admin/matches/[id]">, "params
                       return (
                         <tr key={g}>
                           <td className="py-1 pr-2 font-cond text-xs text-faint">{g}</td>
-                          <td className="py-1 pr-2">
-                            <select name={`mode${g}`} defaultValue={r?.mode ?? modeFor(g)} disabled={locked} className={`${inputClass} min-w-20`}>
-                              {(Object.keys(MODE_NAME) as Mode[]).map((k) => <option key={k} value={k}>{k === "SND" ? "S&D" : k}</option>)}
-                            </select>
-                          </td>
+                          {codm && (
+                            <td className="py-1 pr-2">
+                              <select name={`mode${g}`} defaultValue={r?.mode ?? modeFor(g)} disabled={locked} className={`${inputClass} min-w-20`}>
+                                {(Object.keys(MODE_NAME) as Mode[]).map((k) => <option key={k} value={k}>{k === "SND" ? "S&D" : k}</option>)}
+                              </select>
+                            </td>
+                          )}
                           <td className="py-1 pr-2">
                             <input name={`map${g}`} defaultValue={r?.map ?? (g === 1 && veto ? veto.decider : "")} disabled={locked} className={inputClass} list="map-pool" />
                           </td>
@@ -235,7 +242,7 @@ async function Editor({ params }: Pick<PageProps<"/admin/matches/[id]">, "params
             </div>
           </Panel>
 
-          {m.bestOf === 1 && (
+          {codm && m.bestOf === 1 && (
             <Panel title="Map veto" note="Ban–Ban–Ban–Ban from the mode's 5-map pool; the remaining map is played. Higher seed or coin-toss winner bans first. Complete and screenshot it before creating the lobby.">
               <VetoEditor
                 matchId={m.id}
@@ -248,7 +255,7 @@ async function Editor({ params }: Pick<PageProps<"/admin/matches/[id]">, "params
             </Panel>
           )}
 
-          {m.stage === "sf" && (
+          {codm && m.stage === "sf" && (
             <Panel title="Veto Power">
               <p className="text-sm">
                 Holder: <span className="text-steel">{m.vetoHolder ? (m.vetoHolder === "A" ? sides[0].team?.name : sides[1].team?.name) : "decided when both teams are known"}</span>

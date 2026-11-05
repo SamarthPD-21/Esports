@@ -4,22 +4,28 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { MatchCard } from "@/components/MatchCard";
 import { TeamBadge } from "@/components/TeamBadge";
+import { gameOf } from "@/games/params";
+import { GAMES } from "@/games/registry";
 import { getTournament, matchesForTeam, teamMap } from "@/lib/data";
 
-export async function generateStaticParams() {
-  const t = await getTournament();
-  return t.teams.map((team) => ({ id: team.id }));
+export const dynamicParams = true;
+
+export async function generateStaticParams({ params }: { params: { game: string } }) {
+  const t = await getTournament(gameOf(params.game));
+  // At least one entry so the build can check the route; unknown ids 404 at runtime.
+  return t.teams.length ? t.teams.map((team) => ({ id: team.id })) : [{ id: "none" }];
 }
 
-export async function generateMetadata({ params }: PageProps<"/teams/[id]">): Promise<Metadata> {
-  const { id } = await params;
-  const t = await getTournament();
+export async function generateMetadata({ params }: PageProps<"/[game]/teams/[id]">): Promise<Metadata> {
+  const { game, id } = await params;
+  const t = await getTournament(gameOf(game));
   return { title: t.teams.find((x) => x.id === id)?.name ?? "Team" };
 }
 
-async function TeamDetail({ params }: Pick<PageProps<"/teams/[id]">, "params">) {
-  const { id } = await params;
-  const t = await getTournament();
+async function TeamDetail({ params }: Pick<PageProps<"/[game]/teams/[id]">, "params">) {
+  const { game: gameParam, id } = await params;
+  const game = gameOf(gameParam);
+  const t = await getTournament(game);
   const teams = teamMap(t);
   const team = teams.get(id);
   if (!team) notFound();
@@ -74,7 +80,7 @@ async function TeamDetail({ params }: Pick<PageProps<"/teams/[id]">, "params">) 
                     {p.ign}
                     {team.captain === p.ign && <span className="ml-2 text-[10px] font-semibold text-steel">Captain</span>}
                   </p>
-                  {p.gameUid && <p className="tnum font-cond text-xs text-faint">UID {p.gameUid}</p>}
+                  {p.gameUid && <p className="tnum font-cond text-xs text-faint">{GAMES[game].uidLabel} {p.gameUid}</p>}
                 </div>
                 {p.role === "sub" && (
                   <span className="rounded border border-line px-1.5 py-0.5 text-[10px] font-semibold text-muted">Sub</span>
@@ -91,7 +97,7 @@ async function TeamDetail({ params }: Pick<PageProps<"/teams/[id]">, "params">) 
               <p className="text-sm text-muted">No scheduled matches.</p>
             ) : (
               <div className="grid gap-4 sm:grid-cols-2">
-                {upcoming.map((m) => <MatchCard key={m.id} match={m} teams={teams} />)}
+                {upcoming.map((m) => <MatchCard key={m.id} game={game} match={m} teams={teams} />)}
               </div>
             )}
           </div>
@@ -101,7 +107,7 @@ async function TeamDetail({ params }: Pick<PageProps<"/teams/[id]">, "params">) 
               <p className="text-sm text-muted">No results yet.</p>
             ) : (
               <div className="grid gap-4 sm:grid-cols-2">
-                {played.map((m) => <MatchCard key={m.id} match={m} teams={teams} />)}
+                {played.map((m) => <MatchCard key={m.id} game={game} match={m} teams={teams} />)}
               </div>
             )}
           </div>
@@ -109,13 +115,13 @@ async function TeamDetail({ params }: Pick<PageProps<"/teams/[id]">, "params">) 
       </div>
 
       <p className="mt-10">
-        <Link href="/teams" className="link text-sm">← All teams</Link>
+        <Link href={`/${game}/teams`} className="link text-sm">← All teams</Link>
       </p>
     </>
   );
 }
 
-export default function TeamPage(props: PageProps<"/teams/[id]">) {
+export default function TeamPage(props: PageProps<"/[game]/teams/[id]">) {
   return (
     <Suspense fallback={<div className="panel mt-10 h-64 animate-pulse" />}>
       <TeamDetail params={props.params} />

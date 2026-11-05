@@ -7,6 +7,7 @@ import { StatusChip } from "./StatusChip";
 import { TeamBadge } from "./TeamBadge";
 
 function SideRow({
+  game,
   side,
   team,
   score,
@@ -14,6 +15,7 @@ function SideRow({
   lost,
   veto,
 }: {
+  game: string;
   side: ResolvedSide;
   team?: Team;
   score?: number;
@@ -22,7 +24,7 @@ function SideRow({
   veto: boolean;
 }) {
   const name = team ? (
-    <Link href={`/teams/${team.id}`} className="truncate hover:text-signal">
+    <Link href={`/${game}/teams/${team.id}`} className="truncate hover:text-signal">
       {team.name}
     </Link>
   ) : (
@@ -60,7 +62,7 @@ const RAIL: Record<Match["status"], string> = {
   cancelled: "border-l-line",
 };
 
-export function MatchCard({ match, teams, showStage = true }: { match: Match; teams: Map<string, Team>; showStage?: boolean }) {
+export function MatchCard({ game, match, teams, showStage = true }: { game: string; match: Match; teams: Map<string, Team>; showStage?: boolean }) {
   const ta = match.a.teamId ? teams.get(match.a.teamId) : undefined;
   const tb = match.b.teamId ? teams.get(match.b.teamId) : undefined;
   const started = match.status !== "scheduled" && match.status !== "cancelled";
@@ -87,12 +89,12 @@ export function MatchCard({ match, teams, showStage = true }: { match: Match; te
         </span>
       </div>
       <div className="flex flex-col gap-2">
-        <SideRow side={match.a} team={ta} score={scoreA} won={match.winner === "A"} lost={match.winner === "B"} veto={match.vetoHolder === "A"} />
-        <SideRow side={match.b} team={tb} score={scoreB} won={match.winner === "B"} lost={match.winner === "A"} veto={match.vetoHolder === "B"} />
+        <SideRow game={game} side={match.a} team={ta} score={scoreA} won={match.winner === "A"} lost={match.winner === "B"} veto={match.vetoHolder === "A"} />
+        <SideRow game={game} side={match.b} team={tb} score={scoreB} won={match.winner === "B"} lost={match.winner === "A"} veto={match.vetoHolder === "B"} />
       </div>
       <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-t border-line pt-3 text-xs text-muted">
         <span>{match.scheduledAt ? fmtDateTime(match.scheduledAt) : "Time TBA"}</span>
-        {bo1 && only && <span className="text-faint">{MODE_NAME[only.mode]} on {only.map}</span>}
+        {bo1 && only && <span className="text-faint">{only.mode ? `${MODE_NAME[only.mode]} on ${only.map}` : only.map}</span>}
       </div>
       {!bo1 && match.maps.length > 0 && (
         <ol className="flex flex-col gap-1 text-xs">

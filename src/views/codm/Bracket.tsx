@@ -1,11 +1,8 @@
-import type { Metadata } from "next";
 import { MatchCard } from "@/components/MatchCard";
 import { PageHeader } from "@/components/SectionHeading";
 import { getTournament, teamMap } from "@/lib/data";
 import { STAGE_LABEL } from "@/lib/tournament";
 import type { Stage } from "@/lib/types";
-
-export const metadata: Metadata = { title: "Bracket" };
 
 const COLUMNS: { stage: Stage; sub: string }[] = [
   { stage: "qf", sub: "Best of 3, fixed order HP → S&D → Control" },
@@ -13,8 +10,8 @@ const COLUMNS: { stage: Stage; sub: string }[] = [
   { stage: "final", sub: "Best of 5, Pro Standard" },
 ];
 
-export default async function BracketPage() {
-  const t = await getTournament();
+export async function CodmBracket() {
+  const t = await getTournament("codm");
   const teams = teamMap(t);
   const champion = t.matches.find((m) => m.stage === "final" && m.winner);
   const championId = champion && (champion.winner === "A" ? champion.a.teamId : champion.b.teamId);
@@ -49,12 +46,12 @@ export default async function BracketPage() {
               </header>
               <div className="flex flex-1 flex-col justify-around gap-4">
                 {ms.length === 0 && <p className="text-sm text-muted">Not drawn yet.</p>}
-                {ms.map((m) => <MatchCard key={m.id} match={m} teams={teams} showStage={false} />)}
+                {ms.map((m) => <MatchCard key={m.id} game="codm" match={m} teams={teams} showStage={false} />)}
                 {col.stage === "final" &&
                   third.map((m) => (
                     <div key={m.id} className="mt-4">
                       <p className="mb-2 text-xs font-semibold text-faint">3rd place</p>
-                      <MatchCard match={m} teams={teams} showStage={false} />
+                      <MatchCard game="codm" match={m} teams={teams} showStage={false} />
                     </div>
                   ))}
               </div>
