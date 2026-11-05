@@ -7,7 +7,16 @@ export function generateStaticParams() {
   return GAME_IDS.map((game) => ({ game }));
 }
 
-export default async function GameLayout({ children, params }: LayoutProps<"/[game]">) {
+export default function GameLayout({ children, params }: LayoutProps<"/[game]">) {
+  // Params stay inside Suspense so the generic /[game] shell can render too.
+  return (
+    <Suspense fallback={<div className="min-h-[60vh]" />}>
+      <GameFrame params={params}>{children}</GameFrame>
+    </Suspense>
+  );
+}
+
+async function GameFrame({ children, params }: { children: React.ReactNode; params: LayoutProps<"/[game]">["params"] }) {
   const { game } = await params;
   if (!isGameId(game)) notFound();
   const g = GAMES[game];

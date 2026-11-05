@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import { gameOf } from "@/games/params";
 import { GAMES } from "@/games/registry";
@@ -8,7 +9,17 @@ import { LobbyStandingsView } from "@/views/lobby/LobbyStandings";
 
 export const metadata: Metadata = { title: "Standings" };
 
-export default async function StandingsPage({ params }: PageProps<"/[game]/standings">) {
+// Params are read inside Suspense: after a cache invalidation Next re-renders
+// the generic /[game] shell, where they aren't known yet.
+export default function StandingsPage({ params }: PageProps<"/[game]/standings">) {
+  return (
+    <Suspense fallback={<div className="min-h-[60vh]" />}>
+      <StandingsPageBody params={params} />
+    </Suspense>
+  );
+}
+
+async function StandingsPageBody({ params }: Pick<PageProps<"/[game]/standings">, "params">) {
   const game = gameOf((await params).game);
   if (game === "codm") {
     return (

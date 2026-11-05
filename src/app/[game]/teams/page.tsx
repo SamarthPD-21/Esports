@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { PageHeader } from "@/components/SectionHeading";
@@ -8,7 +9,17 @@ import { getTournament } from "@/lib/data";
 
 export const metadata: Metadata = { title: "Teams" };
 
-export default async function TeamsPage({ params }: PageProps<"/[game]/teams">) {
+// Params are read inside Suspense: after a cache invalidation Next re-renders
+// the generic /[game] shell, where they aren't known yet.
+export default function TeamsPage({ params }: PageProps<"/[game]/teams">) {
+  return (
+    <Suspense fallback={<div className="min-h-[60vh]" />}>
+      <TeamsPageBody params={params} />
+    </Suspense>
+  );
+}
+
+async function TeamsPageBody({ params }: Pick<PageProps<"/[game]/teams">, "params">) {
   const game = gameOf((await params).game);
   const g = GAMES[game];
   const t = await getTournament(game);

@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import { MatchCard } from "@/components/MatchCard";
 import { PageHeader } from "@/components/SectionHeading";
@@ -11,7 +12,17 @@ import type { Match } from "@/lib/types";
 
 export const metadata: Metadata = { title: "Schedule" };
 
-export default async function SchedulePage({ params }: PageProps<"/[game]/schedule">) {
+// Params are read inside Suspense: after a cache invalidation Next re-renders
+// the generic /[game] shell, where they aren't known yet.
+export default function SchedulePage({ params }: PageProps<"/[game]/schedule">) {
+  return (
+    <Suspense fallback={<div className="min-h-[60vh]" />}>
+      <SchedulePageBody params={params} />
+    </Suspense>
+  );
+}
+
+async function SchedulePageBody({ params }: Pick<PageProps<"/[game]/schedule">, "params">) {
   const game = gameOf((await params).game);
   if (GAMES[game].shape === "lobby") return <LobbySchedule game={game} />;
   const t = await getTournament(game);
