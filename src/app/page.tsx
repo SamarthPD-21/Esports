@@ -6,8 +6,8 @@ import { dayKey, fmtDay, fmtTime } from "@/lib/format";
 import { getLobbyGame } from "@/lib/lobby/data";
 import { STAGE_LABEL } from "@/lib/tournament";
 import { EVENT } from "@/content/event";
-import { PixelCloud } from "@/components/PixelCloud";
 import { DropTitle } from "@/components/fx/DropTitle";
+import { Clouds } from "@/components/fx/Clouds";
 import { ShootingStar, Stars } from "@/components/fx/Stars";
 
 interface Slot {
@@ -59,11 +59,13 @@ export default function Hub() {
           <Stars className="[mask-image:linear-gradient(90deg,transparent_0_62%,black_80%)] sm:[mask-image:linear-gradient(90deg,rgb(0_0_0/0.3)_0_46%,black_60%)]" />
           <ShootingStar />
           <div className="absolute -top-10 -right-12 sm:top-16 sm:right-[8%]">
-            <div className="moon-rise size-36 rounded-full bg-moon shadow-[0_0_90px_40px_rgb(227_237_166/0.28)] sm:size-64" />
+            <div className="moon-rise relative">
+              {/* The halo breathes on its own layer; the blur is painted once. */}
+              <div className="halo absolute inset-0 rounded-full shadow-[0_0_90px_40px_rgb(227_237_166/0.3)]" />
+              <div className="relative size-36 rounded-full bg-moon sm:size-64" />
+            </div>
           </div>
-          <PixelCloud className="drift absolute top-[12%] left-[46%] hidden w-32 opacity-90 sm:block" />
-          <PixelCloud className="drift absolute top-[58%] right-[4%] w-28 opacity-80 [animation-delay:-4s] sm:right-[22%] sm:w-44" />
-          <PixelCloud className="drift absolute bottom-10 left-[38%] hidden w-32 opacity-60 [animation-delay:-7s] sm:block" />
+          <Clouds />
         </div>
         <div className="relative mx-auto max-w-6xl px-4 pt-16 pb-20 sm:pt-24 sm:pb-28">
           <p className="caps step-in text-[0.7rem] text-muted [animation-delay:0.15s]">Scaler School of Technology presents</p>

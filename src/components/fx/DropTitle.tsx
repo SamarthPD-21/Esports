@@ -1,5 +1,5 @@
 /**
- * A headline whose letters drop in one by one, stepped like sprites landing.
+ * A headline whose letters drop in one by one and settle with a small bounce.
  * Screen readers get the whole word from aria-label.
  */
 export function DropTitle({ text, className, delay = 0.35 }: { text: string; className?: string; delay?: number }) {
