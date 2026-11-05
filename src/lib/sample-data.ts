@@ -1,6 +1,6 @@
-// Placeholder tournament used when GOOGLE_SHEET_ID isn't set, and exported by
-// `npm run export-template` as the starting CSVs for the real Google Sheet.
-// Built as sheet tabs (CSV text) so it goes through exactly the same parser.
+// Placeholder CODM tournament shown when RESULTS_SHEET_ID isn't set (or the
+// results sheet can't be read), so the site still builds and has something
+// to show. Built as sheet tabs (CSV text) so it goes through the same parser.
 
 import { GROUP_DAY_MODES, KNOCKOUT_TIMES } from "../content/event.ts";
 import { COLUMNS, toCsv, type TabName } from "./parse.ts";

@@ -2,6 +2,17 @@
 
 Running log for the esports site. Update the **Status** and **Changelog** sections as work happens.
 
+## `sheets` branch (from 6 Nov 2026)
+
+Display-only copy of the multi-game site: no Supabase, no logins, no staff screens. Everything below about `/me`, `/ref`, `/admin`, sync and Supabase applies to `main` only.
+
+- **Rosters:** each game's Unstop tab, read and parsed on every cache refresh (`src/lib/sheets/fetch.ts` → `src/lib/sync/parse.ts` → `src/lib/sheets/roster.ts`). Team ids come from the team name, so they stay stable while names do. Only public fields reach the pages.
+- **Results:** one sheet (`RESULTS_SHEET_ID`), tabs `<Game> Matches` / `<Game> Maps` or `<Game> Lobbies` / `<Game> Results`, teams by name. Tabs are listed from the sheet's public HTML view and read by gid through the CSV export: gviz answers an unknown tab name with the first tab, and it drops cells that don't fit a column's guessed type.
+- **Refresh:** everything is `'use cache'` with `cacheLife("tournament")`, about a minute.
+- **Stages** for lobby games come from `GAMES[game].stages`; a stage is live once a lobby is played and complete when every round is in. Changing points or advancement means editing the registry.
+- **`/status`** (unlinked) lists per-game counts, missing tabs, unknown team names and skipped rows. Registration issue messages contain emails, so only their count is shown.
+- Leaders get room details from the organisers on WhatsApp/Discord.
+
 ## Multi-game platform (from 5 Nov 2026)
 
 The site now runs every Yugaantar esports event: CODM, Valorant, BGMI, Free Fire MAX, Smash Karts and FIFA. Rule docs for each are in `docs/`; each game's facts are in `src/games/registry.ts`.

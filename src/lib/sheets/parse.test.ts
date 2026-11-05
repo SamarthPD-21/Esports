@@ -186,3 +186,15 @@ Pia Roy,pia@example.com,9100000003,Z College,Individual,Confirmed,Free,No,Pia,pi
   assert.equal(index.get("nina gill"), "smashkarts-ninakart", "real name works in the results sheet");
   assert.equal(index.get("sk-2"), r.teams[1].id, "so does the game ID");
 });
+
+test("the sheet template parses cleanly", async () => {
+  const { TEMPLATE } = await import("./template.ts");
+  const names = ["Iron Veil", "Sunpeak", "Cold Relay", "Ember Squad", "Tidal Five", "Quiet Storm", "Glass Wolves", "Night Shift", "Paper Tigers"];
+  const index = teamIndex(names.map((n) => team(n.toLowerCase().replace(/ /g, "-"), n)));
+  const h2h = parseH2hSheet(GAMES.valorant, index, { matches: TEMPLATE.Matches, maps: TEMPLATE.Maps });
+  assert.deepEqual(h2h.warnings, []);
+  assert.equal(h2h.matches.length, 3);
+  const lobby = parseLobbySheet(GAMES.freefire, index, { lobbies: TEMPLATE.Lobbies, results: TEMPLATE.Results });
+  assert.deepEqual(lobby.warnings, []);
+  assert.equal(lobby.matches.filter((m) => m.status === "completed").length, 1);
+});
