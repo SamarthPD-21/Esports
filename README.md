@@ -29,6 +29,8 @@ npm run build      # static site in out/
 2. Push to `showcase`. The `Pages` workflow builds the site and publishes it at `https://<user>.github.io/<repo>/`.
 3. To pick up new registrations, push again or press **Run workflow** on the Actions tab.
 
+**Custom domain.** Verify the domain under your GitHub account's *Settings → Pages*, add it in the repo's *Settings → Pages → Custom domain*, and point DNS at GitHub (a `CNAME` to `<user>.github.io` for a subdomain). The workflow picks up the change on its next run: on a custom domain the site is served from `/` instead of `/<repo>/`.
+
 ## Branches
 
 | Branch | What it is |
