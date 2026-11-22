@@ -1,5 +1,6 @@
 import { PageHeader } from "@/components/SectionHeading";
 import { GAMES, type GameId } from "@/games/registry";
+import { asset } from "@/lib/asset";
 
 /** The short version of a game's rules, with the organisers' PDF linked. */
 export function GameRules({ game }: { game: GameId }) {
@@ -11,7 +12,7 @@ export function GameRules({ game }: { game: GameId }) {
         {g.rulesPdf && (
           <>
             {" "}
-            <a href={`/rules/${g.rulesPdf}`} className="link">Read the full rules (PDF)</a>.
+            <a href={asset(`/rules/${g.rulesPdf}`)} className="link">Read the full rules (PDF)</a>.
           </>
         )}
       </PageHeader>

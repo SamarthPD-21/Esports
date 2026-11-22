@@ -21,6 +21,7 @@ import {
   TIEBREAK_RULES,
   VETO_RULES,
 } from "@/content/event";
+import { asset } from "@/lib/asset";
 import { getTournament } from "@/lib/data";
 import { fmtDay, fmtTime } from "@/lib/format";
 import type { Mode, Tournament } from "@/lib/types";
@@ -136,7 +137,7 @@ export async function CodmRules() {
         {TOC.map(([id, label]) => (
           <a key={id} href={`#${id}`} className="chip">{label}</a>
         ))}
-        <a href="/rules/codm.pdf" className="chip" style={{ "--chip": "var(--color-signal)" } as React.CSSProperties}>Full rulebook (PDF)</a>
+        <a href={asset("/rules/codm.pdf")} className="chip" style={{ "--chip": "var(--color-signal)" } as React.CSSProperties}>Full rulebook (PDF)</a>
       </nav>
 
       <div className="flex flex-col gap-16">

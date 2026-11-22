@@ -1,31 +1,19 @@
 import type { NextConfig } from "next";
 
+// showcase branch: a static export, built once and served as plain files
+// (GitHub Pages). PAGES_BASE_PATH is the repo path on Pages, e.g. /Esports;
+// left empty for local dev and for a site on its own domain.
+const basePath = process.env.PAGES_BASE_PATH?.replace(/\/$/, "") ?? "";
+
 const nextConfig: NextConfig = {
-  cacheComponents: true,
-  partialPrefetching: true,
-  cacheLife: {
-    // Public tournament data. Staff writes call updateTag() so results show
-    // immediately; this lifetime is just a safety net.
-    tournament: {
-      stale: 60,
-      revalidate: 60,
-      expire: 60 * 60 * 24,
-    },
-  },
-  // The site used to be CODM only; keep old links working.
-  async redirects() {
-    return [
-      { source: "/groups", destination: "/codm/standings", permanent: true },
-      { source: "/bracket", destination: "/codm/standings", permanent: true },
-      { source: "/schedule", destination: "/codm/schedule", permanent: true },
-      { source: "/rules", destination: "/codm/rules", permanent: true },
-      { source: "/teams", destination: "/codm/teams", permanent: true },
-      { source: "/teams/:id", destination: "/codm/teams/:id", permanent: true },
-    ];
-  },
-  images: {
-    remotePatterns: [{ protocol: "https", hostname: "**" }],
-  },
+  output: "export",
+  basePath,
+  env: { NEXT_PUBLIC_BASE_PATH: basePath },
+  // /codm/schedule/index.html, so any static host serves it without rewrites.
+  trailingSlash: true,
+  // Cache Components need a server (partial prerendering can't be exported);
+  // every page here is plain HTML built from data read once at build time.
+  images: { unoptimized: true },
   turbopack: {
     rules: {
       "*.css": {
