@@ -1,7 +1,6 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import { MatchCard } from "@/components/MatchCard";
-import { MySchedule } from "@/components/MySchedule";
 import { PageHeader } from "@/components/SectionHeading";
 import { gameOf } from "@/games/params";
 import { GAMES } from "@/games/registry";
@@ -29,7 +28,6 @@ async function SchedulePageBody({ params }: Pick<PageProps<"/[game]/schedule">, 
   if (GAMES[game].shape === "lobby") {
     return (
       <>
-        <MySchedule game={game} />
         <LobbySchedule game={game} />
       </>
     );
@@ -51,7 +49,6 @@ async function SchedulePageBody({ params }: Pick<PageProps<"/[game]/schedule">, 
         All times are IST. Room details go to team leaders {GAMES[game].roomReveal} minutes before each match.
       </PageHeader>
 
-      <MySchedule game={game} />
 
       <nav className="mb-8 flex flex-wrap gap-2" aria-label="Jump to day">
         {[...days.keys()].map((k) => (

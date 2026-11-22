@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { GroupTable } from "@/components/GroupTable";
 import { MatchCard } from "@/components/MatchCard";
-import { Referees } from "@/components/Referees";
 import { SectionHeading } from "@/components/SectionHeading";
 import { UpNext, type UpNextItem } from "@/components/UpNext";
 import { EVENT, KEY_DATES, PRIZES, PRIZE_TOTAL, STAGES } from "@/content/event";
@@ -189,7 +188,6 @@ export async function CodmOverview() {
         </div>
       </section>
 
-      <Referees game="codm" />
     </>
   );
 }

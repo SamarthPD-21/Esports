@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { MatchCard } from "@/components/MatchCard";
-import { MySchedule } from "@/components/MySchedule";
 import { PageHeader } from "@/components/SectionHeading";
 import { TeamFilter } from "@/components/TeamFilter";
 import { LOBBIES, MODE_DAYS, WAVES } from "@/content/codm-schedule";
@@ -55,7 +54,6 @@ export async function CodmWaves() {
         with your lobby referee 30 minutes before the day&apos;s first wave.
       </PageHeader>
 
-      <MySchedule game="codm" />
 
       <ol className="mb-8 grid gap-3 sm:grid-cols-3">
         {MODE_DAYS.map((d, i) => {

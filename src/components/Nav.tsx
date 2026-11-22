@@ -46,13 +46,6 @@ export function NavShell({ pathname }: { pathname: string }) {
               {l.label}
             </Link>
           ))}
-          <Link
-            href="/me"
-            aria-current={pathname.startsWith("/me") || pathname.startsWith("/admin") || pathname.startsWith("/ref") ? "page" : undefined}
-            className="caps ml-3 border border-line-strong bg-bg px-3.5 py-2 text-[0.72rem] font-bold hover:border-signal hover:text-signal"
-          >
-            My matches
-          </Link>
         </nav>
 
         <button
@@ -82,9 +75,6 @@ export function NavShell({ pathname }: { pathname: string }) {
               {l.label}
             </Link>
           ))}
-          <Link href="/me" onClick={() => setOpen(false)} className="btn mt-2 mb-2 w-full">
-            My matches and login
-          </Link>
         </nav>
       )}
     </header>

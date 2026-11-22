@@ -75,10 +75,10 @@ export default function Hub() {
           />
           <p className="caps step-in mt-3 text-sm text-text [animation-delay:1s]">{EVENT.festival} · {EVENT.theme}</p>
           <p className="step-in mt-5 max-w-lg text-lg text-muted [animation-delay:1.1s]">
-            Six games, online qualifiers from 17 November, finals on campus. Schedules, live standings and brackets for every event.
+            Six games, online qualifiers from 17 November, finals on campus. Formats, groups, schedules and rules for every event.
           </p>
           <div className="step-in mt-8 flex flex-wrap gap-3 [animation-delay:1.25s]">
-            <Link href="/me" className="btn">My matches</Link>
+            <Link href="/codm/schedule" className="btn">CODM waves</Link>
             <a href="#match-day" className="btn btn-ghost">Next match day</a>
           </div>
         </div>
@@ -89,12 +89,6 @@ export default function Hub() {
         <HubData />
       </Suspense>
 
-      <section className="panel mt-16 flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
-        <p className="max-w-xl text-muted">
-          <span className="font-bold text-text">Team leaders and solo players:</span> log in with your Unstop email to check in and get room details for your matches.
-        </p>
-        <Link href="/me" className="btn shrink-0 self-start sm:self-auto">Log in</Link>
-      </section>
     </>
   );
 }
