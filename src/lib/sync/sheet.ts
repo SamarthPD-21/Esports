@@ -42,7 +42,8 @@ async function fetchViaCsv(game: GameDef): Promise<string[][]> {
   const gid = gidFor(game);
   if (!gid) throw new Error(`No sheet gid for ${game.name}; add it to REGISTRATION_SHEET_GIDS.`);
   const url = `https://docs.google.com/spreadsheets/d/${sheetId()}/export?format=csv&gid=${gid}`;
-  const res = await fetch(url, { cache: "no-store", redirect: "follow" });
+  // Read once at build time; the static pages never change afterwards.
+  const res = await fetch(url, { cache: "force-cache", redirect: "follow" });
   const type = res.headers.get("content-type") ?? "";
   // A private sheet redirects to a sign-in page (HTML) instead of failing.
   if (!res.ok || type.includes("text/html")) {
@@ -109,7 +110,7 @@ async function fetchViaApi(game: GameDef): Promise<string[][]> {
   const token = await accessToken(sa);
   const range = encodeURIComponent(`'${game.sheetTab.replace(/'/g, "''")}'`);
   const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId()}/values/${range}?majorDimension=ROWS&valueRenderOption=FORMATTED_VALUE`;
-  const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` }, cache: "no-store" });
+  const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` }, cache: "force-cache" });
   if (res.status === 401) cachedToken = null;
   if (!res.ok) {
     throw new Error(`Sheet tab "${game.sheetTab}" not found or not shared with ${sa.client_email} (HTTP ${res.status}).`);

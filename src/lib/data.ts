@@ -1,53 +1,47 @@
 // The single place pages get tournament data from.
-// backend branch: Supabase (public tables, approved results only). Falls back to the
-// bundled sample when Supabase isn't configured so the site still builds.
+// showcase branch: everything is read at build time. Teams come from the
+// public Unstop registrations sheet; CODM's groups and fixtures are the
+// published schedule. There are no results here, only the plan.
 
-import { cacheLife, cacheTag } from "next/cache";
-import { loadRawTournament } from "./db/load";
-import { dayKey } from "./format";
-import { parseTournament } from "./parse";
-import { SAMPLE_TABS } from "./sample-data";
-import { supabaseConfigured } from "./supabase/env";
+import { matchOfficialTeams, MODE_DAYS, officialFixtures, OFFICIAL_GROUPS } from "../content/codm-schedule";
 import type { GameId } from "../games/registry";
-import { createPublicClient } from "./supabase/server";
+import { dayKey } from "./format";
+import { DEFAULT_CONFIG } from "./parse";
+import { getRegisteredTeams } from "./registrations";
 import { buildTournament } from "./tournament";
-import type { Match, MatchDay, Team, Tournament } from "./types";
+import type { Match, MatchDay, MatchInput, Team, Tournament } from "./types";
 
-/** Invalidated with updateTag() by every staff write, so results appear immediately. */
-export const TOURNAMENT_TAG = "tournament";
-/** Narrower tag for writes that only touch one game. */
-export const gameTag = (game: string) => `game:${game}`;
-
-/** A head-to-head game's teams, matches and standings. */
-export async function getTournament(game: GameId = "codm"): Promise<Tournament> {
-  "use cache";
-  cacheLife("tournament");
-  cacheTag(TOURNAMENT_TAG, gameTag(game));
-  return loadTournament(game);
+/** A game's teams, plus CODM's groups and published fixtures. */
+export function getTournament(game: GameId = "codm"): Promise<Tournament> {
+  let p = built.get(game);
+  if (!p) built.set(game, (p = loadTournament(game)));
+  return p;
 }
 
-/**
- * Uncached read, for staff pages: their forms are filled from it, and saving
- * a form filled from a stale copy would write old values back (e.g. after an
- * edit made straight in the database).
- */
-export async function loadTournament(game: GameId = "codm"): Promise<Tournament> {
+const built = new Map<GameId, Promise<Tournament>>();
+
+async function loadTournament(game: GameId): Promise<Tournament> {
   const fetchedAt = new Date().toISOString();
-  if (supabaseConfigured()) {
-    try {
-      const { raw, warnings } = await loadRawTournament(createPublicClient(), game);
-      return buildTournament(raw, { source: "database", fetchedAt, warnings });
-    } catch (e) {
-      const { raw } = parseTournament(sampleTabs(game));
-      return buildTournament(raw, { source: "sample", fetchedAt, warnings: [(e as Error).message] });
-    }
+  const { teams, warning } = await getRegisteredTeams(game);
+  let matches: MatchInput[] = [];
+  let matchDays: MatchDay[] = [];
+  if (game === "codm") {
+    const { ids } = matchOfficialTeams(teams);
+    const groupOf = new Map(Object.entries(OFFICIAL_GROUPS).flatMap(([g, names]) => names.map((n) => [ids.get(n), g] as const)));
+    for (const t of teams) t.group = groupOf.get(t.id) ?? "";
+    matches = officialFixtures((n) => ids.get(n)).fixtures
+      .filter((f) => f.a && f.b)
+      .map((f) => ({
+        id: f.id, stage: "group", group: f.group, round: f.wave, lobby: f.lobby, mode: f.mode, map: f.map,
+        bestOf: 1, sideA: f.a, sideB: f.b, scheduledAt: f.scheduledAt, maps: [],
+      }));
+    matchDays = MODE_DAYS.map((d) => ({ day: d.date, mode: d.mode, map: d.map }));
   }
-  const { raw, warnings } = parseTournament(sampleTabs(game));
-  return buildTournament(raw, { source: "sample", fetchedAt, warnings });
+  return buildTournament(
+    { config: DEFAULT_CONFIG, teams, matches, announcements: [], mapPool: [], matchDays },
+    { source: "sheet", fetchedAt, warnings: warning ? [warning] : [] },
+  );
 }
-
-/** The bundled sample is a CODM tournament; other games start empty. */
-const sampleTabs = (game: GameId) => (game === "codm" ? SAMPLE_TABS : {});
 
 export function teamMap(t: Tournament): Map<string, Team> {
   return new Map(t.teams.map((x) => [x.id, x]));
