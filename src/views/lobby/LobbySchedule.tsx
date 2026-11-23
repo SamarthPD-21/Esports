@@ -4,7 +4,9 @@ import { eveningsOf, lobbyLabel, slotState } from "@/components/lobby/slots";
 import { GAMES, type GameId } from "@/games/registry";
 import { getTournament, teamMap } from "@/lib/data";
 import { fmtDay, fmtTime } from "@/lib/format";
-import { getLobbyGame } from "@/lib/lobby/data";
+import { OFFICIAL_LOBBY_GROUPS } from "@/content/lobby-groups";
+import { getLobbyGame, type LobbyGame } from "@/lib/lobby/data";
+import { GroupsBoard } from "./GroupsBoard";
 import type { LobbyMatch } from "@/lib/lobby/types";
 import type { Team } from "@/lib/types";
 
@@ -13,6 +15,27 @@ export async function LobbySchedule({ game }: { game: GameId }) {
   const [g, t] = await Promise.all([getLobbyGame(game), getTournament(game)]);
   const teams = teamMap(t);
   const def = GAMES[game];
+  // Games with published qualifier groups show them as a board; later stages follow as a list.
+  const official = OFFICIAL_LOBBY_GROUPS[game];
+  const boardStage = official ? `${game}-${official.stage}` : undefined;
+
+  if (official) {
+    const later = g.matches.filter((m) => m.stageId !== boardStage);
+    const played = g.matches.filter((m) => m.status === "completed").length;
+    return (
+      <>
+        <PageHeader title="Schedule" meta={g.matches.length ? `${played} of ${g.matches.filter((m) => m.status !== "cancelled").length} lobbies played` : "Published groups"}>
+          All times are IST. Room details go to team leaders {def.roomReveal} minutes before each match.
+        </PageHeader>
+        <GroupsBoard game={game} g={g} teams={teams} />
+        {later.length > 0 && (
+          <div className="mt-16">
+            <Evenings game={game} matches={later} g={g} teams={teams} unit={def.solo ? "players" : "teams"} />
+          </div>
+        )}
+      </>
+    );
+  }
 
   if (!g.matches.length) {
     return (
@@ -22,17 +45,24 @@ export async function LobbySchedule({ game }: { game: GameId }) {
     );
   }
 
-  const evenings = eveningsOf(g.matches, g.stages);
   const live = g.matches.filter((m) => m.status !== "cancelled");
   const done = live.filter((m) => m.status === "completed").length;
-  const unit = def.solo ? "players" : "teams";
 
   return (
     <>
       <PageHeader title="Schedule" meta={`${done} of ${live.length} lobbies played`}>
         All times are IST. Room details go to {def.solo ? "players" : "team leaders"} {def.roomReveal} minutes before each match.
       </PageHeader>
+      <Evenings game={game} matches={g.matches} g={g} teams={teams} unit={def.solo ? "players" : "teams"} />
+    </>
+  );
+}
 
+/** Lobbies by evening (IST), then start time. */
+function Evenings({ game, matches, g, teams, unit }: { game: GameId; matches: LobbyMatch[]; g: LobbyGame; teams: Map<string, Team>; unit: string }) {
+  const evenings = eveningsOf(matches, g.stages);
+  return (
+    <>
       {evenings.length > 1 && (
         <nav className="mb-8 flex flex-wrap gap-2" aria-label="Jump to evening">
           {evenings.map((e) => (

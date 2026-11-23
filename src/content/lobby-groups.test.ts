@@ -57,14 +57,17 @@ test("names are unique within a game, and same-name teams wait for a pick", () =
     const names = officialNames(game);
     assert.equal(new Set(names).size, names.length, game);
   }
-  // Free Fire has "Hunters" (C) and "HUNTERS" (K): two registered teams, one name each.
+  // Free Fire has "Hunters" (C) and "HUNTERS" (K): their exact spelling tells them apart.
   const teams = officialNames("freefire").map((n, i) => ({ id: `t${i}`, name: n }));
-  const { missing } = matchOfficialGroups("freefire", teams);
-  assert.deepEqual(missing.sort(), ["HUNTERS", "Hunters"]);
-  // Once applied with picks, the same entrants keep them.
   const c = teams.find((t) => t.name === "Hunters")!;
   const k = teams.find((t) => t.name === "HUNTERS")!;
-  const again = matchOfficialGroups("freefire", teams, [{ teamId: c.id, pool: "C" }, { teamId: k.id, pool: "K" }]);
-  assert.deepEqual(again.missing, []);
-  assert.equal(again.ids.get("HUNTERS"), k.id);
+  const { ids, missing } = matchOfficialGroups("freefire", teams);
+  assert.deepEqual(missing, []);
+  assert.equal(ids.get("Hunters"), c.id);
+  assert.equal(ids.get("HUNTERS"), k.id);
+  // As registered: both ZERO MERCY squads under one name, first and second in order.
+  const registered = teams.map((t) => (t.name.startsWith("ZERO MERCY") ? { ...t, name: "ZERO MERCY" } : t));
+  const zm = matchOfficialGroups("freefire", registered);
+  assert.deepEqual(zm.missing, []);
+  assert.equal(zm.ids.get("ZERO MERCY (1)"), teams.find((t) => t.name === "ZERO MERCY (1)")!.id);
 });

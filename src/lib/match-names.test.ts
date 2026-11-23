@@ -21,6 +21,23 @@ test("match names: exact, shortened, decorated, ambiguous and picked", () => {
   assert.equal(matchNames(["ZERO MERCY"], teams, { "ZERO MERCY": "z2" }).ids.get("ZERO MERCY"), "z2");
 });
 
+test("match names: exact spelling tells same-named teams apart; numbered twins go in registration order", () => {
+  const teams = [
+    { id: "h1", name: "Hunters" },
+    { id: "h2", name: "HUNTERS" },
+    { id: "z1", name: "ZERO MERCY" },
+    { id: "z2", name: "ZERO MERCY" },
+  ];
+  const { ids, missing } = matchNames(["HUNTERS", "Hunters", "ZERO MERCY (2)", "ZERO MERCY (1)"], teams);
+  assert.deepEqual(missing, []);
+  assert.equal(ids.get("Hunters"), "h1");
+  assert.equal(ids.get("HUNTERS"), "h2");
+  assert.equal(ids.get("ZERO MERCY (1)"), "z1");
+  assert.equal(ids.get("ZERO MERCY (2)"), "z2");
+  // Two teams spelt exactly alike still need a pick.
+  assert.deepEqual(matchNames(["Twins"], [{ id: "a", name: "Twins" }, { id: "b", name: "Twins" }]).missing, ["Twins"]);
+});
+
 test("match names: a loose rule never takes another name's exact match", () => {
   // "IMMORTAL ESPORTS" comes first but must not grab the team called "IMMORTAL".
   const { ids, missing } = matchNames(["IMMORTAL ESPORTS", "IMMORTAL"], [{ id: "i", name: "Immortal" }, { id: "x", name: "Immortals Clan" }]);

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { MatchCard } from "@/components/MatchCard";
 import { PageHeader } from "@/components/SectionHeading";
 import { TeamFilter } from "@/components/TeamFilter";
-import { LOBBIES, MODE_DAYS, WAVES } from "@/content/codm-schedule";
+import { LOBBIES, MODE_DAYS, WAVES, waveStarts } from "@/content/codm-schedule";
 import { getTournament, teamMap } from "@/lib/data";
 import { dayKey, fmtDay, fmtTime } from "@/lib/format";
 import { STAGE_LABEL } from "@/lib/tournament";
@@ -36,7 +36,10 @@ export async function CodmWaves() {
   const byId = new Map(t.matches.map((m) => [m.id, m]));
   const group = t.matches.filter((m) => m.stage === "group");
   const done = group.filter((m) => m.status === "completed" || m.status === "forfeit").length;
-  const at = (mode: Mode, wave: number) => group.find((m) => m.mode === mode && m.round === wave && m.scheduledAt)?.scheduledAt;
+  // Times from the fixtures once they are in, else as published (S&D stays TBD until set).
+  const published = new Map(MODE_DAYS.map((d) => [d.mode, waveStarts(d)]));
+  const at = (mode: Mode, wave: number) =>
+    group.find((m) => m.mode === mode && m.round === wave && m.scheduledAt)?.scheduledAt ?? (group.length ? undefined : published.get(mode)?.[wave - 1]);
   const knockouts = t.matches
     .filter((m) => m.stage !== "group")
     .sort((x, y) => (x.scheduledAt ?? "9999").localeCompare(y.scheduledAt ?? "9999") || x.id.localeCompare(y.id));
