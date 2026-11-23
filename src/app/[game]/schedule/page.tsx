@@ -7,7 +7,6 @@ import { GAMES } from "@/games/registry";
 import { getTournament, teamMap } from "@/lib/data";
 import { CodmWaves } from "@/views/codm/Waves";
 import { LobbySchedule } from "@/views/lobby/LobbySchedule";
-import { MODE_NAME } from "@/content/event";
 import { dayKey, fmtDay } from "@/lib/format";
 import type { Match } from "@/lib/types";
 
@@ -60,17 +59,11 @@ async function SchedulePageBody({ params }: Pick<PageProps<"/[game]/schedule">, 
 
       <div className="flex flex-col gap-12">
         {[...days.entries()].map(([k, ms]) => {
-          const matchDay = t.matchDays?.find((d) => d.day === k);
           return (
             <section key={k} id={`d-${k}`} className="scroll-mt-20">
               <h2 className="mb-4 flex flex-wrap items-baseline gap-3 font-display text-3xl font-bold">
                 {k === "tba" ? "Date TBA" : fmtDay(ms[0].scheduledAt!)}
                 <span className="font-sans text-sm font-normal text-faint">{ms.length} match{ms.length === 1 ? "" : "es"}</span>
-                {matchDay && (
-                  <span className="rounded-sm border border-steel/40 px-2.5 py-0.5 font-sans text-xs font-semibold text-steel">
-                    Mode: {MODE_NAME[matchDay.mode]}{matchDay.map ? ` on ${matchDay.map}` : ""}{matchDay.note ? `, ${matchDay.note}` : ""}
-                  </span>
-                )}
               </h2>
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {ms.map((m) => <MatchCard key={m.id} game={game} match={m} teams={teams} />)}

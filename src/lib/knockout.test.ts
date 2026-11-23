@@ -1,7 +1,17 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { BYE, knockoutSummary, scheduleKnockout, seedPositions, singleElimination, VALORANT_SCHEDULE } from "./knockout.ts";
-import type { KnockoutRow } from "./knockout.ts";
+import { BYE, knockoutSummary, scheduleKnockout, seedPositions, singleElimination } from "./knockout.ts";
+import type { KnockoutRow, KnockoutSlot } from "./knockout.ts";
+
+// A 64-team plan (the earlier Valorant doc) to exercise the scheduler; the
+// published bracket's times are tested in content/valorant-bracket.test.ts.
+const VALORANT_SCHEDULE: KnockoutSlot[] = [
+  { stage: "r64", start: "2026-11-18T13:00:00+05:30", lobbies: 4, slotMinutes: 60, count: 16 },
+  { stage: "r64", start: "2026-11-19T13:00:00+05:30", lobbies: 4, slotMinutes: 60 },
+  { stage: "r32", start: "2026-11-20T13:00:00+05:30", lobbies: 4, slotMinutes: 60 },
+  { stage: "r16", start: "2026-11-23T13:00:00+05:30", lobbies: 4, slotMinutes: 60 },
+  { stage: "qf", start: "2026-11-23T16:00:00+05:30", lobbies: 4, slotMinutes: 60 },
+];
 import { buildTournament } from "./tournament.ts";
 import type { Stage } from "./types.ts";
 

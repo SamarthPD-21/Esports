@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { MODE_NAME } from "@/content/event";
 import { fmtDateTime } from "@/lib/format";
-import { STAGE_LABEL } from "@/lib/tournament";
+import { roundLabel } from "@/lib/tournament";
 import type { Match, ResolvedSide, Team } from "@/lib/types";
 import { StatusChip } from "./StatusChip";
 import { TeamBadge } from "./TeamBadge";
@@ -74,7 +74,7 @@ export function MatchCard({ game, match, teams, showStage = true }: { game: stri
 
   const stage = match.stage === "group"
     ? `Group ${match.group ?? ""}${match.lobby && match.round ? `, Wave ${match.round}, Lobby ${match.lobby}` : match.round ? `, round ${match.round}` : ""}`
-    : `${STAGE_LABEL[match.stage]}${match.stage === "tiebreak" && match.group ? `, Group ${match.group}` : ""}`;
+    : `${roundLabel(match)}${match.stage === "tiebreak" && match.group ? `, Group ${match.group}` : ""}`;
 
   return (
     <article className={`panel rail flex flex-col gap-3 p-4 ${match.status === "live" ? "live-glow" : ""} ${RAIL[match.status]}`}>

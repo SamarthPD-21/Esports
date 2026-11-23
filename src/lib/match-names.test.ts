@@ -10,7 +10,9 @@ test("match names: exact, shortened, decorated, ambiguous and picked", () => {
     { id: "z2", name: "ZERO MERCY (2)" },
     { id: "a", name: "team alpha" },
     { id: "n", name: "Nongshim RedForce" },
+    { id: "sh", name: "shadow" },
   ];
+  assert.equal(matchNames(["team SHADOW"], teams).ids.get("team SHADOW"), "sh");
   const { ids, missing } = matchNames(["KRAKEN_BLAZE", "Sapne Suhane...", "TEAM ALPHA", "ZERO MERCY", "Nongshim RedForce (NSR)"], teams);
   assert.equal(ids.get("Nongshim RedForce (NSR)"), "n");
   assert.equal(ids.get("KRAKEN_BLAZE"), "k");

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { fmtDay, fmtDateTime, fmtTime } from "@/lib/format";
-import { STAGE_LABEL } from "@/lib/tournament";
+import { roundLabel, STAGE_LABEL } from "@/lib/tournament";
 import type { Match, ResolvedSide, Stage, Team } from "@/lib/types";
 import { MatchCard } from "./MatchCard";
 import { StatusChip } from "./StatusChip";
@@ -11,7 +11,7 @@ import { StatusChip } from "./StatusChip";
 const ORDER: Stage[] = ["r128", "r64", "r32", "r16", "qf", "sf", "final", "third"];
 
 const PLURAL: Partial<Record<Stage, string>> = { qf: "Quarterfinals", sf: "Semifinals", third: "3rd place" };
-const roundName = (s: Stage) => PLURAL[s] ?? STAGE_LABEL[s];
+const roundName = (s: Stage, ms: Match[] = []) => (ms.length && ms.every((m) => roundLabel(m) === "Round of 8") ? "Round of 8" : PLURAL[s] ?? STAGE_LABEL[s]);
 
 const RAIL: Record<Match["status"], string> = {
   live: "border-l-signal",
@@ -124,7 +124,7 @@ export function KnockoutBracket({
         {main.map(({ stage, ms }) => (
           <section key={stage} className="flex flex-col">
             <header className="mb-4">
-              <h2 className="font-cond text-lg font-bold">{roundName(stage)}</h2>
+              <h2 className="font-cond text-lg font-bold">{roundName(stage, ms)}</h2>
               <p className="text-xs text-muted">{sectionNote(ms)}</p>
             </header>
             <div className="flex flex-1 flex-col justify-around gap-4">
@@ -154,7 +154,7 @@ export function KnockoutBracket({
       <nav aria-label="Rounds" className="flex flex-wrap gap-2">
         {rounds.map(({ stage, ms }) => (
           <a key={stage} href={`#round-${stage}`} className="rounded-sm border border-line bg-surface px-3 py-1.5 font-cond text-sm font-semibold hover:border-signal hover:text-signal">
-            {roundName(stage)}
+            {roundName(stage, ms)}
             <span className="ml-2 font-normal text-faint">{ms.filter((m) => !isBye(m)).length}</span>
           </a>
         ))}
@@ -165,7 +165,7 @@ export function KnockoutBracket({
         return (
           <section key={stage} id={`round-${stage}`} className="scroll-mt-24">
             <header className="mb-3 flex flex-wrap items-baseline justify-between gap-x-4 border-b border-line pb-2">
-              <h2 className="font-cond text-xl font-bold">{roundName(stage)}</h2>
+              <h2 className="font-cond text-xl font-bold">{roundName(stage, ms)}</h2>
               <p className="text-xs text-muted">{sectionNote(ms)}</p>
             </header>
             <ByeLine byes={byes} teams={teams} />

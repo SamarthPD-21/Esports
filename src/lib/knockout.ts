@@ -154,16 +154,3 @@ export function scheduleKnockout(rows: KnockoutRow[], slots: KnockoutSlot[]): Ma
   }
   return out;
 }
-
-/**
- * Valorant, from the organisers' doc: 4 lobbies, 60-minute slots from 1 PM IST.
- * R64 over Wed 18 and Thu 19 Nov (16 each), R32 Fri 20, R16 Mon 23 from 1 PM,
- * R8 Mon 23 at 4 PM. Semifinals and the Final are offline, times TBA.
- */
-export const VALORANT_SCHEDULE: KnockoutSlot[] = [
-  { stage: "r64", start: "2026-11-18T13:00:00+05:30", lobbies: 4, slotMinutes: 60, count: 16 },
-  { stage: "r64", start: "2026-11-19T13:00:00+05:30", lobbies: 4, slotMinutes: 60 },
-  { stage: "r32", start: "2026-11-20T13:00:00+05:30", lobbies: 4, slotMinutes: 60 },
-  { stage: "r16", start: "2026-11-23T13:00:00+05:30", lobbies: 4, slotMinutes: 60 },
-  { stage: "qf", start: "2026-11-23T16:00:00+05:30", lobbies: 4, slotMinutes: 60 },
-];

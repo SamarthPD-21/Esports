@@ -38,6 +38,8 @@ export function matchNames(
     (key, _, t) => key.length >= 4 && nameKey(t.name).startsWith(key),
     // Registered without the doc's extra, e.g. "Nongshim RedForce" for "Nongshim RedForce (NSR)".
     (key, _, t) => nameKey(t.name).length >= 6 && key.startsWith(nameKey(t.name)),
+    // Or without a leading "team": "shadow" for "team SHADOW".
+    (key, _, t) => nameKey(t.name).length >= 6 && key.endsWith(nameKey(t.name)),
     (_, plain, t) => plain.length >= 5 && plainKey(t.name).includes(plain),
   ];
   // Each rule runs over every name before the next, looser one, so a loose

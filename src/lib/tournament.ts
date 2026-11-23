@@ -326,6 +326,12 @@ export const STAGE_LABEL: Record<string, string> = {
   final: "Grand Final",
 };
 
+/** A match's round as the organisers name it: Valorant's R8 matches are the "Round of 8", not Quarterfinals. */
+export function roundLabel(m: { stage: string; id: string }): string {
+  if (m.stage === "qf" && /-R8-\d+$/.test(m.id)) return "Round of 8";
+  return STAGE_LABEL[m.stage] ?? m.stage;
+}
+
 /**
  * A bye walks the other side through with no maps played, once that side is
  * known. Two byes leave nobody to play. Hand-set overrides still win.

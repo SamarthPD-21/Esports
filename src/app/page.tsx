@@ -4,7 +4,7 @@ import { GAME_LIST, type GameDef } from "@/games/registry";
 import { getTournament, teamMap } from "@/lib/data";
 import { dayKey, fmtDay, fmtTime } from "@/lib/format";
 import { getLobbyGame } from "@/lib/lobby/data";
-import { STAGE_LABEL } from "@/lib/tournament";
+import { roundLabel } from "@/lib/tournament";
 import { EVENT } from "@/content/event";
 import { DropTitle } from "@/components/fx/DropTitle";
 import { Clouds } from "@/components/fx/Clouds";
@@ -33,7 +33,7 @@ async function gameSnapshot(g: GameDef) {
         game: g,
         at: m.scheduledAt,
         live: m.status === "live",
-        label: `${m.stage === "group" ? `Group ${m.group ?? ""}` : STAGE_LABEL[m.stage]}: ${name(m.a.teamId, m.a.label)} vs ${name(m.b.teamId, m.b.label)}`,
+        label: `${m.stage === "group" ? `Group ${m.group ?? ""}` : roundLabel(m)}: ${name(m.a.teamId, m.a.label)} vs ${name(m.b.teamId, m.b.label)}`,
       });
     }
   } else {

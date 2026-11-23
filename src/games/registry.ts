@@ -128,9 +128,9 @@ export const GAMES: Record<GameId, GameDef> = {
     rulesPdf: "valorant.pdf",
     prizes: [5000, 3000, 2000],
     keyDates: [
-      { when: "Wed 18 – Thu 19 Nov, 1–5 pm", what: "Round of 64, BO1", where: "Online" },
-      { when: "Fri 20 Nov, 1–5 pm", what: "Round of 32, BO1", where: "Online" },
-      { when: "Mon 23 Nov, 1–5 pm", what: "Round of 16 and Round of 8, BO1", where: "Online" },
+      { when: "Mon 23 Nov, 9–11 pm", what: "Round of 32, matches 1–8", where: "Online" },
+      { when: "Tue 24 Nov, 8–11 pm", what: "Round of 32, matches 9–16, then Round of 16, matches 1–2", where: "Online" },
+      { when: "Wed 25 Nov, 9–11 pm", what: "Round of 16, matches 3–8 (9 pm), then Round of 8 (10 pm): 4 qualifiers", where: "Online" },
       { when: "Event Day 1", what: "Semifinals", where: "Campus" },
       { when: "Event Day 2", what: "Grand Final", where: "Campus" },
     ],
@@ -139,7 +139,8 @@ export const GAMES: Record<GameId, GameDef> = {
         heading: "Format",
         items: [
           "Standard competitive 5v5, Mumbai server, tournament mode on, cheats off, overtime win by 2.",
-          "Single elimination. Online rounds are BO1; the offline Semifinals and Final are BO3 (BO1 if the organisers switch to the backup format).",
+          "32 teams, single elimination, no byes. Online rounds are BO1: Round of 32, Round of 16 and Round of 8, whose 4 winners go to the offline Semifinals and Final (BO3, or BO1 on the backup format).",
+          "Each later match is the winners of two earlier ones: R16-01 is the winner of R32-01 against the winner of R32-02, and so on.",
           "Sides are decided by coin toss. 10-minute break after each match.",
         ],
       },
@@ -153,7 +154,7 @@ export const GAMES: Record<GameId, GameDef> = {
       {
         heading: "On match day",
         items: [
-          "Be ready 20 minutes before your match. No-shows are disqualified.",
+          "Check in by 8:40 PM on your match day and be ready 20 minutes before your match. No-shows are disqualified.",
           "Technical pauses only for real hardware, disconnect or crash issues, declared in the buy phase, at most 5 minutes per team per match.",
           "Send the score and a screenshot straight after the match. Protests go to the admins immediately, with evidence.",
         ],
@@ -288,8 +289,7 @@ export const GAMES: Record<GameId, GameDef> = {
       {
         heading: "Match night",
         items: [
-          "Check in on Discord 30 minutes before your slot. Room ID and password go to captains 15 minutes before.",
-          "Roll call 5 minutes before: UIDs are checked and unregistered accounts or emulators are kicked. The room locks at the start; no late joins.",
+          "Match night: IGLs check in on the Discord group channel at 8:30 PM; room ID and password go to the captain channel at 8:45 PM; roll call at 8:55 PM, when unregistered accounts and emulators are kicked; the room locks and match 1 launches at 9:00 PM sharp. No late joins.",
           "Room hosts submit the result screenshots within 5 minutes of each match. Thu 26 Nov is kept free for tiebreakers and reschedules.",
           "Mobile phones only. Hacks, emulators, account sharing, teaming and stream-sniping mean disqualification.",
         ],

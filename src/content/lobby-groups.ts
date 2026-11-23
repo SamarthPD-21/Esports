@@ -25,7 +25,7 @@ export const OFFICIAL_LOBBY_GROUPS: Partial<Record<GameId, OfficialGroups>> = {
       C: ["Ultron", "Zephyrus", "God's Rein", "Hunters", "AKATSUKI Esports", "Dragon Ball", "Team Immortal", "DreadLegion", "team BST", "Not humans", "INVINCIBLES", "The Rulers"],
       D: ["4-play", "Team Xenon", "SIMPLE GUYS", "ZONEX", "AK Legends", "Legacies", "Agaaz", "TEAM APEX", "Sky esports", "TEAM FENRIR", "ARSENAL", "DOMINATORS"],
       E: ["Galaxy Hunters", "Sin ArchBishops", "Dandupalem", "Dominater", "IHMB KINGS", "Fantastic4", "Shadow Hawks", "Vortex", "INFERNO", "Pehelwanpur", "DoomBots", "OG Brothers"],
-      F: ["IMMORTAL", "Kotha", "Four star", "Team op", "ZERO MERCY (1)", "Us gang", "Chicken Dinner", "CPians", "Team OG", "Josephites IFA", "TELUGU TITANS", "shadow"],
+      F: ["IMMORTAL", "Kotha", "Four star", "Team op", "ZERO MERCY (1)", "Us gang", "Chicken Dinner", "CPians", "Team OG", "Josephites IFA", "TELUGU TITANS", "team SHADOW"],
       G: ["Skull Breakers", "BombayShavingCompany", "SEEMA BOYS", "FUTURE ESP", "D.R.U.N", "C-MAX", "ONLY:GOD!", "Team Rushers", "Fallen titans", "TEAM SPARK", "NHK ESPORTS"],
       H: ["Team Powerhouse", "_Prime✓legion_", "Team Abyss crew", "Center fresh", "Vasteguna Huiya", "Requiem", "Last Stand", "Born2Kill", "7SWORDS", "D GANG", "Tufferz"],
       I: ["ZERO MERCY (2)", "Troopers", "The TyreLess Bastards", "ALTER-EGO", "RMA Fighters", "Satluj", "ZeroOne", "FRAGORA", "Titan FF", "GodxMacro", "FAILURES"],

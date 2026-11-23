@@ -1,10 +1,14 @@
 // The single place pages get tournament data from.
 // showcase branch: everything is read at build time. Teams come from the
-// public Unstop registrations sheet; CODM's groups and fixtures are the
-// published schedule. There are no results here, only the plan.
+// public Unstop registrations sheet; CODM's fixtures, Valorant's bracket and
+// the lobby games' groups are the published schedules. There are no results
+// here, only the plan.
 
 import { matchOfficialTeams, MODE_DAYS, officialFixtures, OFFICIAL_GROUPS } from "../content/codm-schedule";
 import { OFFICIAL_LOBBY_GROUPS } from "../content/lobby-groups";
+import { valorantBestOf, VALORANT_SCHEDULE, VALORANT_TEAMS } from "../content/valorant-bracket";
+import { scheduleKnockout, singleElimination } from "./knockout";
+import { matchNames } from "./match-names";
 import type { GameId } from "../games/registry";
 import { pairOfficialNames } from "./lobby/official";
 import { dayKey } from "./format";
@@ -38,6 +42,19 @@ async function loadTournament(game: GameId): Promise<Tournament> {
         bestOf: 1, sideA: f.a, sideB: f.b, scheduledAt: f.scheduledAt, maps: [],
       }));
     matchDays = MODE_DAYS.map((d) => ({ day: d.date, mode: d.mode, map: d.map }));
+  }
+  if (game === "valorant") {
+    // The published 32-team bracket; a name nobody registered under shows as published.
+    const { ids } = matchNames(VALORANT_TEAMS, teams);
+    VALORANT_TEAMS.forEach((name, i) => {
+      if (ids.has(name)) return;
+      const id = `valorant-official-${i + 1}`;
+      teams.push({ id, name, tag: name.replace(/[^A-Za-z0-9]/g, "").slice(0, 4).toUpperCase() || "TEAM", group: "", status: "confirmed", eligible: true, players: [] });
+      ids.set(name, id);
+    });
+    const rows = singleElimination({ prefix: "VAL", entrants: VALORANT_TEAMS.map((n) => ids.get(n)!), bestOf: valorantBestOf, thirdPlace: false });
+    const times = scheduleKnockout(rows, VALORANT_SCHEDULE);
+    matches = rows.map((r) => ({ id: r.id, stage: r.stage, round: r.round, bestOf: r.bestOf, sideA: r.sideA, sideB: r.sideB, scheduledAt: times.get(r.id), maps: [] }));
   }
   // Free Fire and BGMI: every published name shows, registered or not.
   if (OFFICIAL_LOBBY_GROUPS[game]) pairOfficialNames(game, teams);

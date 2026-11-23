@@ -2,7 +2,7 @@ import "server-only";
 import { GAMES, type GameId } from "@/games/registry";
 import { getTournament } from "@/lib/data";
 import { getLobbyGame } from "@/lib/lobby/data";
-import { STAGE_LABEL } from "@/lib/tournament";
+import { roundLabel } from "@/lib/tournament";
 import { MODE_NAME } from "@/content/event";
 
 /** One match on a team's own schedule, for both match formats. */
@@ -28,7 +28,7 @@ export async function teamSchedule(game: GameId, teamId: string): Promise<TeamEv
     for (const m of t.matches) {
       const mine = m.a.teamId === teamId ? m.b : m.b.teamId === teamId ? m.a : undefined;
       if (!mine || mine.bye) continue;
-      const round = m.stage === "group" ? `Group ${m.group ?? ""}`.trim() : STAGE_LABEL[m.stage];
+      const round = m.stage === "group" ? `Group ${m.group ?? ""}`.trim() : roundLabel(m);
       // CODM group matches run in waves and lobbies, one fixed mode and map a day.
       const wave = m.lobby && m.round ? `Wave ${m.round}, Lobby ${m.lobby}` : undefined;
       out.push({
