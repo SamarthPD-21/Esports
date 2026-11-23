@@ -3,6 +3,7 @@ import { Alegreya_Sans, Jersey_10 } from "next/font/google";
 import { Suspense } from "react";
 import { DataNotice, Footer } from "@/components/Footer";
 import { Nav, NavShell } from "@/components/Nav";
+import { NavProgress } from "@/components/fx/NavProgress";
 import { EVENT } from "@/content/event";
 import "./globals.css";
 
@@ -19,6 +20,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${body.variable} ${pixel.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col font-sans">
+        <Suspense fallback={null}>
+          <NavProgress />
+        </Suspense>
         <Suspense fallback={null}>
           <DataNotice />
         </Suspense>
