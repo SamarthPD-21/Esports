@@ -94,7 +94,7 @@ function build(): Record<TabName, string> {
     ]),
     Announcements: toCsv([
       COLUMNS.Announcements,
-      ["2026-11-23", "Hardpoint night is done", "All 46 Hardpoint matches are in. Domination on Raid starts Tue 24 Nov: check in by 12:00 PM, first wave 12:30 PM."],
+      ["2026-11-23", "Hardpoint night is done", "All 46 Hardpoint matches are in. Domination on Raid starts Tue 24 Nov: check in by 9:00 PM, first wave 9:30 PM."],
       ["2026-11-22", "Groups and fixtures are final", "29 squads in 7 groups. Your wave and lobby stay the same on all three days; only the mode, map and start time change."],
     ]),
     MapPool: toCsv([

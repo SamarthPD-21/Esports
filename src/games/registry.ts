@@ -100,7 +100,7 @@ export const GAMES: Record<GameId, GameDef> = {
     prizes: [3000, 2000, 1000],
     keyDates: [
       { when: "Mon 23 Nov, 9:30 pm", what: "Group Stage Day 1: Hardpoint on Summit", where: "Online" },
-      { when: "Tue 24 Nov, 12:30 pm", what: "Group Stage Day 2: Domination on Raid", where: "Online" },
+      { when: "Tue 24 Nov, 9:30 pm", what: "Group Stage Day 2: Domination on Raid", where: "Online" },
       { when: "Wed 25 Nov", what: "Group Stage Day 3: Search & Destroy on Firing Range", where: "Online" },
       { when: "Fri 27 Nov", what: "Quarterfinals, BO3", where: "Campus" },
       { when: "Sat 28 Nov", what: "Semifinals, BO3", where: "Campus" },

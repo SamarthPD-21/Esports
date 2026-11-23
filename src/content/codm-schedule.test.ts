@@ -40,9 +40,10 @@ test("codm schedule: wave times match the published days", () => {
   assert.deepEqual(hp.waves!.map(ist), ["21:30", "21:50", "22:10", "22:30", "22:50", "23:10", "23:30"]);
   assert.equal(ist(hp.ends!), "23:50");
   const dom = dayPlan(MODE_DAYS[1]);
-  assert.deepEqual(dom.waves!.map(ist), ["12:30", "12:50", "13:10", "13:45", "14:05", "14:40", "15:00"]);
-  assert.deepEqual(dom.breaks.map(([s, e]) => `${ist(s)}-${ist(e)}`), ["13:30-13:45", "14:25-14:40"]);
-  assert.equal(ist(dom.ends!), "15:40");
+  assert.equal(ist(dom.checkIn!), "21:00");
+  assert.deepEqual(dom.waves!.map(ist), ["21:30", "21:50", "22:10", "22:30", "22:50", "23:10", "23:30"]);
+  assert.deepEqual(dom.breaks, []);
+  assert.equal(ist(dom.ends!), "23:50");
   assert.equal(dayPlan(MODE_DAYS[2]).waves, undefined);
 });
 
