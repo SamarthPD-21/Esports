@@ -145,3 +145,31 @@ test("contact details typed into public fields are caught", async () => {
   assert.equal(unsafeUid("1234567890", phones), false, "a 10-digit game ID that isn't a known phone stays");
   assert.equal(unsafeUid("Player#IND", phones), false);
 });
+
+test("two squads under one name become two teams, each from its own leader", () => {
+  const csv = `Unstop,,,,,,,,,,Form answers,,,
+Team,Name,Role,Email,Phone,College,Entry type,Status,Paid,Checked in,NAME,Free Fire UID,IN-GAME NAME,DISCORD ID
+HUNTERS,Ana,Leader,a1@example.com,9000000101,C,Team,Confirmed,Free,No,Ana,101,ana,
+HUNTERS,Ben,Member,a2@example.com,9000000102,C,Team,Confirmed,Free,No,Ben,102,ben,
+ZERO MERCY,Cal,Leader,z1@example.com,9000000103,C,Team,Confirmed,Free,No,Cal,103,cal,
+ZERO MERCY,Dia,Member,z2@example.com,9000000104,C,Team,Confirmed,Free,No,Dia,104,dia,
+ZERO MERCY,Eli,Leader,z3@example.com,9000000105,C,Team,Confirmed,Free,No,Eli,105,eli,
+ZERO MERCY,Fay,Member,z4@example.com,9000000106,C,Team,Confirmed,Free,No,Fay,106,fay,
+Hunters,Gus,Leader,h1@example.com,9000000107,C,Team,Confirmed,Free,No,Gus,107,gus,
+Hunters,Hal,Member,h2@example.com,9000000108,C,Team,Confirmed,Free,No,Hal,108,hal,
+Death Squad,Ivy,Leader,d1@example.com,9000000109,C,Team,Confirmed,Free,No,Ivy,109,ivy,
+Death Squad,Jon,Member,d2@example.com,9000000110,C,Team,Confirmed,Free,No,Jon,110,jon,
+Death Squad,Ivy,Leader,d1@example.com,9000000109,C,Team,Cancelled,Free,No,Ivy,109,ivy,
+Death Squad,Kai,Member,d3@example.com,9000000111,C,Team,Cancelled,Free,No,Kai,111,kai,
+`;
+  const { teams } = parseRegistrations(GAMES.freefire, parseCsv(csv));
+  const by = Object.fromEntries(teams.map((t) => [t.name, t.players.map((p) => p.email)]));
+  assert.deepEqual(by["HUNTERS"], ["a1@example.com", "a2@example.com"]);
+  assert.deepEqual(by["Hunters"], ["h1@example.com", "h2@example.com"]);
+  assert.deepEqual(by["ZERO MERCY (1)"], ["z1@example.com", "z2@example.com"]);
+  assert.deepEqual(by["ZERO MERCY (2)"], ["z3@example.com", "z4@example.com"]);
+  // An old cancelled registration of the same team doesn't make a second team.
+  assert.ok(by["Death Squad"]);
+  assert.ok(!teams.some((t) => t.name.startsWith("Death Squad (")));
+  assert.equal(new Set(teams.map((t) => t.key)).size, teams.length);
+});

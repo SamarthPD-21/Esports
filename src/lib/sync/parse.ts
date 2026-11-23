@@ -108,6 +108,40 @@ interface Row {
   player: ParsedPlayer;
 }
 
+/**
+ * Two squads can register under one name ("ZERO MERCY" twice, "Hunters" and
+ * "HUNTERS"). Each registration is a Leader row and its members below it, so
+ * a name with several leaders, each with members of their own, is several
+ * teams: every leader starts one. Spelt alike they become "NAME (1)", "(2)"
+ * (the organisers' fixtures say so); spelt differently each keeps its own.
+ * A lone extra leader row stays in one team (flagged elsewhere).
+ */
+function splitSameNamed(groups: Map<string, { name: string; rows: Row[] }>): Map<string, { name: string; rows: Row[] }> {
+  const out = new Map<string, { name: string; rows: Row[] }>();
+  for (const [key, g] of groups) {
+    const live = g.rows.filter((r) => !r.withdrawn).sort((a, b) => a.line - b.line);
+    const blocks: Row[][] = [];
+    for (const r of live) {
+      if (r.player.role === "leader" || !blocks.length) blocks.push([r]);
+      else blocks[blocks.length - 1].push(r);
+    }
+    const leaders = blocks.filter((b) => b[0].player.role === "leader");
+    // Only real separate squads: active registrations with no player in two of them.
+    // (An old cancelled registration of the same team repeats its emails.)
+    const emails = blocks.flatMap((b) => b.map((r) => r.player.email));
+    const separate = new Set(emails).size === emails.length && blocks.every((b) => !/cancel/i.test(b[0].status));
+    if (leaders.length < 2 || blocks.length !== leaders.length || blocks.some((b) => b.length < 2) || !separate) {
+      out.set(key, g);
+      continue;
+    }
+    const sameSpelling = new Set(blocks.map((b) => b[0].team)).size === 1;
+    blocks.forEach((b, i) => {
+      out.set(i === 0 ? key : `${key}#${i + 1}`, { name: sameSpelling ? `${b[0].team} (${i + 1})` : b[0].team, rows: b });
+    });
+  }
+  return out;
+}
+
 export function parseRegistrations(game: GameDef, rows: string[][]): ParsedTab {
   const issues: ParsedIssue[] = [];
   const h = findHeader(rows);
@@ -199,7 +233,7 @@ export function parseRegistrations(game: GameDef, rows: string[][]): ParsedTab {
   // One email, one team.
   const seenEmail = new Map<string, string>(); // email -> team name
   const teams: ParsedTeam[] = [];
-  for (const [key, g] of groups) {
+  for (const [key, g] of splitSameNamed(groups)) {
     // A live team reusing a withdrawn team's name: only the live rows count.
     const live = g.rows.filter((r) => !r.withdrawn);
     const rowsHere = live.length ? live : g.rows;
