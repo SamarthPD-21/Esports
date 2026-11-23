@@ -59,11 +59,13 @@ test("codm schedule: fixtures map names to ids and report unknown ones", () => {
 test("codm schedule: registered names match loosely, picks fill the rest", async () => {
   const { matchOfficialTeams } = await import("./codm-schedule.ts");
   const registered = teams.filter((n) => n !== "Smoke").map((name, i) => ({ id: `t${i}`, name: name === "Sapne Suhane..." ? "Sapne Suhane Ladakpan Ke" : name.toUpperCase() }));
-  registered.push({ id: "smk", name: "Team Smoke Official" });
+  registered.push({ id: "smk", name: "Fog Machine" });
   let { ids, missing } = matchOfficialTeams(registered);
   assert.deepEqual(missing, ["Smoke"]);
   assert.equal(ids.get("Sapne Suhane..."), registered.find((t) => t.name.startsWith("Sapne"))!.id);
   ({ ids, missing } = matchOfficialTeams(registered, { Smoke: "smk" }));
   assert.deepEqual(missing, []);
   assert.equal(new Set(ids.values()).size, 29);
+  // A name inside a longer registered one matches once symbols are stripped.
+  assert.equal(matchOfficialTeams([{ id: "s", name: "Team Smoke Official" }]).ids.get("Smoke"), "s");
 });

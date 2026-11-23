@@ -14,6 +14,16 @@ test("advancement rules round-trip through the admin's text", () => {
   assert.deepEqual(parseAdvanceRules(rules.map(formatAdvanceRule).join("\n")), rules);
 });
 
+test("per-pool rules can be limited to some pools", () => {
+  const rules = parseAdvanceRules("top 5 per pool in A-D -> Semifinals\ntop 4 per pool in e, f, g -> Semifinals");
+  assert.deepEqual(rules, [
+    { kind: "topPerPool", count: 5, to: "Semifinals", pools: ["A", "B", "C", "D"] },
+    { kind: "topPerPool", count: 4, to: "Semifinals", pools: ["E", "F", "G"] },
+  ]);
+  assert.equal(formatAdvanceRule(rules[0]), "top 5 per pool in A, B, C, D -> Semifinals");
+  assert.deepEqual(parseAdvanceRules(rules.map(formatAdvanceRule).join("\n")), rules);
+});
+
 test("bad advancement lines name the line", () => {
   assert.throws(() => parseAdvanceRules("top 2 per pool -> Semis\ntop two -> Final"), /line 2/);
   assert.throws(() => parseAdvanceRules("top 2 per pool"), /line 1/);

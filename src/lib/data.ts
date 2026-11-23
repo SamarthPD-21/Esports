@@ -4,7 +4,9 @@
 // published schedule. There are no results here, only the plan.
 
 import { matchOfficialTeams, MODE_DAYS, officialFixtures, OFFICIAL_GROUPS } from "../content/codm-schedule";
+import { OFFICIAL_LOBBY_GROUPS } from "../content/lobby-groups";
 import type { GameId } from "../games/registry";
+import { pairOfficialNames } from "./lobby/official";
 import { dayKey } from "./format";
 import { DEFAULT_CONFIG } from "./parse";
 import { getRegisteredTeams } from "./registrations";
@@ -37,6 +39,8 @@ async function loadTournament(game: GameId): Promise<Tournament> {
       }));
     matchDays = MODE_DAYS.map((d) => ({ day: d.date, mode: d.mode, map: d.map }));
   }
+  // Free Fire and BGMI: every published name shows, registered or not.
+  if (OFFICIAL_LOBBY_GROUPS[game]) pairOfficialNames(game, teams);
   return buildTournament(
     { config: DEFAULT_CONFIG, teams, matches, announcements: [], mapPool: [], matchDays },
     { source: "sheet", fetchedAt, warnings: warning ? [warning] : [] },

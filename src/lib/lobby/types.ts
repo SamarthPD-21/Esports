@@ -18,10 +18,13 @@ export interface PointsTable {
  */
 export type LobbyTiebreaker = "wins" | "kills" | "placementPoints" | "bestPlacement" | "avgPlacement" | "lastMatch";
 
-/** Where entrants go when a stage ends. `to` names the next stage. */
+/**
+ * Where entrants go when a stage ends. `to` names the next stage. Per-pool
+ * rules can be limited to some pools (Free Fire takes 5 from A–D, 4 from E–K).
+ */
 export type AdvanceRule =
-  | { kind: "topPerPool"; count: number; to: string }
-  | { kind: "rankPerPool"; rank: number; to: string }
+  | { kind: "topPerPool"; count: number; to: string; pools?: string[] }
+  | { kind: "rankPerPool"; rank: number; to: string; pools?: string[] }
   | { kind: "bestAtRank"; rank: number; count: number; to: string }
   | { kind: "topOverall"; count: number; to: string };
 

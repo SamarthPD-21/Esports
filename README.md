@@ -5,12 +5,14 @@ A static, display-only copy of the Yugaantar 2026 esports site, built for GitHub
 - **Hub:** every game with its confirmed and still-forming team counts and the next match day.
 - **Each game:** Overview, Schedule, Standings, Teams and Rules.
 - **CODM:** the 29 official teams in their 7 groups, the 7-wave × 7-lobby schedule as a board with a *Find your team* picker, and the full rules from the Master Tournament Doc (Final).
+- **Free Fire and BGMI:** the published qualifier groups (11 for Free Fire, 4 for BGMI), every lobby at its published time, and each game's format, points and dates.
 
 ## Where the data comes from
 
 Everything is read once, when the site is built:
 - **Teams** come from the public Unstop registrations sheet. Only team names, tags, statuses and in-game names are published; emails, phone numbers and game IDs never leave the build.
 - **CODM groups and fixtures** come from `src/content/codm-schedule.ts`, the published schedule. Registered teams are matched to it by name.
+- **Free Fire and BGMI groups** come from `src/content/lobby-groups.ts`, the organisers' allocations; their lobbies follow each stage's published times in `src/games/registry.ts`. A published name with no matching registration still shows, under its published name.
 - **Formats, dates and rules** come from `src/games/registry.ts` and `src/content/`.
 
 There are no results: live scores and standings are on the full platform.

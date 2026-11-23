@@ -170,6 +170,18 @@ test("Free Fire advancement: top 2 per pool, every 3rd to the LCQ", () => {
   assert.equal(b3.poolPosition, 3);
 });
 
+test("Free Fire 2026: top 3 from pool A, top 2 from the rest", () => {
+  const res = threePools([
+    { kind: "topPerPool", count: 3, to: "Semifinals", pools: ["A"] },
+    { kind: "topPerPool", count: 2, to: "Semifinals", pools: ["B", "C"] },
+  ]);
+  const to = Object.fromEntries(res.rows.map((r) => [r.teamId, r.advancesTo]));
+  assert.equal(to.a3, "Semifinals");
+  assert.equal(to.b2, "Semifinals");
+  assert.equal(to.b3, undefined);
+  assert.equal(to.c3, undefined);
+});
+
 test("bestAtRank picks the best of those at a pool rank", () => {
   const res = threePools([
     { kind: "topPerPool", count: 2, to: "Semifinals" },

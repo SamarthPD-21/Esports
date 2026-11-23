@@ -63,13 +63,13 @@ const STANDARD_COLUMNS = {
   discord: ["DISCORD ID", "Discord ID", "Discord"],
 };
 
-// Free Fire MAX: the 17–23 Nov operations plan is the latest doc, so its points
-// table and tiebreakers are the defaults. The 84/104-team rulebooks differ (8-7-6…).
+// Free Fire MAX: the Pre-Round Tournament Schedule (23–25 Nov, 127 teams) and its
+// group allocations. The 84/104-team rulebooks differ (8-7-6…) and are superseded.
 const FF_POINTS = { placement: [12, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 0, 0], perKill: 1 };
 const FF_MAPS = ["Bermuda", "Purgatory", "Kalahari"];
 const FF_TIEBREAKERS = ["wins", "kills", "lastMatch"] as const;
 
-// BGMI: "Yugaantar BGMI" (dates, tiebreakers) with the SOP's points table.
+// BGMI: "BGMI Tournament: Progression & Schedule" and its group allocations (23 Nov).
 const BGMI_POINTS = { placement: [10, 6, 5, 4, 3, 2, 1, 1, 1, 1], perKill: 1 };
 const BGMI_MAPS = ["Rondo", "Erangel", "Miramar"];
 const BGMI_TIEBREAKERS = ["wins", "placementPoints", "kills", "lastMatch"] as const;
@@ -99,8 +99,9 @@ export const GAMES: Record<GameId, GameDef> = {
     rulesPdf: "codm.pdf",
     prizes: [3000, 2000, 1000],
     keyDates: [
-      { when: "Tue 17 – Sat 21 Nov, 8–10 pm", what: "Group Stage, BO1", where: "Online" },
-      { when: "Sun 22 Nov", what: "Tiebreakers and rescheduled matches", where: "Online" },
+      { when: "Mon 23 Nov, 9:30 pm", what: "Group Stage Day 1: Hardpoint on Summit", where: "Online" },
+      { when: "Tue 24 Nov, 12:30 pm", what: "Group Stage Day 2: Domination on Raid", where: "Online" },
+      { when: "Wed 25 Nov", what: "Group Stage Day 3: Search & Destroy on Firing Range", where: "Online" },
       { when: "Fri 27 Nov", what: "Quarterfinals, BO3", where: "Campus" },
       { when: "Sat 28 Nov", what: "Semifinals, BO3", where: "Campus" },
       { when: "Sun 29 Nov", what: "3rd place (BO3) and Grand Final (BO5)", where: "Campus" },
@@ -179,24 +180,25 @@ export const GAMES: Record<GameId, GameDef> = {
     rulesPdf: "bgmi.pdf",
     prizes: [4000, 2400, 1600],
     keyDates: [
-      { when: "Tue 17 – Wed 18 Nov, 8:30 pm – 12 am", what: "Qualifiers, half the groups each night", where: "Online" },
-      { when: "Mon 23 Nov, 8:30 pm – 12 am", what: "Semifinals", where: "Online" },
-      { when: "Event Day", what: "Final, top 16, 4 matches", where: "Campus" },
+      { when: "Mon 23 Nov, 8:30 pm – 12 am", what: "Qualifiers Day 1: Groups A and B", where: "Online" },
+      { when: "Tue 24 Nov, 8:30 pm – 12 am", what: "Qualifiers Day 2: Groups C and D", where: "Online" },
+      { when: "Wed 25 Nov, 8:30 pm – 12 am", what: "Semifinals, top 32", where: "Online" },
+      { when: "Sat 28 Nov, 12 – 4 pm", what: "Final, top 16, 4 matches, Scaler campus", where: "Campus" },
     ],
     rules: [
       {
         heading: "Format",
         items: [
-          "Classic mode, Squad TPP, custom rooms. Maps rotate: Rondo, Erangel, Miramar.",
-          "Groups of at most 20 teams. Groups are reshuffled after every match, so you rarely meet the same lobby twice.",
-          "Ranking is cumulative points across every match of the round, whichever lobby you played in.",
+          "Classic mode, Squad TPP, custom rooms. Mobile phones only, no iPads.",
+          "Qualifiers: 64 teams in 4 groups of 16. Groups A and B play Mon 23 Nov, C and D Tue 24 Nov. Each group plays 3 matches: Rondo at 9:00, Erangel at 10:00, Miramar at 11:00 PM.",
+          "The top 32 on cumulative points across their group's matches reach the Semifinals on Wed 25 Nov (2 groups of 16, 3 matches each). The top 16 play the Final on Sat 28 Nov, 12–4 PM at Scaler campus: 1 lobby, 4 matches.",
         ],
       },
       {
         heading: "Points",
         items: [
-          "Chicken dinner 10, 2nd 6, 3rd 5, 4th 4, 5th 3, 6th 2, 7th–10th 1. Every finish is 1 point.",
-          "Level on points: most chicken dinners, then placement points, then finishes, then placement in the latest match.",
+          "Chicken dinner 10, 2nd 6, 3rd 5, 4th 4, 5th 3, 6th 2, 7th–10th 1. Every elimination is 1 point.",
+          "Level on points: most chicken dinners, then placement points, then kill points, then placement in the most recent match.",
         ],
       },
       {
@@ -204,7 +206,8 @@ export const GAMES: Record<GameId, GameDef> = {
         items: [
           "Check in at least 15 minutes before your slot or forfeit the match. Grace period is 5 to 10 minutes past the start.",
           "Own BGMI ID only. No emulators, controllers or third-party tools. Teaming or stream-sniping is disqualification.",
-          "Disputes go to the Events Team within 15 minutes of the match ending.",
+          "Room ID and password are shared by officials only. The map schedule is released in advance.",
+          "Disputes go to the Events Team within 15 minutes of the match ending. Organiser decisions are final and binding.",
         ],
       },
     ],
@@ -213,28 +216,29 @@ export const GAMES: Record<GameId, GameDef> = {
         id: "qualifiers",
         name: "Qualifiers",
         settings: {
-          lobbySize: 20, matches: 3, maps: BGMI_MAPS, reshuffle: true, points: BGMI_POINTS, tiebreakers: [...BGMI_TIEBREAKERS],
+          lobbySize: 16, matches: 3, maps: BGMI_MAPS, reshuffle: false, points: BGMI_POINTS, tiebreakers: [...BGMI_TIEBREAKERS],
           advance: [{ kind: "topOverall", count: 32, to: "Semifinals" }],
         },
-        // Matches at 9, 10 and 11 PM, every group in parallel.
-        schedule: { firstDay: "2026-11-17", start: "21:00", gap: 60, perDay: 4 },
+        // Two groups a night in parallel, matches at 9, 10 and 11 PM.
+        schedule: { firstDay: "2026-11-23", start: "21:00", gap: 60, perDay: 2 },
       },
       {
         id: "semifinals",
         name: "Semifinals",
         settings: {
-          lobbySize: 20, matches: 3, maps: BGMI_MAPS, reshuffle: true, points: BGMI_POINTS, tiebreakers: [...BGMI_TIEBREAKERS],
+          lobbySize: 16, matches: 3, maps: BGMI_MAPS, reshuffle: false, points: BGMI_POINTS, tiebreakers: [...BGMI_TIEBREAKERS],
           advance: [{ kind: "topOverall", count: 16, to: "Final" }],
         },
-        schedule: { firstDay: "2026-11-23", start: "21:00", gap: 60, perDay: 4 },
+        schedule: { firstDay: "2026-11-25", start: "21:00", gap: 60, perDay: 2 },
       },
       {
         id: "final",
         name: "Final",
         settings: {
-          lobbySize: 20, matches: 4, maps: ["Erangel", "Miramar", "Rondo", "Erangel"], reshuffle: false, points: BGMI_POINTS,
+          lobbySize: 16, matches: 4, maps: ["Erangel", "Miramar", "Rondo", "Erangel"], reshuffle: false, points: BGMI_POINTS,
           tiebreakers: [...BGMI_TIEBREAKERS], advance: [],
         },
+        schedule: { firstDay: "2026-11-28", start: "12:00", gap: 60, perDay: 1 },
       },
     ],
   },
@@ -258,33 +262,35 @@ export const GAMES: Record<GameId, GameDef> = {
     rulesPdf: "freefire.pdf",
     prizes: [],
     keyDates: [
-      { when: "Tue 17 – Thu 19 Nov, 8:30 – 11 pm", what: "Qualifiers, two groups a night", where: "Online" },
-      { when: "Sat 21 – Sun 22 Nov, 9:30 pm – 12 am", what: "Qualifiers, remaining groups", where: "Online" },
-      { when: "Mon 23 Nov, 8:30 pm", what: "Wildcard LCQ and Semifinal roster lock", where: "Online" },
-      { when: "Event Day", what: "Semifinals and Grand Final", where: "Campus" },
+      { when: "Mon 23 Nov, 9 – 11:25 pm", what: "Qualifiers Day 1: Groups A–D", where: "Online" },
+      { when: "Tue 24 Nov, 9 – 11:25 pm", what: "Qualifiers Day 2: Groups E–H", where: "Online" },
+      { when: "Wed 25 Nov, 9 – 11:25 pm", what: "Qualifiers Day 3: Groups I–K; all 48 Semifinalists locked", where: "Online" },
+      { when: "Thu 26 Nov, 9 – 10 pm", what: "Buffer day and LAN Semifinals briefing", where: "Online" },
+      { when: "Event Day", what: "Semifinals (48 teams) and Grand Final (12 teams)", where: "Campus" },
     ],
     rules: [
       {
         heading: "Format",
         items: [
-          "Battle royale squads, custom rooms of at most 12 squads. Maps rotate: Bermuda, Purgatory, Kalahari.",
-          "Qualifiers: 3 matches per group. Top 2 per group go to the Semifinals; every 3rd place plays the Wildcard LCQ, where the top 6 go through.",
-          "Semifinals: 2 lobbies of 12, 3 matches, top 6 per lobby reach the Grand Final. Grand Final: 12 squads, 5 matches.",
+          "Battle royale squads, custom rooms of at most 12 squads.",
+          "Qualifiers: 127 teams in 11 groups (A–F of 12, G–K of 11). Groups A–D play Mon 23 Nov, E–H Tue 24 Nov, I–K Wed 25 Nov. Each group plays 3 matches: Bermuda at 9:00, Purgatory at 9:50, Kalahari at 10:40 PM.",
+          "The top 5 of each of Groups A–D and the top 4 of each of Groups E–K go straight to the LAN Semifinals: 48 teams, no Wildcard LCQ.",
+          "LAN Semifinals: 4 groups of 12, 3 matches, top 3 per group reach the Grand Final. Grand Final: 12 squads, 6 matches, top 3 on the podium.",
         ],
       },
       {
         heading: "Points",
         items: [
           "Booyah 12, 2nd 9, 3rd 8, 4th 7, 5th 6, 6th 5, 7th 4, 8th 3, 9th 2, 10th 1. Every kill is 1 point. Points reset each stage.",
-          "Level on points: most Booyahs, then most kills, then placement in the latest match both played.",
+          "Level on points: most Booyahs, then most kill points, then placement in the most recent match both played.",
         ],
       },
       {
         heading: "Match night",
         items: [
-          "Check in 30 minutes before your slot. Room ID and password go to leaders 15 minutes before.",
-          "Roll call 5 minutes before: UIDs are checked and unregistered accounts or emulators are kicked. No late joins.",
-          "Leaders send result screenshots within 5 minutes of each match.",
+          "Check in on Discord 30 minutes before your slot. Room ID and password go to captains 15 minutes before.",
+          "Roll call 5 minutes before: UIDs are checked and unregistered accounts or emulators are kicked. The room locks at the start; no late joins.",
+          "Room hosts submit the result screenshots within 5 minutes of each match. Thu 26 Nov is kept free for tiebreakers and reschedules.",
           "Mobile phones only. Hacks, emulators, account sharing, teaming and stream-sniping mean disqualification.",
         ],
       },
@@ -296,35 +302,26 @@ export const GAMES: Record<GameId, GameDef> = {
         settings: {
           lobbySize: 12, matches: 3, maps: FF_MAPS, reshuffle: false, points: FF_POINTS, tiebreakers: [...FF_TIEBREAKERS],
           advance: [
-            { kind: "topPerPool", count: 2, to: "Semifinals" },
-            { kind: "rankPerPool", rank: 3, to: "Wildcard LCQ" },
+            { kind: "topPerPool", count: 5, to: "Semifinals", pools: ["A", "B", "C", "D"] },
+            { kind: "topPerPool", count: 4, to: "Semifinals", pools: ["E", "F", "G", "H", "I", "J", "K"] },
           ],
         },
-        // Two groups a night at 8:30, 9:20 and 10:10 PM; no matches on Fri 20 Nov (exams).
-        schedule: { firstDay: "2026-11-17", start: "20:30", gap: 50, perDay: 2, skip: "2026-11-20" },
-      },
-      {
-        id: "lcq",
-        name: "Wildcard LCQ",
-        settings: {
-          lobbySize: 12, matches: 2, maps: ["Bermuda", "Purgatory"], reshuffle: false, points: FF_POINTS, tiebreakers: [...FF_TIEBREAKERS],
-          advance: [{ kind: "topOverall", count: 6, to: "Semifinals" }],
-        },
-        schedule: { firstDay: "2026-11-23", start: "20:30", gap: 60, perDay: 1 },
+        // Four groups a night (three on the last) at 9:00, 9:50 and 10:40 PM.
+        schedule: { firstDay: "2026-11-23", start: "21:00", gap: 50, perDay: 4 },
       },
       {
         id: "semifinals",
         name: "Semifinals",
         settings: {
           lobbySize: 12, matches: 3, maps: FF_MAPS, reshuffle: false, points: FF_POINTS, tiebreakers: [...FF_TIEBREAKERS],
-          advance: [{ kind: "topPerPool", count: 6, to: "Grand Final" }],
+          advance: [{ kind: "topPerPool", count: 3, to: "Grand Final" }],
         },
       },
       {
         id: "final",
         name: "Grand Final",
         settings: {
-          lobbySize: 12, matches: 5, maps: [...FF_MAPS, "Bermuda", "Purgatory"], reshuffle: false, points: FF_POINTS,
+          lobbySize: 12, matches: 6, maps: [...FF_MAPS, ...FF_MAPS], reshuffle: false, points: FF_POINTS,
           tiebreakers: [...FF_TIEBREAKERS], advance: [],
         },
       },

@@ -26,18 +26,38 @@ export function pointsSummary(points: PointsTable, game: string): string {
   return `Points: ${shown.join(", ")}${more}${kills}`;
 }
 
-/** One rule as the admin types it, e.g. "top 2 per pool -> Semifinals". */
+const inPools = (pools?: string[]) => (pools?.length ? ` in ${pools.join(", ")}` : "");
+
+/** "A, B, C" or "A-D" → ["A", "B", "C", "D"]. */
+function parsePools(text: string | undefined): string[] | undefined {
+  if (!text) return undefined;
+  const out = text.toUpperCase().split(/\s*,\s*/).filter(Boolean).flatMap((part) => {
+    const range = /^([A-Z])\s*[-–]\s*([A-Z])$/.exec(part);
+    if (!range) return [part];
+    const from = range[1].charCodeAt(0);
+    const to = range[2].charCodeAt(0);
+    return Array.from({ length: Math.max(0, to - from + 1) }, (_, i) => String.fromCharCode(from + i));
+  });
+  return out.length ? out : undefined;
+}
+
+/** One rule as the admin types it, e.g. "top 2 per pool -> Semifinals" or "top 5 per pool in A-D -> Semifinals". */
 export function formatAdvanceRule(r: AdvanceRule): string {
   switch (r.kind) {
     case "topPerPool":
-      return `top ${r.count} per pool -> ${r.to}`;
+      return `top ${r.count} per pool${inPools(r.pools)} -> ${r.to}`;
     case "rankPerPool":
-      return `rank ${r.rank} per pool -> ${r.to}`;
+      return `rank ${r.rank} per pool${inPools(r.pools)} -> ${r.to}`;
     case "bestAtRank":
       return `best ${r.count} at rank ${r.rank} -> ${r.to}`;
     case "topOverall":
       return `top ${r.count} overall -> ${r.to}`;
   }
+}
+
+function withPools<R extends AdvanceRule>(rule: R, pools: string | undefined): R {
+  const list = parsePools(pools);
+  return list ? { ...rule, pools: list } : rule;
 }
 
 /** Parses one rule per line. Throws with the line number on anything it can't read. */
@@ -50,11 +70,11 @@ export function parseAdvanceRules(text: string): AdvanceRule[] {
     if (!to || extra !== undefined) throw new Error(`Advancement line ${i + 1}: write it as "<rule> -> <stage name>".`);
     const rule = lhs.toLowerCase().replace(/\s+/g, " ");
     let m: RegExpMatchArray | null;
-    if ((m = rule.match(/^top (\d+) per pool$/))) rules.push({ kind: "topPerPool", count: Number(m[1]), to });
-    else if ((m = rule.match(/^rank (\d+) per pool$/))) rules.push({ kind: "rankPerPool", rank: Number(m[1]), to });
+    if ((m = rule.match(/^top (\d+) per pool(?: in (.+))?$/))) rules.push(withPools({ kind: "topPerPool", count: Number(m[1]), to }, m[2]));
+    else if ((m = rule.match(/^rank (\d+) per pool(?: in (.+))?$/))) rules.push(withPools({ kind: "rankPerPool", rank: Number(m[1]), to }, m[2]));
     else if ((m = rule.match(/^best (\d+) at rank (\d+)$/))) rules.push({ kind: "bestAtRank", count: Number(m[1]), rank: Number(m[2]), to });
     else if ((m = rule.match(/^top (\d+) overall$/))) rules.push({ kind: "topOverall", count: Number(m[1]), to });
-    else throw new Error(`Advancement line ${i + 1}: "${lhs}" isn't a rule I know. Use top N per pool, rank N per pool, best N at rank R or top N overall.`);
+    else throw new Error(`Advancement line ${i + 1}: "${lhs}" isn't a rule I know. Use top N per pool (optionally "in A-D"), rank N per pool, best N at rank R or top N overall.`);
     const last = rules[rules.length - 1];
     if (("count" in last && last.count < 1) || ("rank" in last && last.rank < 1)) throw new Error(`Advancement line ${i + 1}: numbers start at 1.`);
   });

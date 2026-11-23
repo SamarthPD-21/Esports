@@ -172,14 +172,15 @@ function applyAdvancement(
 ): void {
   const rankIn = (row: LobbyStandingRow) => row.poolPosition ?? row.position;
   const open = (row: LobbyStandingRow) => row.advancesTo === undefined && row.played > 0;
+  const inPools = (row: LobbyStandingRow, pools?: string[]) => !pools?.length || pools.includes(row.pool ?? "");
 
   for (const rule of rules) {
     switch (rule.kind) {
       case "topPerPool":
-        for (const row of sorted) if (open(row) && rankIn(row) <= rule.count) row.advancesTo = rule.to;
+        for (const row of sorted) if (open(row) && inPools(row, rule.pools) && rankIn(row) <= rule.count) row.advancesTo = rule.to;
         break;
       case "rankPerPool":
-        for (const row of sorted) if (open(row) && rankIn(row) === rule.rank) row.advancesTo = rule.to;
+        for (const row of sorted) if (open(row) && inPools(row, rule.pools) && rankIn(row) === rule.rank) row.advancesTo = rule.to;
         break;
       case "bestAtRank": {
         const candidates = sorted.filter((row) => open(row) && rankIn(row) === rule.rank).sort(sorter);

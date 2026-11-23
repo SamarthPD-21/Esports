@@ -3,6 +3,7 @@
 // The same match-ups, waves and lobbies repeat on all three mode days; only
 // the mode, map and start time change. Pure, so it runs under plain Node.
 
+import { matchNames } from "../lib/match-names.ts";
 import type { Mode } from "../lib/types.ts";
 
 export const OFFICIAL_GROUPS: Record<string, string[]> = {
@@ -142,10 +143,7 @@ export function dayPlan(day: ModeDay, firstWave = day.firstWave): DayPlan {
   };
 }
 
-/** Comparable form of a team name: case, spacing and punctuation don't matter. */
-export function nameKey(name: string): string {
-  return name.normalize("NFKC").toLowerCase().replace(/[^\p{L}\p{N}$]+/gu, "");
-}
+export { nameKey } from "../lib/match-names.ts";
 
 export interface OfficialFixture {
   id: string;
@@ -192,39 +190,12 @@ export function officialFixtures(
   return { fixtures, missing: [...missing] };
 }
 
-/**
- * Matches the official team names to registered teams: same name ignoring
- * case and punctuation, else the one team whose name starts with the
- * official one (the doc shortens "Sapne Suhane..."). `chosen` holds a
- * referee's picks for names that didn't match on their own.
- */
+/** Official CODM names → registered team ids; `chosen` holds a referee's picks for the rest. */
 export function matchOfficialTeams(
   teams: { id: string; name: string }[],
   chosen: Partial<Record<string, string>> = {},
 ): { ids: Map<string, string>; missing: string[] } {
-  const ids = new Map<string, string>();
-  const taken = new Set<string>();
-  const official = Object.values(OFFICIAL_GROUPS).flat();
-  for (const name of official) {
-    const pick = chosen[name];
-    if (pick && teams.some((t) => t.id === pick)) {
-      ids.set(name, pick);
-      taken.add(pick);
-    }
-  }
-  for (const name of official) {
-    if (ids.has(name)) continue;
-    const key = nameKey(name);
-    const free = teams.filter((t) => !taken.has(t.id));
-    const exact = free.filter((t) => nameKey(t.name) === key);
-    const prefix = free.filter((t) => key.length >= 4 && nameKey(t.name).startsWith(key));
-    const hit = exact.length === 1 ? exact[0] : exact.length === 0 && prefix.length === 1 ? prefix[0] : undefined;
-    if (hit) {
-      ids.set(name, hit.id);
-      taken.add(hit.id);
-    }
-  }
-  return { ids, missing: official.filter((n) => !ids.has(n)) };
+  return matchNames(Object.values(OFFICIAL_GROUPS).flat(), teams, chosen);
 }
 
 /** Which registered team holds each official name, read back from applied fixtures. */
