@@ -1,0 +1,48 @@
+// CODM group results, as published on the organisers' results sheets.
+// The sheets give each team's wins for the day, not match scores, so a
+// match is recorded as won 1–0. The full platform has the same results.
+
+/** Group match id → the side that won. */
+export const CODM_RESULTS: Record<string, "A" | "B"> = {
+  // 23 Nov, Hardpoint. Group E isn't in yet: its 2-2-1-1 record fits more than one set of results.
+  "HP-W1-L3": "A",
+  "HP-W1-L4": "A",
+  "HP-W3-L4": "A",
+  "HP-W3-L5": "A",
+  "HP-W5-L4": "A",
+  "HP-W5-L5": "B",
+  "HP-W1-L5": "B",
+  "HP-W1-L6": "A",
+  "HP-W3-L6": "A",
+  "HP-W3-L7": "B",
+  "HP-W5-L6": "B",
+  "HP-W5-L7": "A",
+  "HP-W1-L7": "A",
+  "HP-W2-L2": "B",
+  "HP-W4-L1": "A",
+  "HP-W4-L2": "A",
+  "HP-W6-L2": "A",
+  "HP-W6-L3": "B",
+  "HP-W2-L3": "B",
+  "HP-W2-L4": "B",
+  "HP-W4-L3": "A",
+  "HP-W4-L4": "B",
+  "HP-W6-L4": "B",
+  "HP-W6-L5": "B",
+  "HP-W2-L7": "B",
+  "HP-W3-L1": "B",
+  "HP-W4-L7": "B",
+  "HP-W5-L1": "B",
+  "HP-W7-L1": "B",
+  "HP-W7-L2": "A",
+  "HP-W1-L1": "B",
+  "HP-W1-L2": "A",
+  "HP-W2-L1": "A",
+  "HP-W3-L2": "A",
+  "HP-W3-L3": "B",
+  "HP-W5-L2": "A",
+  "HP-W5-L3": "B",
+  "HP-W6-L1": "A",
+  "HP-W7-L3": "A",
+  "HP-W7-L4": "A",
+};

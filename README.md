@@ -15,7 +15,9 @@ Everything is read once, when the site is built:
 - **Free Fire and BGMI groups** come from `src/content/lobby-groups.ts`, the organisers' allocations; their lobbies follow each stage's published times in `src/games/registry.ts`. A published name with no matching registration still shows, under its published name.
 - **Formats, dates and rules** come from `src/games/registry.ts` and `src/content/`.
 
-There are no results: live scores and standings are on the full platform.
+- **CODM results** come from `src/content/codm-results.ts`, copied from the organisers' results sheets.
+
+Other games' results are on the full platform.
 
 ## Run it
 

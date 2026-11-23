@@ -1,9 +1,10 @@
 // The single place pages get tournament data from.
 // showcase branch: everything is read at build time. Teams come from the
 // public Unstop registrations sheet; CODM's fixtures, Valorant's bracket and
-// the lobby games' groups are the published schedules. There are no results
-// here, only the plan.
+// the lobby games' groups are the published schedules. CODM's results come
+// from the organisers' published results sheets (content/codm-results).
 
+import { CODM_RESULTS } from "../content/codm-results";
 import { matchOfficialTeams, MODE_DAYS, officialFixtures, OFFICIAL_GROUPS } from "../content/codm-schedule";
 import { OFFICIAL_LOBBY_GROUPS } from "../content/lobby-groups";
 import { valorantBestOf, VALORANT_SCHEDULE, VALORANT_TEAMS } from "../content/valorant-bracket";
@@ -39,7 +40,8 @@ async function loadTournament(game: GameId): Promise<Tournament> {
       .filter((f) => f.a && f.b)
       .map((f) => ({
         id: f.id, stage: "group", group: f.group, round: f.wave, lobby: f.lobby, mode: f.mode, map: f.map,
-        bestOf: 1, sideA: f.a, sideB: f.b, scheduledAt: f.scheduledAt, maps: [],
+        bestOf: 1, sideA: f.a, sideB: f.b, scheduledAt: f.scheduledAt,
+        maps: CODM_RESULTS[f.id] ? [{ game: 1, mode: f.mode, map: f.map ?? "", scoreA: CODM_RESULTS[f.id] === "A" ? 1 : 0, scoreB: CODM_RESULTS[f.id] === "B" ? 1 : 0 }] : [],
       }));
     matchDays = MODE_DAYS.map((d) => ({ day: d.date, mode: d.mode, map: d.map }));
   }
