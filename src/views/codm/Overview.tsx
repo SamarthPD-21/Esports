@@ -3,7 +3,8 @@ import { GroupTable } from "@/components/GroupTable";
 import { MatchCard } from "@/components/MatchCard";
 import { SectionHeading } from "@/components/SectionHeading";
 import { UpNext, type UpNextItem } from "@/components/UpNext";
-import { EVENT, KEY_DATES, PRIZES, PRIZE_TOTAL, STAGES } from "@/content/event";
+import { getGamePage } from "@/lib/game-page";
+import { EVENT, PRIZES, PRIZE_TOTAL, STAGES } from "@/content/event";
 import { getTournament, teamMap } from "@/lib/data";
 import { inr } from "@/lib/format";
 import { STAGE_LABEL } from "@/lib/tournament";
@@ -17,7 +18,7 @@ function stageState(t: Tournament, key: string): "done" | "live" | "upcoming" {
 }
 
 export async function CodmOverview() {
-  const t = await getTournament("codm");
+  const [t, page] = await Promise.all([getTournament("codm"), getGamePage("codm")]);
   const teams = teamMap(t);
   const name = (id?: string, label?: string) => (id ? teams.get(id)?.name ?? id : label ?? "TBD");
 
@@ -116,7 +117,7 @@ export async function CodmOverview() {
           <Link href="/codm/rules#schedule" className="link text-sm">Full schedule</Link>
         </SectionHeading>
         <ol className="panel divide-y divide-line">
-          {KEY_DATES.map((d) => (
+          {page.keyDates.map((d) => (
             <li key={d.when} className="grid gap-1 px-5 py-3 sm:grid-cols-[200px_1fr_auto] sm:items-baseline sm:gap-4">
               <span className="tnum font-cond font-semibold">{d.when}</span>
               <span className="text-sm">{d.what}</span>

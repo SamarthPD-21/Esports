@@ -4,7 +4,8 @@ import { GameTabs, GameTabsShell } from "@/components/GameTabs";
 import { Clouds } from "@/components/fx/Clouds";
 import { Stars } from "@/components/fx/Stars";
 import { TabSwap } from "@/components/fx/TabSwap";
-import { GAME_IDS, GAMES, isGameId } from "@/games/registry";
+import { GAME_IDS, GAMES, isGameId, type GameId } from "@/games/registry";
+import { getGamePage } from "@/lib/game-page";
 
 export function generateStaticParams() {
   return GAME_IDS.map((game) => ({ game }));
@@ -44,8 +45,22 @@ async function GameFrame({ children, params }: { children: React.ReactNode; para
         <div className="pixel-edge" aria-hidden />
       </header>
       <div className="pt-6">
+        <Suspense fallback={null}>
+          <Notice game={game} />
+        </Suspense>
         <TabSwap>{children}</TabSwap>
       </div>
     </div>
+  );
+}
+
+/** Staff's notice for this game (set on the control room's Game page tab), on every tab. */
+async function Notice({ game }: { game: GameId }) {
+  const { notice } = await getGamePage(game);
+  if (!notice) return null;
+  return (
+    <p role="status" className="mb-6 border-l-4 border-[var(--game)] bg-surface px-4 py-3 text-[15px] whitespace-pre-line">
+      {notice}
+    </p>
   );
 }

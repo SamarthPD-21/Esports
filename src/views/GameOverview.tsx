@@ -3,13 +3,14 @@ import { MatchCard } from "@/components/MatchCard";
 import { SectionHeading } from "@/components/SectionHeading";
 import { GAMES, type GameId } from "@/games/registry";
 import { getTournament, teamMap } from "@/lib/data";
+import { getGamePage } from "@/lib/game-page";
 import { inr } from "@/lib/format";
 import { LobbyOverview } from "./lobby/LobbyOverview";
 
 /** A game's landing tab: what's next, how it runs, key dates and prizes. */
 export async function GameOverview({ game }: { game: GameId }) {
   const g = GAMES[game];
-  const t = await getTournament(game);
+  const [t, page] = await Promise.all([getTournament(game), getGamePage(game)]);
   const teams = teamMap(t);
   const registered = t.teams.filter((x) => x.status !== "withdrawn");
   const confirmed = registered.filter((x) => x.eligible !== false);
@@ -54,7 +55,7 @@ export async function GameOverview({ game }: { game: GameId }) {
         <div>
           <SectionHeading note="All times IST" title="Key dates" />
           <ol className="panel divide-y divide-line">
-            {g.keyDates.map((d) => (
+            {page.keyDates.map((d) => (
               <li key={d.when + d.what} className="grid gap-1 px-5 py-3 sm:grid-cols-[230px_1fr_auto] sm:items-baseline sm:gap-4">
                 <span className="tnum font-cond font-semibold">{d.when}</span>
                 <span className="text-sm">{d.what}</span>

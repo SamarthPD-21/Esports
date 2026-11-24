@@ -9,6 +9,7 @@ import { EVENT } from "@/content/event";
 import { DropTitle } from "@/components/fx/DropTitle";
 import { Clouds } from "@/components/fx/Clouds";
 import { ShootingStar, Stars } from "@/components/fx/Stars";
+import { getGamePage } from "@/lib/game-page";
 
 interface Slot {
   game: GameDef;
@@ -19,7 +20,7 @@ interface Slot {
 
 /** Next matches and a one-line status for every game. */
 async function gameSnapshot(g: GameDef) {
-  const t = await getTournament(g.id);
+  const [t, page] = await Promise.all([getTournament(g.id), getGamePage(g.id)]);
   const teams = teamMap(t);
   const registered = t.teams.filter((x) => x.status !== "withdrawn");
   const confirmed = registered.filter((x) => x.eligible !== false).length;
@@ -46,7 +47,7 @@ async function gameSnapshot(g: GameDef) {
     }
   }
   slots.sort((a, b) => a.at.localeCompare(b.at));
-  return { g, confirmed, registered: registered.length, slots };
+  return { g, confirmed, registered: registered.length, slots, keyDate: page.keyDates[0] };
 }
 
 const entryLabel = (g: GameDef) => (g.solo ? "Solo" : `Squad of ${g.roster.min}${g.roster.max > g.roster.min ? `+${g.roster.max - g.roster.min}` : ""}`);
@@ -134,7 +135,7 @@ async function HubData() {
       <section aria-labelledby="games" className="mt-12">
         <h2 id="games" className="sr-only">Games</h2>
         <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {snaps.map(({ g, confirmed, registered, slots }) => {
+          {snaps.map(({ g, confirmed, registered, slots, keyDate }) => {
             const live = slots.some((s) => s.live);
             const next = slots[0];
             return (
@@ -145,7 +146,7 @@ async function HubData() {
                   ) : next ? (
                     <span>Next: {fmtDay(next.at)}, {fmtTime(next.at)}</span>
                   ) : (
-                    <span className="text-muted">{g.keyDates[0]?.when}: {g.keyDates[0]?.what}</span>
+                    <span className="text-muted">{keyDate?.when}: {keyDate?.what}</span>
                   )}
                   <span className="text-xs text-faint">
                     <span className="tnum font-cond text-base text-text">{confirmed}</span> {g.solo ? "players" : "teams"} confirmed
