@@ -2,9 +2,11 @@
 // showcase branch: everything is read at build time. Teams come from the
 // public Unstop registrations sheet; CODM's fixtures, Valorant's bracket and
 // the lobby games' groups are the published schedules. CODM's results come
-// from the organisers' published results sheets (content/codm-results).
+// from the organisers' published results sheets (content/codm-results), and
+// Valorant's from their STANDINGS doc (content/valorant-results).
 
 import { CODM_RESULTS } from "../content/codm-results";
+import { VALORANT_RESULTS } from "../content/valorant-results";
 import { matchOfficialTeams, MODE_DAYS, officialFixtures, OFFICIAL_GROUPS } from "../content/codm-schedule";
 import { OFFICIAL_LOBBY_GROUPS } from "../content/lobby-groups";
 import { valorantBestOf, VALORANT_SCHEDULE, VALORANT_TEAMS } from "../content/valorant-bracket";
@@ -16,7 +18,7 @@ import { dayKey } from "./format";
 import { DEFAULT_CONFIG } from "./parse";
 import { getRegisteredTeams } from "./registrations";
 import { buildTournament } from "./tournament";
-import type { Match, MatchDay, MatchInput, Team, Tournament } from "./types";
+import type { Match, MatchDay, MatchInput, Mode, Team, Tournament } from "./types";
 
 /** A game's teams, plus CODM's groups and published fixtures. */
 export function getTournament(game: GameId = "codm"): Promise<Tournament> {
@@ -56,7 +58,13 @@ async function loadTournament(game: GameId): Promise<Tournament> {
     });
     const rows = singleElimination({ prefix: "VAL", entrants: VALORANT_TEAMS.map((n) => ids.get(n)!), bestOf: valorantBestOf, thirdPlace: false });
     const times = scheduleKnockout(rows, VALORANT_SCHEDULE);
-    matches = rows.map((r) => ({ id: r.id, stage: r.stage, round: r.round, bestOf: r.bestOf, sideA: r.sideA, sideB: r.sideB, scheduledAt: times.get(r.id), maps: [] }));
+    matches = rows.map((r) => {
+      const won = VALORANT_RESULTS[r.id];
+      return {
+        id: r.id, stage: r.stage, round: r.round, bestOf: r.bestOf, sideA: r.sideA, sideB: r.sideB, scheduledAt: times.get(r.id),
+        maps: won ? [{ game: 1, mode: undefined as unknown as Mode, map: "", scoreA: won === "A" ? 1 : 0, scoreB: won === "B" ? 1 : 0 }] : [],
+      };
+    });
   }
   // Free Fire and BGMI: every published name shows, registered or not.
   if (OFFICIAL_LOBBY_GROUPS[game]) pairOfficialNames(game, teams);
