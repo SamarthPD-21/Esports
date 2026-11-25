@@ -85,6 +85,25 @@ test("standings: two-way tie is broken by head-to-head even with worse diff", ()
   assert.deepEqual(t2.groups[0].rows.map((r) => r.teamId).slice(0, 3), ["b", "c", "a"]);
 });
 
+test("standings: a points adjustment changes the order and who qualifies, in its own group only", () => {
+  const t = buildTournament(
+    {
+      ...raw([team("a"), team("b"), team("c"), team("x", "B"), team("y", "B")], [
+        bo1("G1", "a", "b", 250, 100),
+        bo1("G2", "a", "c", 250, 100),
+        bo1("G3", "b", "c", 250, 100),
+        bo1("G4", "x", "y", 250, 100),
+      ], 1),
+      pointAdjustments: [{ teamId: "a", pointsDelta: -2 }],
+    },
+    meta,
+  );
+  const a = t.groups.find((g) => g.group === "A")!.rows;
+  assert.deepEqual(a.map((r) => [r.teamId, r.points]), [["b", 1], ["a", 0], ["c", 0]]);
+  assert.deepEqual(a.map((r) => r.qualified), [true, false, false]);
+  assert.deepEqual(t.groups.find((g) => g.group === "B")!.rows.map((r) => r.points), [1, 0]);
+});
+
 test("standings: unbreakable tie is flagged for coin toss", () => {
   const t = buildTournament(raw([team("a"), team("b")], []), meta);
   assert.ok(t.groups[0].rows.every((r) => r.unresolvedTie));

@@ -26,11 +26,10 @@ export const MODE_NAME = { HP: "Hardpoint", SND: "Search & Destroy", DOM: "Domin
 export const KEY_DATES = [
   { when: "Mon 23 Nov, 9:00 PM", what: "Group Stage Day 1: Hardpoint on Summit, waves 9:30–11:50 PM", where: "Online" },
   { when: "Tue 24 Nov, 9:00 PM", what: "Group Stage Day 2: Domination on Raid, waves 9:30–11:50 PM", where: "Online" },
-  { when: "Wed 25 Nov, time TBD", what: "Group Stage Day 3: Search & Destroy on Firing Range, then tiebreakers and final standings", where: "Online" },
-  { when: "Wed 25 Nov, after standings", what: "Seeds and Quarterfinal bracket published; offline map pool and perspective announced", where: "Discord" },
-  { when: "Thu 26 Nov", what: "Qualified teams confirm attendance; arena setup, Wi-Fi stress test, reporting desk", where: "Gaming Arena" },
-  { when: "Fri 27 Nov", what: "Quarterfinals, 4 × BO3", where: "Gaming Arena" },
-  { when: "Sat 28 Nov", what: "Semifinals, 2 × BO3", where: "Gaming Arena" },
+  { when: "Wed 25 Nov, time TBD", what: "Group Stage Day 3: Search & Destroy on Tunisia, then tiebreakers and final standings", where: "Online" },
+  { when: "Wed 25 Nov, after standings", what: "Seeds and Quarterfinal bracket published; knockout map pool and perspective announced", where: "Discord" },
+  { when: "Fri 27 Nov", what: "Quarterfinals, 4 × BO3", where: "Online" },
+  { when: "Sat 28 Nov", what: "Semifinals, 2 × BO3", where: "Online" },
   { when: "Sun 29 Nov", what: "3rd-place match (BO3), Grand Final (BO5), prize ceremony", where: "Gaming Arena" },
 ] as const;
 
@@ -58,7 +57,7 @@ export const SEEDING_RULES = [
   "Seeds decide the bracket, who starts each map veto, and who holds Semifinal Veto Power.",
 ];
 
-/** Offline series start times (IST). Check-in is 30 min before. */
+/** Knockout series start times (IST): Quarterfinals and Semifinals online, the 29th at the arena. Check-in is 30 min before. */
 export const KNOCKOUT_TIMES: Record<string, string> = {
   QF1: "2026-11-27T10:30:00+05:30",
   QF2: "2026-11-27T12:30:00+05:30",
@@ -82,8 +81,8 @@ export const KNOCKOUT_LABEL: Record<string, string> = {
 };
 
 export const ARENA_NOTES = [
-  "Thu 26 Nov: arena setup in the morning, a Wi-Fi stress test with 10+ phones in one lobby (2–4 PM), and the reporting desk for early ID checks (2–6 PM).",
-  "Every player shows a valid government or school ID at check-in, 30 minutes before each series.",
+  "The Quarterfinals (Fri 27 Nov) and Semifinals (Sat 28 Nov) are played online, from your own connection.",
+  "Only Sun 29 Nov is at the arena: the 3rd-place match and the Grand Final. Every player shows a valid government or school ID at check-in, 30 minutes before each series.",
   "Each BO3 gets a 2-hour slot: veto, setup and up to 3 maps. The prize ceremony is about 6:30 PM on Sun 29 Nov.",
   "Bring your own phone, charger and headphones. Arena Wi-Fi is provided.",
 ];
@@ -100,7 +99,7 @@ export const STAGES = [
   {
     key: "qf",
     name: "Quarterfinals",
-    venue: "Offline",
+    venue: "Online",
     series: "BO3",
     modes: "HP → S&D → Domination, fixed order",
     veto: "One map per mode: Ban–Ban–Ban–Ban, higher seed first",
@@ -108,7 +107,7 @@ export const STAGES = [
   {
     key: "sf",
     name: "Semifinals",
-    venue: "Offline",
+    venue: "Online",
     series: "BO3",
     modes: "HP → S&D → Domination; the higher seed may reorder or swap one mode",
     veto: "One map per mode: Ban–Ban–Ban–Ban, higher seed first",
@@ -164,7 +163,7 @@ export const GAME_SETUP = [
 
 export const MATCH_RULES = [
   "The captain is the single point of contact with the referee for every match, online or offline.",
-  "Check in with your lobby referee 30 minutes before the day's first wave online, or before each series offline.",
+  "Check in with your lobby referee 30 minutes before the day's first wave online, or before each knockout series.",
   "Room ID and password are shared 15–5 minutes before the match. Join within 10 minutes of the invite.",
   "Report a disconnect within 2 minutes. Only a confirmed tournament server crash allows a restart.",
   "The winning captain posts the end-of-match scoreboard screenshot in the results channel within 10 minutes.",

@@ -136,7 +136,7 @@ export async function CodmWaves() {
       </div>
 
       <p className="mt-4 text-xs text-faint">
-        The top 8 go to the offline knockout at the Yugaantar Gaming Arena, 27–29 Nov: the 7 group winners and the best runner-up.{" "}
+        The top 8 go to the knockout: the 7 group winners and the best runner-up. Quarterfinals and Semifinals are online on 27–28 Nov; the Grand Final is at the Yugaantar Gaming Arena on 29 Nov.{" "}
         <Link href="/codm/standings" className="link">Standings</Link>
       </p>
 

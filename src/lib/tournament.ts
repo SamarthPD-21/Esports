@@ -194,6 +194,10 @@ export function computeGroups(raw: RawTournament, series: Map<string, SeriesResu
       w.form.push("W");
       l.form.push("L");
     }
+    for (const adjustment of raw.pointAdjustments ?? []) {
+      const row = stats.get(adjustment.teamId);
+      if (row) row.points += adjustment.pointsDelta;
+    }
     for (const s of stats.values()) s.diff = s.scoreFor - s.scoreAgainst;
 
     const playoffs = matches

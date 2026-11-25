@@ -169,7 +169,7 @@ export async function CodmRules() {
           <WaveTimes t={t} />
           <p className="mt-3 text-xs text-faint">Tiebreakers, then final standings, seeds and the Quarterfinal bracket follow the last S&amp;D wave on Wed 25 Nov.</p>
 
-          <h3 className="mt-10 mb-4 font-cond text-xl font-bold">Offline at the {EVENT.venue}</h3>
+          <h3 className="mt-10 mb-4 font-cond text-xl font-bold">Knockouts: online on 27–28 Nov, the {EVENT.venue} on 29 Nov</h3>
           <div className="grid gap-4 lg:grid-cols-[1.2fr_1fr] lg:items-start">
             <dl className="panel divide-y divide-line">
               {Object.entries(KNOCKOUT_TIMES).map(([id, at]) => (
@@ -222,7 +222,7 @@ export async function CodmRules() {
             </table>
           </div>
           <div className="mt-4 grid gap-4 lg:grid-cols-[1.4fr_1fr]">
-            <div className="panel p-5"><h3 className="mb-3 font-cond text-lg font-bold">Map veto, offline stages</h3><Bullets items={VETO_RULES} /></div>
+            <div className="panel p-5"><h3 className="mb-3 font-cond text-lg font-bold">Map veto, knockout stages</h3><Bullets items={VETO_RULES} /></div>
             <div className="panel p-5">
               <h3 className="mb-3 font-cond text-lg font-bold">Overtime</h3>
               <dl className="flex flex-col gap-3">
@@ -255,7 +255,7 @@ export async function CodmRules() {
                   <th className="px-5 py-3 font-medium">Delay</th>
                   <th className="px-5 py-3 font-medium">Online S&amp;D</th>
                   <th className="px-5 py-3 font-medium">Online HP and Domination</th>
-                  <th className="px-5 py-3 font-medium">Offline BO3 and BO5</th>
+                  <th className="px-5 py-3 font-medium">Knockout BO3 and BO5</th>
                 </tr>
               </thead>
               <tbody>
@@ -325,7 +325,7 @@ export async function CodmRules() {
         <section>
           <H2 id="maps">Map pool</H2>
           <p className="-mt-2 mb-5 text-sm text-muted">
-            Group stage: Summit (Hardpoint), Raid (Domination), Firing Range (S&amp;D). The offline pool is announced at least 48 hours before the Quarterfinals.
+            Group stage: Summit (Hardpoint), Raid (Domination), Tunisia (S&amp;D). The knockout pool is announced at least 48 hours before the Quarterfinals.
           </p>
           {t.mapPool.length > 0 && (
             <div className="grid gap-4 md:grid-cols-3">

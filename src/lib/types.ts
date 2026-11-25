@@ -163,7 +163,10 @@ export interface MatchDay {
   note?: string;
 }
 
+export interface PointAdjustment { teamId: string; pointsDelta: number; }
+
 export interface RawTournament {
+  pointAdjustments?: PointAdjustment[];
   config: TournamentConfig;
   teams: Team[];
   matches: MatchInput[];

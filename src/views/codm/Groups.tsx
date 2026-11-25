@@ -21,7 +21,7 @@ export async function CodmGroups() {
       <PageHeader meta="Online, best of one" title="Group standings">
         One point per match won.{" "}
         {t.config.qualifiersPerGroup === 1 ? "Each group winner" : `The top ${t.config.qualifiersPerGroup} in each group`}
-        {runnersUp ? ` and the best ${runnersUp === 1 ? "runner-up" : `${runnersUp} runners-up`}` : ""} go to the offline Quarterfinals. Level on points:{" "}
+        {runnersUp ? ` and the best ${runnersUp === 1 ? "runner-up" : `${runnersUp} runners-up`}` : ""} go to the Quarterfinals. Level on points:{" "}
         {t.config.tiebreakers.map((x) => TB_LABEL[x]).join(", then ")}.
       </PageHeader>
 

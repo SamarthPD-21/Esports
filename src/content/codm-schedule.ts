@@ -104,7 +104,7 @@ export interface ModeDay {
 export const MODE_DAYS: ModeDay[] = [
   { date: "2026-11-23", mode: "HP", map: "Summit", firstWave: "21:30", waveMinutes: 20, breaksAfter: [], breakMinutes: 0, endBufferMinutes: 0 },
   { date: "2026-11-24", mode: "DOM", map: "Raid", firstWave: "21:30", waveMinutes: 20, breaksAfter: [], breakMinutes: 0, endBufferMinutes: 0 },
-  { date: "2026-11-25", mode: "SND", map: "Firing Range", waveMinutes: 35, breaksAfter: [3, 5], breakMinutes: 15, endBufferMinutes: 25, final: true },
+  { date: "2026-11-25", mode: "SND", map: "Tunisia", waveMinutes: 35, breaksAfter: [3, 5], breakMinutes: 15, endBufferMinutes: 25, final: true },
 ];
 
 export const CHECK_IN_BEFORE_FIRST_WAVE_MIN = 30;

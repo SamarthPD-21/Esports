@@ -20,7 +20,7 @@ export async function CodmBracket() {
 
   return (
     <>
-      <PageHeader meta="Offline at the Gaming Arena" title="Playoff bracket">
+      <PageHeader meta="Online to the Semifinals; the Final at the Gaming Arena" title="Playoff bracket">
         Quarterfinal slots fill automatically from the group tables.
         {projected && " Teams marked projected are where the current standings put them, and lock in when the group stage finishes."}
       </PageHeader>
