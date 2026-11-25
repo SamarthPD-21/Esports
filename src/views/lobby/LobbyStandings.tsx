@@ -2,14 +2,27 @@ import { PageHeader } from "@/components/SectionHeading";
 import { pointsSummary, formatAdvanceRule } from "@/components/lobby/settings";
 import { StageTabs } from "@/components/lobby/StageTabs";
 import { StandingsTable } from "@/components/lobby/StandingsTable";
+import { OFFICIAL_STANDINGS } from "@/content/official-standings";
 import { GAMES, type GameId } from "@/games/registry";
 import { getTournament, teamMap } from "@/lib/data";
 import { currentStage, getLobbyGame, type LobbyGame } from "@/lib/lobby/data";
 import type { LobbyStage } from "@/lib/lobby/types";
 import type { Team } from "@/lib/types";
+import { OfficialStandings } from "./OfficialStandings";
 
 /** Leaderboards for every stage of a lobby game; one stage shown at a time. */
 export async function LobbyStandingsView({ game }: { game: GameId }) {
+  // Standings the organisers published as totals replace the computed tables,
+  // which would otherwise show no points for lobbies entered only as totals.
+  const official = OFFICIAL_STANDINGS[game];
+  if (official) {
+    return (
+      <>
+        <PageHeader title="Standings">Place and kill points over every match so far; the top of each group goes through.</PageHeader>
+        <OfficialStandings s={official} />
+      </>
+    );
+  }
   const [g, t] = await Promise.all([getLobbyGame(game), getTournament(game)]);
   const teams = teamMap(t);
   const current = currentStage(g);
