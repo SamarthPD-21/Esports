@@ -8,12 +8,7 @@ export async function CodmGroups() {
   const t = await getTournament("codm");
   const teams = teamMap(t);
   const ties = t.groups.filter((g) => g.complete).flatMap((g) => g.ties.map((tie) => ({ group: g.group, ...tie })));
-  const allDone = t.groups.length > 0 && t.groups.every((g) => g.complete);
   const runnersUp = t.config.bestRunnersUp ?? 0;
-  const second = t.config.qualifiersPerGroup + 1;
-  const race = runnersUp
-    ? t.groups.flatMap((g) => g.rows.filter((r) => r.position === second)).sort((x, y) => y.points - x.points || x.group.localeCompare(y.group))
-    : [];
   const names = (ids: string[]) => ids.map((id) => teams.get(id)?.name ?? id).join(", ");
 
   return (
@@ -45,29 +40,6 @@ export async function CodmGroups() {
         <span className="flex items-center gap-2"><span className="size-3 bg-signal/30" /> Qualifying position</span>
         <span>P played, W-L wins and losses, Pts points</span>
       </div>
-
-      {race.length > 0 && (
-        <section className="mt-12">
-          <h2 className="mb-1 font-display text-2xl font-bold">Best runner-up</h2>
-          <p className="mb-4 max-w-2xl text-sm text-muted">
-            The {race.length} second-placed teams ranked by points. Group G plays 12 matches, the rest 9. Teams still level play a tiebreaker match.
-          </p>
-          <ol className="panel divide-y divide-line">
-            {race.map((r, i) => (
-              <li key={r.teamId} className={`flex items-center gap-3 px-4 py-2.5 text-sm ${i < runnersUp ? "bg-signal/[0.06]" : ""}`}>
-                <span className={`tnum w-5 font-cond text-xs ${i < runnersUp ? "text-signal" : "text-faint"}`}>{i + 1}</span>
-                <span className="min-w-0 flex-1 truncate font-medium">{teams.get(r.teamId)?.name ?? r.teamId}</span>
-                <span className="text-xs text-muted">Group {r.group}</span>
-                <span className="tnum w-10 text-right text-muted">{r.won}-{r.lost}</span>
-                <span className="tnum w-8 text-right font-cond font-semibold">{r.points}</span>
-              </li>
-            ))}
-          </ol>
-          {allDone && t.runnerUpTies.map((c) => (
-            <p key={c.join()} className="mt-3 text-xs text-warn">⚑ {names(c)} are level for the runner-up spot. A tiebreaker match decides.</p>
-          ))}
-        </section>
-      )}
 
       {t.seeds.length > 0 && (
         <section className="mt-12">
