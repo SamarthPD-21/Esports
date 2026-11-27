@@ -53,7 +53,7 @@ export async function CodmOverview() {
             <span className="mt-1 block text-[clamp(2.25rem,8vw,4.5rem)] text-muted">{EVENT.edition}</span>
           </h1>
           <p className="mt-6 max-w-xl text-lg text-muted">
-            &ldquo;{EVENT.tagline}&rdquo; Three online mode days, 23–25 Nov, then the top 8 play the Quarterfinals and Semifinals online on 27–28 Nov, and the Grand Final at the {EVENT.venue} on 29 Nov.
+            &ldquo;{EVENT.tagline}&rdquo; Three online mode days, 23–25 Nov, then the top 8 play the Quarterfinals online on 27 Nov, and the Semifinals and Grand Final at the {EVENT.venue} on 29 Nov from 11 AM.
           </p>
           <div className="mt-7 flex flex-wrap gap-3">
             <Link href="/codm/schedule" className="rounded-sm bg-signal px-5 py-2.5 text-sm font-semibold text-bg hover:bg-text">
