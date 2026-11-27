@@ -28,7 +28,7 @@ export const KEY_DATES = [
   { when: "Tue 24 Nov, 9:00 PM", what: "Group Stage Day 2: Domination on Raid, waves 9:30–11:50 PM", where: "Online" },
   { when: "Wed 25 Nov, time TBD", what: "Group Stage Day 3: Search & Destroy on Tunisia, then tiebreakers and final standings", where: "Online" },
   { when: "Thu 26 Nov", what: "Quarterfinal draw and knockout map pools published", where: "Discord" },
-  { when: "Fri 27 Nov", what: "Quarterfinals, 4 × BO3: EDGE, RVCE, LIQUID and TF141 go through", where: "Online" },
+  { when: "Fri 27 Nov, 10:00 PM", what: "Quarterfinals, 4 × BO3 at once: EDGE, RVCE, LIQUID and TF141 go through", where: "Online" },
   { when: "Sat 28 Nov", what: "No matches", where: "Rest day" },
   { when: "Sun 29 Nov, from 11:00 AM", what: "Semifinals (BO3), 3rd-place match (BO3), Grand Final (BO5), prize ceremony", where: "Gaming Arena" },
 ] as const;
@@ -58,15 +58,15 @@ export const SEEDING_RULES = [
 ];
 
 /**
- * Knockout series start times (IST): the Quarterfinals online on the 27th,
+ * Knockout series start times (IST): the Quarterfinals online at 10 PM on the 27th,
  * everything else at the arena on the 29th from 11 AM in 2-hour slots.
  * Check-in is 30 min before.
  */
 export const KNOCKOUT_TIMES: Record<string, string> = {
-  QF1: "2026-11-27T10:30:00+05:30",
-  QF2: "2026-11-27T12:30:00+05:30",
-  QF3: "2026-11-27T14:30:00+05:30",
-  QF4: "2026-11-27T16:30:00+05:30",
+  QF1: "2026-11-27T22:00:00+05:30",
+  QF2: "2026-11-27T22:00:00+05:30",
+  QF3: "2026-11-27T22:00:00+05:30",
+  QF4: "2026-11-27T22:00:00+05:30",
   SF1: "2026-11-29T11:00:00+05:30",
   SF2: "2026-11-29T13:00:00+05:30",
   THIRD: "2026-11-29T15:00:00+05:30",
@@ -115,7 +115,7 @@ export const KNOCKOUT_LABEL: Record<string, string> = {
 };
 
 export const ARENA_NOTES = [
-  "The Quarterfinals (Fri 27 Nov) were played online. Sat 28 Nov has no matches.",
+  "The Quarterfinals (Fri 27 Nov, 10 PM) were played online. Sat 28 Nov has no matches.",
   "Sun 29 Nov is at the arena from 11 AM: the Semifinals, the 3rd-place match and the Grand Final. Every player shows a valid government or school ID at check-in, 30 minutes before each series.",
   "Each BO3 gets a 2-hour slot: veto, setup and up to 3 maps. The prize ceremony follows the Grand Final.",
   "Bring your own phone, charger and headphones. Arena Wi-Fi is provided.",
