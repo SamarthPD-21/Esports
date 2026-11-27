@@ -5,7 +5,7 @@ import { STAGE_LABEL } from "@/lib/tournament";
 import type { Stage } from "@/lib/types";
 
 const COLUMNS: { stage: Stage; sub: string }[] = [
-  { stage: "qf", sub: "Best of 3, fixed order HP → S&D → Domination" },
+  { stage: "qf", sub: "Best of 3, fixed order HP → S&D → Control" },
   { stage: "sf", sub: "Best of 3, the higher seed may reorder or swap one mode" },
   { stage: "final", sub: "Best of 5: HP → S&D → Domination → HP → S&D" },
 ];
@@ -20,8 +20,8 @@ export async function CodmBracket() {
 
   return (
     <>
-      <PageHeader meta="Online to the Semifinals; the Final at the Gaming Arena" title="Playoff bracket">
-        Quarterfinal slots fill automatically from the group tables.
+      <PageHeader meta="Quarterfinals online; Semifinals and Final at the Gaming Arena" title="Playoff bracket">
+        The Quarterfinal pairings were drawn at random. Semifinals, 3rd-place match and Grand Final are on Sun 29 Nov from 11 AM.
         {projected && " Teams marked projected are where the current standings put them, and lock in when the group stage finishes."}
       </PageHeader>
 

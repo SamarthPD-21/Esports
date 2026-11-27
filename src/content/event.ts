@@ -27,10 +27,10 @@ export const KEY_DATES = [
   { when: "Mon 23 Nov, 9:00 PM", what: "Group Stage Day 1: Hardpoint on Summit, waves 9:30–11:50 PM", where: "Online" },
   { when: "Tue 24 Nov, 9:00 PM", what: "Group Stage Day 2: Domination on Raid, waves 9:30–11:50 PM", where: "Online" },
   { when: "Wed 25 Nov, time TBD", what: "Group Stage Day 3: Search & Destroy on Tunisia, then tiebreakers and final standings", where: "Online" },
-  { when: "Wed 25 Nov, after standings", what: "Seeds and Quarterfinal bracket published; knockout map pool and perspective announced", where: "Discord" },
-  { when: "Fri 27 Nov", what: "Quarterfinals, 4 × BO3", where: "Online" },
-  { when: "Sat 28 Nov", what: "Semifinals, 2 × BO3", where: "Online" },
-  { when: "Sun 29 Nov", what: "3rd-place match (BO3), Grand Final (BO5), prize ceremony", where: "Gaming Arena" },
+  { when: "Thu 26 Nov", what: "Quarterfinal draw and knockout map pools published", where: "Discord" },
+  { when: "Fri 27 Nov", what: "Quarterfinals, 4 × BO3: EDGE, RVCE, LIQUID and TF141 go through", where: "Online" },
+  { when: "Sat 28 Nov", what: "No matches", where: "Rest day" },
+  { when: "Sun 29 Nov, from 11:00 AM", what: "Semifinals (BO3), 3rd-place match (BO3), Grand Final (BO5), prize ceremony", where: "Gaming Arena" },
 ] as const;
 
 export const GROUP_RULES = [
@@ -57,23 +57,57 @@ export const SEEDING_RULES = [
   "Seeds decide the bracket, who starts each map veto, and who holds Semifinal Veto Power.",
 ];
 
-/** Knockout series start times (IST): Quarterfinals and Semifinals online, the 29th at the arena. Check-in is 30 min before. */
+/**
+ * Knockout series start times (IST): the Quarterfinals online on the 27th,
+ * everything else at the arena on the 29th from 11 AM in 2-hour slots.
+ * Check-in is 30 min before.
+ */
 export const KNOCKOUT_TIMES: Record<string, string> = {
   QF1: "2026-11-27T10:30:00+05:30",
   QF2: "2026-11-27T12:30:00+05:30",
   QF3: "2026-11-27T14:30:00+05:30",
   QF4: "2026-11-27T16:30:00+05:30",
-  SF1: "2026-11-28T11:00:00+05:30",
-  SF2: "2026-11-28T14:00:00+05:30",
-  THIRD: "2026-11-29T11:30:00+05:30",
-  FINAL: "2026-11-29T15:00:00+05:30",
+  SF1: "2026-11-29T11:00:00+05:30",
+  SF2: "2026-11-29T13:00:00+05:30",
+  THIRD: "2026-11-29T15:00:00+05:30",
+  FINAL: "2026-11-29T17:00:00+05:30",
+};
+
+/** The Quarterfinal draw, published on Discord on 26 Nov: random, not by seed. */
+export const QF_DRAW: Record<string, readonly [string, string]> = {
+  QF1: ["EDGE", "J²•D•Y•S"],
+  QF2: ["RVCE", "Bawts"],
+  QF3: ["LIQUID", "Freakuency"],
+  QF4: ["TF141", "$500"],
+};
+
+/** Each Quarterfinal's maps after the veto, in play order: Hardpoint, S&D, Control. */
+export const QF_MAPS: Record<string, readonly [string, string, string]> = {
+  QF1: ["Summit", "Coastal", "Standoff"],
+  QF2: ["Summit", "Tunisia", "Raid"],
+  QF3: ["Summit", "Tunisia", "Raid"],
+  QF4: ["Summit", "Tunisia", "Raid"],
+};
+
+/** Quarterfinal winners. Map scores weren't published, only who went through. */
+export const QF_WINNERS: Record<string, "A" | "B"> = { QF1: "A", QF2: "A", QF3: "A", QF4: "A" };
+
+export const QF_MAP_POOL = [
+  { mode: "Hardpoint", maps: ["Summit", "Combine", "Slums"] },
+  { mode: "Search & Destroy", maps: ["Kurohana Metropolis", "Coastal", "Tunisia"] },
+  { mode: "Control", maps: ["Raid", "Standoff", "Crossroads Strike"] },
+];
+
+export const qfVetoNote = (id: string) => {
+  const [hp, snd, ctrl] = QF_MAPS[id];
+  return `Hardpoint on ${hp}, S&D on ${snd}, Control on ${ctrl}`;
 };
 
 export const KNOCKOUT_LABEL: Record<string, string> = {
-  QF1: "QF1: Seed 1 v Seed 8",
-  QF2: "QF2: Seed 4 v Seed 5",
-  QF3: "QF3: Seed 2 v Seed 7",
-  QF4: "QF4: Seed 3 v Seed 6",
+  QF1: "QF1: EDGE v J²•D•Y•S",
+  QF2: "QF2: RVCE v Bawts",
+  QF3: "QF3: LIQUID v Freakuency",
+  QF4: "QF4: TF141 v $500",
   SF1: "SF1: Winners of QF1 and QF2",
   SF2: "SF2: Winners of QF3 and QF4",
   THIRD: "3rd-place match: the Semifinal losers",
@@ -81,9 +115,9 @@ export const KNOCKOUT_LABEL: Record<string, string> = {
 };
 
 export const ARENA_NOTES = [
-  "The Quarterfinals (Fri 27 Nov) and Semifinals (Sat 28 Nov) are played online, from your own connection.",
-  "Only Sun 29 Nov is at the arena: the 3rd-place match and the Grand Final. Every player shows a valid government or school ID at check-in, 30 minutes before each series.",
-  "Each BO3 gets a 2-hour slot: veto, setup and up to 3 maps. The prize ceremony is about 6:30 PM on Sun 29 Nov.",
+  "The Quarterfinals (Fri 27 Nov) were played online. Sat 28 Nov has no matches.",
+  "Sun 29 Nov is at the arena from 11 AM: the Semifinals, the 3rd-place match and the Grand Final. Every player shows a valid government or school ID at check-in, 30 minutes before each series.",
+  "Each BO3 gets a 2-hour slot: veto, setup and up to 3 maps. The prize ceremony follows the Grand Final.",
   "Bring your own phone, charger and headphones. Arena Wi-Fi is provided.",
 ];
 
@@ -101,13 +135,13 @@ export const STAGES = [
     name: "Quarterfinals",
     venue: "Online",
     series: "BO3",
-    modes: "HP → S&D → Domination, fixed order",
-    veto: "One map per mode: Ban–Ban–Ban–Ban, higher seed first",
+    modes: "HP → S&D → Control, fixed order",
+    veto: "One map per mode from a 3-map pool, by veto on a Discord poll",
   },
   {
     key: "sf",
     name: "Semifinals",
-    venue: "Online",
+    venue: "Offline",
     series: "BO3",
     modes: "HP → S&D → Domination; the higher seed may reorder or swap one mode",
     veto: "One map per mode: Ban–Ban–Ban–Ban, higher seed first",
@@ -124,7 +158,7 @@ export const STAGES = [
 
 export const MODE_ORDER = [
   { stage: "Group Stage", order: "One mode per day, fixed map", power: "None" },
-  { stage: "Quarterfinals", order: "HP → S&D → Domination", power: "None (fixed order)" },
+  { stage: "Quarterfinals", order: "HP → S&D → Control", power: "None (fixed order)" },
   {
     stage: "Semifinals",
     order: "HP → S&D → Domination by default",

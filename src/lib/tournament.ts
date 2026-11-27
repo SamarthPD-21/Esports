@@ -42,6 +42,10 @@ export function scoreSeries(m: MatchInput, warn: (msg: string) => void = () => {
     if (!m.forfeitWinner) warn(`${m.id}: marked forfeit but no forfeit_winner (A or B) given`);
     return { status: "forfeit", mapWinsA, mapWinsB, winner: m.forfeitWinner };
   }
+  if (m.statusOverride === "decided") {
+    if (!m.forfeitWinner) warn(`${m.id}: marked decided but no winner (A or B) given`);
+    return { status: m.forfeitWinner ? "completed" : "live", mapWinsA, mapWinsB, winner: m.forfeitWinner };
+  }
 
   const need = winsNeeded(m.bestOf);
   if (mapWinsA >= need && mapWinsB >= need) {

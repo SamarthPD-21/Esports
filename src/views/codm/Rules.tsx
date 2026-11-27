@@ -16,6 +16,7 @@ import {
   MODE_NAME,
   MODE_ORDER,
   OVERTIME,
+  QF_MAP_POOL,
   SEEDING_RULES,
   STAGES,
   TIEBREAK_RULES,
@@ -169,7 +170,7 @@ export async function CodmRules() {
           <WaveTimes t={t} />
           <p className="mt-3 text-xs text-faint">Tiebreakers, then final standings, seeds and the Quarterfinal bracket follow the last S&amp;D wave on Wed 25 Nov.</p>
 
-          <h3 className="mt-10 mb-4 font-cond text-xl font-bold">Knockouts: online on 27–28 Nov, the {EVENT.venue} on 29 Nov</h3>
+          <h3 className="mt-10 mb-4 font-cond text-xl font-bold">Knockouts: Quarterfinals online on 27 Nov, the rest at the {EVENT.venue} on 29 Nov</h3>
           <div className="grid gap-4 lg:grid-cols-[1.2fr_1fr] lg:items-start">
             <dl className="panel divide-y divide-line">
               {Object.entries(KNOCKOUT_TIMES).map(([id, at]) => (
@@ -220,6 +221,18 @@ export async function CodmRules() {
                 ))}
               </tbody>
             </table>
+          </div>
+          <div className="panel mt-4 p-5">
+            <h3 className="mb-1 font-cond text-lg font-bold">Quarterfinal map pool</h3>
+            <p className="mb-3 text-sm text-muted">As announced on 26 Nov. One map per mode, by veto on a Discord poll.</p>
+            <dl className="grid gap-3 sm:grid-cols-3">
+              {QF_MAP_POOL.map((p) => (
+                <div key={p.mode}>
+                  <dt className="text-sm font-semibold">{p.mode}</dt>
+                  <dd className="text-sm text-muted">{p.maps.join(", ")}</dd>
+                </div>
+              ))}
+            </dl>
           </div>
           <div className="mt-4 grid gap-4 lg:grid-cols-[1.4fr_1fr]">
             <div className="panel p-5"><h3 className="mb-3 font-cond text-lg font-bold">Map veto, knockout stages</h3><Bullets items={VETO_RULES} /></div>

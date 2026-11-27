@@ -65,7 +65,8 @@ const RAIL: Record<Match["status"], string> = {
 export function MatchCard({ game, match, teams, showStage = true }: { game: string; match: Match; teams: Map<string, Team>; showStage?: boolean }) {
   const ta = match.a.teamId ? teams.get(match.a.teamId) : undefined;
   const tb = match.b.teamId ? teams.get(match.b.teamId) : undefined;
-  const started = match.status !== "scheduled" && match.status !== "cancelled";
+  // A series won with no published map scores shows only who went through.
+  const started = match.status !== "scheduled" && match.status !== "cancelled" && !(match.statusOverride === "decided" && !match.maps.length);
   const bo1 = match.bestOf === 1;
   const only = match.maps[0];
   // BO1 shows the map score itself; series show map wins with a per-map breakdown.

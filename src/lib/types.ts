@@ -62,8 +62,12 @@ export interface MatchInput {
   /** Group stage: the day's fixed mode and map (no veto). */
   mode?: Mode;
   map?: string;
-  /** Only "forfeit" and "live" need to be set by hand; everything else is derived. */
-  statusOverride?: "live" | "forfeit" | "cancelled";
+  /**
+   * Only "forfeit", "decided" and "live" need to be set by hand; everything
+   * else is derived. "decided" is a series whose winner was published without
+   * map scores; forfeitWinner holds who won it.
+   */
+  statusOverride?: "live" | "forfeit" | "decided" | "cancelled";
   forfeitWinner?: "A" | "B";
   vetoNote?: string;
   notes?: string;
