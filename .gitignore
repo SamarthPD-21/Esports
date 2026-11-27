@@ -44,3 +44,4 @@ next-env.d.ts
 # local editor/agent notes
 AGENTS.md
 CLAUDE.md
+.claude/

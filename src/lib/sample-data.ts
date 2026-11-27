@@ -1,5 +1,5 @@
-// Placeholder tournament used when GOOGLE_SHEET_ID isn't set, and exported by
-// `npm run export-template` as the starting CSVs for the real Google Sheet.
+// Placeholder CODM tournament for local development: `npm run seed-sql` turns
+// it into supabase/seed.sql.
 // Built as sheet tabs (CSV text) so it goes through exactly the same parser.
 
 import { KNOCKOUT_TIMES } from "../content/event.ts";
