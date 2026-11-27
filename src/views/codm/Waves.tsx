@@ -6,7 +6,7 @@ import { LOBBIES, MODE_DAYS, WAVES, waveStarts } from "@/content/codm-schedule";
 import { getTournament, teamMap } from "@/lib/data";
 import { dayKey, fmtDay, fmtTime } from "@/lib/format";
 import { STAGE_LABEL } from "@/lib/tournament";
-import type { Match, Mode } from "@/lib/types";
+import type { Match, Mode, Team } from "@/lib/types";
 
 const SHORT: Record<Mode, string> = { HP: "HP", DOM: "DOM", SND: "S&D" };
 
@@ -48,6 +48,10 @@ export async function CodmWaves() {
     const k = m.scheduledAt ? dayKey(m.scheduledAt) : "tba";
     koDays.set(k, [...(koDays.get(k) ?? []), m]);
   }
+  // Days still to play go first, above the group stage; finished days follow, latest first.
+  const finished = (ms: Match[]) => ms.every((m) => m.status === "completed" || m.status === "forfeit" || m.status === "cancelled");
+  const comingKo = [...koDays].filter(([, ms]) => !finished(ms));
+  const pastKo = [...koDays].filter(([, ms]) => finished(ms)).reverse();
   const playing = t.teams.filter((x) => x.group).sort((x, y) => x.name.localeCompare(y.name));
 
   return (
@@ -57,6 +61,11 @@ export async function CodmWaves() {
         with your lobby referee 30 minutes before the day&apos;s first wave.
       </PageHeader>
 
+
+      {comingKo.length > 0 && <KnockoutDays title="Up next" days={comingKo} teams={teams} className="mb-16" />}
+      {pastKo.length > 0 && <KnockoutDays title={comingKo.length ? "Knockout results" : "Knockouts"} days={pastKo} teams={teams} className="mb-16" />}
+
+      {(comingKo.length > 0 || pastKo.length > 0) && <h2 className="mb-6 font-display text-4xl">Group stage</h2>}
 
       <ol className="mb-8 grid gap-3 sm:grid-cols-3">
         {MODE_DAYS.map((d, i) => {
@@ -136,28 +145,31 @@ export async function CodmWaves() {
       </div>
 
       <p className="mt-4 text-xs text-faint">
-        The top 8 go to the knockout: the 7 group winners and the best runner-up. Quarterfinals and Semifinals are online on 27–28 Nov; the Grand Final is at the Yugaantar Gaming Arena on 29 Nov.{" "}
+        The top 8 go to the knockout: the 7 group winners and the best runner-up. The Quarterfinals were online on 27 Nov; the Semifinals and Grand Final are at the Yugaantar Gaming Arena on 29 Nov from 11 AM.{" "}
         <Link href="/codm/standings" className="link">Standings</Link>
       </p>
 
-      {knockouts.length > 0 && (
-        <section className="mt-16">
-          <h2 className="mb-6 font-display text-4xl">Knockouts</h2>
-          <div className="flex flex-col gap-10">
-            {[...koDays.entries()].map(([k, ms]) => (
-              <div key={k}>
-                <h3 className="mb-4 flex flex-wrap items-baseline gap-3 font-display text-2xl">
-                  {k === "tba" ? "Date TBA" : fmtDay(ms[0].scheduledAt!)}
-                  <span className="font-sans text-sm text-faint">{[...new Set(ms.map((m) => STAGE_LABEL[m.stage]))].join(", ")}</span>
-                </h3>
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  {ms.map((m) => <MatchCard key={m.id} game="codm" match={m} teams={teams} />)}
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
     </>
+  );
+}
+
+function KnockoutDays({ title, days, teams, className }: { title: string; days: [string, Match[]][]; teams: Map<string, Team>; className?: string }) {
+  return (
+    <section className={className}>
+      <h2 className="mb-6 font-display text-4xl">{title}</h2>
+      <div className="flex flex-col gap-10">
+        {days.map(([k, ms]) => (
+          <div key={k}>
+            <h3 className="mb-4 flex flex-wrap items-baseline gap-3 font-display text-2xl">
+              {k === "tba" ? "Date TBA" : fmtDay(ms[0].scheduledAt!)}
+              <span className="font-sans text-sm text-faint">{[...new Set(ms.map((m) => STAGE_LABEL[m.stage]))].join(", ")}</span>
+            </h3>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {ms.map((m) => <MatchCard key={m.id} game="codm" match={m} teams={teams} />)}
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
   );
 }

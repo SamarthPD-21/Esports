@@ -102,7 +102,7 @@ export const GAMES: Record<GameId, GameDef> = {
       { when: "Mon 23 Nov, 9:30 pm", what: "Group Stage Day 1: Hardpoint on Summit", where: "Online" },
       { when: "Tue 24 Nov, 9:30 pm", what: "Group Stage Day 2: Domination on Raid", where: "Online" },
       { when: "Wed 25 Nov", what: "Group Stage Day 3: Search & Destroy on Tunisia", where: "Online" },
-      { when: "Fri 27 Nov", what: "Quarterfinals, BO3", where: "Online" },
+      { when: "Fri 27 Nov, 10 pm", what: "Quarterfinals, BO3", where: "Online" },
       { when: "Sun 29 Nov, from 11 am", what: "Semifinals, 3rd place (BO3) and Grand Final (BO5)", where: "Campus" },
     ],
     rules: [],
