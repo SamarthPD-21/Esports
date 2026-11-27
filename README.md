@@ -22,8 +22,24 @@ It covers the whole event in one place:
 
 ![Event hub](docs/screenshots/hub.png)
 
+## By the numbers
+
+From the live database on 28 Nov 2026, with the CODM and BGMI finals still to play:
+
+| Game | Registered on Unstop | Players | In the event | Matches played |
+|---|---:|---:|---:|---|
+| CODM | 43 teams | 193 | 29 teams | 134 of 146 (130 group, 4 Quarterfinals) |
+| Valorant | 36 teams | 167 | 32 teams | 18 of 31 |
+| BGMI | 83 teams | 306 | 64 teams → 16 finalists | Qualifiers and Semifinals done |
+| Free Fire MAX | 160 teams | 620 | 127 teams | Qualifiers done |
+| Smash Karts | 176 players | 176 | 176 players | To be announced |
+| FIFA | 36 players | 41 | 24 players | Knockout on 29 Nov |
+| **Total** | **534 entries** | **1,503** | **452** | |
+
+
 ## Contents
 
+- [By the numbers](#by-the-numbers)
 - [Branches](#branches)
 - [What's on the site](#whats-on-the-site)
 - [How data flows](#how-data-flows)
@@ -58,13 +74,21 @@ The rule documents for each game are in [`docs/`](docs). The site shows a short 
 - **Valorant and FIFA:** the bracket, round by round. Byes are listed on one line.
 - **CODM:** group tables, seeding and the knockout bracket. Its Schedule tab opens with the knockout days still to play, then finished knockouts (latest first), then the group stage as a wave board like the published fixtures image: 7 waves × 7 lobbies, each match-up's Hardpoint, Domination and S&D results side by side, and a *Find your team* picker.
 
+![CODM schedule: knockouts still to play come first](docs/screenshots/codm-schedule.png)
+
+![BGMI standings: the 16 finalists above the qualifier tables](docs/screenshots/bgmi-standings.png)
+
 ![Free Fire standings](docs/screenshots/lobby-standings.png)
 
 ![Valorant bracket](docs/screenshots/valorant-bracket.png)
 
 The **Schedule** tab groups lobbies by evening, time and match number. **Teams** lists everyone registered; each team page shows its roster, results per stage and upcoming lobbies.
 
-![Lobby schedule](docs/screenshots/lobby-schedule.png)
+![Free Fire schedule](docs/screenshots/lobby-schedule.png)
+
+Every page works on a phone:
+
+<img src="docs/screenshots/codm-schedule-mobile.png" alt="CODM schedule on a phone" width="320">
 
 ### Leader dashboard (`/me`)
 
@@ -85,8 +109,6 @@ Below it there's one section per team the person leads; a person can lead teams 
 
 CODM keeps its own dashboard: veto, substitutions and Veto Power.
 
-<img src="docs/screenshots/dashboard-lobby-mobile.png" alt="Leader dashboard on a phone" width="320">
-
 ### Referee screens
 
 **The control room (`/admin`)** is one place for admins and referees, with one menu down the side (a scrolling row on phones):
@@ -100,8 +122,6 @@ CODM keeps its own dashboard: veto, substitutions and Veto Power.
 
 **Referees on game pages:** every game's Overview lists its referees and organisers. Names are public; WhatsApp, Discord and email only show to that game's team leaders (also on their dashboard) and staff. Staff fill in their own details on the control room home; admins can edit anyone's on the Staff page.
 
-![Referee: tonight](docs/screenshots/referee-tonight.png)
-
 **Lobby result entry** is built for a phone:
 1. Tap teams in finishing order, and tap again to undo.
 2. Set kills with a stepper.
@@ -109,8 +129,6 @@ CODM keeps its own dashboard: veto, substitutions and Veto Power.
 4. *Save draft*, then *Publish*. Publishing needs every placement filled in and unique.
 
 The same page sets the room details, marks the lobby live or cancelled, shows who checked in, edits the lineup and resolves disputes. If two referees save the same lobby, the second is told to reload instead of overwriting.
-
-<img src="docs/screenshots/referee-entry-mobile.png" alt="Lobby result entry on a phone" width="320">
 
 **Head-to-head matches** (CODM, Valorant, FIFA) use the match page: check-in, room, map scores, and the CODM map veto.
 
@@ -130,11 +148,7 @@ On Setup, a lobby game's control room:
 
 For Valorant and FIFA it draws the bracket, seeded or random. Valorant's published bracket (32 teams, R32 on 23–24 Nov, R16 on 24–25 Nov, R8 on 25 Nov) is set up from Overview with the other games' fixtures.
 
-![Admin: Free Fire control room](docs/screenshots/admin-lobbies.png)
-
 **Registrations (`/admin/sync`)** shows each game's last sync, eligible teams, *Preview changes* and *Sync now*, and the problems to fix on Unstop.
-
-![Admin: registrations](docs/screenshots/admin-sync.png)
 
 ## How data flows
 
