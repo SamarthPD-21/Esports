@@ -9,6 +9,27 @@ const STATUS: Record<OfficialStatus, { label: string; cls: string }> = {
 /** Group tables exactly as the organisers published them; going-through rows carry the game's accent. */
 export function OfficialStandings({ s }: { s: Standings }) {
   return (
+    <>
+      {s.finalists && (
+        <section className="mb-12">
+          <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
+            <h2 className="font-cond text-2xl font-bold">{s.finalists.title}</h2>
+            <p className="text-sm text-muted">{s.finalists.note}</p>
+          </div>
+          <ul className="panel grid gap-px overflow-hidden bg-line sm:grid-cols-2">
+            {s.finalists.teams.map((team) => (
+              <li key={team} className="border-l-2 border-l-[var(--game,var(--color-signal))] bg-surface px-4 py-3 font-semibold">{team}</li>
+            ))}
+          </ul>
+        </section>
+      )}
+      <Groups s={s} />
+    </>
+  );
+}
+
+function Groups({ s }: { s: Standings }) {
+  return (
     <section className="mb-12">
       <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
         <h2 className="font-cond text-2xl font-bold">{s.title}</h2>

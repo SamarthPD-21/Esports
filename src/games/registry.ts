@@ -178,12 +178,12 @@ export const GAMES: Record<GameId, GameDef> = {
     accent: "#e8a33d",
     tagline: "Yugaantar Battleground",
     rulesPdf: "bgmi.pdf",
-    prizes: [4000, 2400, 1600],
+    prizes: [5000, 3000, 2000],
     keyDates: [
       { when: "Mon 23 Nov, 8:30 pm – 12 am", what: "Qualifiers Day 1: Groups A and B", where: "Online" },
       { when: "Tue 24 Nov, 8:30 pm – 12 am", what: "Qualifiers Day 2: Groups C and D", where: "Online" },
       { when: "Wed 25 Nov, 8:30 pm – 12 am", what: "Semifinals, top 32", where: "Online" },
-      { when: "Sat 28 Nov, 12 – 4 pm", what: "Final, top 16, 4 matches, Scaler campus", where: "Campus" },
+      { when: "Sat 28 Nov, 12 – 4 pm", what: "Grand Final: the 16 finalists, 1 lobby, 4 matches, Scaler campus", where: "Campus" },
     ],
     rules: [
       {

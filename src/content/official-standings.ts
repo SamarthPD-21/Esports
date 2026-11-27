@@ -24,6 +24,8 @@ export interface OfficialStandings {
   title: string;
   columns: string[];
   groups: OfficialGroup[];
+  /** The teams through to the final, once the organisers publish them. */
+  finalists?: { title: string; note: string; teams: string[] };
 }
 
 const q = "qualified" as const;
@@ -33,6 +35,15 @@ const p = "pending" as const;
 const BGMI: OfficialStandings = {
   title: "Qualifier standings",
   columns: ["WWCD", "Place pts", "Kill pts", "Total"],
+  // Grand Finals announcement, 28 Nov.
+  finalists: {
+    title: "The 16 finalists",
+    note: "Grand Final: Sat 28 Nov, 12:00–4:00 PM IST at Scaler campus. Squad LAN, 1 lobby, 4 matches.",
+    teams: [
+      "Alter Ego", "Crackillusion", "Gatua Gang", "MAGNUM Virtue", "RAVEN", "SEGMENT", "TEAM BATMAN", "Team DarkX",
+      "Team Edge", "Team EXODUS", "Team Francis", "Team Real", "Team Rio", "Teamprime", "THUNDER TALKS", "VOID Esports",
+    ],
+  },
   groups: [
     {
       group: "A",
