@@ -301,7 +301,7 @@ export function parseTournament(tabs: Partial<Record<TabName, string>>): {
 
     const status = (r.status ?? "").toLowerCase();
     const statusOverride =
-      status === "live" || status === "forfeit" || status === "cancelled" ? status : undefined;
+      status === "live" || status === "forfeit" || status === "decided" || status === "cancelled" ? status : undefined;
     const fw = (r.forfeit_winner ?? "").trim();
     const forfeitWinner =
       fw.toUpperCase() === "A" ? "A"

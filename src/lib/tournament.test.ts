@@ -31,6 +31,15 @@ test("series: BO3 closes at 2 map wins, partial is live", () => {
   assert.equal(s.mapWinsA, 2);
 });
 
+test("series: a decided series has a winner and no map scores", () => {
+  const qf: MatchInput = { id: "QF1", stage: "qf", bestOf: 3, sideA: "a", sideB: "b", maps: [], statusOverride: "decided", forfeitWinner: "A" };
+  const s = scoreSeries(qf);
+  assert.equal(s.status, "completed");
+  assert.equal(s.winner, "A");
+  assert.equal(s.mapWinsA + s.mapWinsB, 0);
+  assert.equal(scoreSeries({ ...qf, forfeitWinner: undefined }, () => {}).status, "live");
+});
+
 test("series: forfeit uses forfeit winner, tied map warns", () => {
   const warnings: string[] = [];
   const s = scoreSeries({ ...bo1("G1", "a", "b", 100, 100), statusOverride: "forfeit", forfeitWinner: "B" }, (w) => warnings.push(w));

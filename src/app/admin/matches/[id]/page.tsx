@@ -179,11 +179,12 @@ async function Editor({ params }: Pick<PageProps<"/admin/matches/[id]">, "params
                   <option value="">Automatic (from results)</option>
                   <option value="live">Live</option>
                   <option value="forfeit">Forfeit</option>
+                  <option value="decided">Won, no map scores</option>
                   <option value="cancelled">Cancelled</option>
                 </select>
               </label>
               <label key={`fw-${m.forfeitWinner}`} className="flex flex-col gap-1 text-xs text-muted">
-                Forfeit winner
+                Winner (forfeit, or won with no map scores)
                 <select name="forfeit_winner" defaultValue={m.forfeitWinner ?? ""} className={inputClass}>
                   <option value="">—</option>
                   <option value="A">{sides[0].team?.name ?? "Side A"}</option>

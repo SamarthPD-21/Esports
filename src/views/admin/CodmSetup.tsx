@@ -127,8 +127,8 @@ async function Setup() {
         <section className="panel p-5">
           <h2 className="font-cond text-lg font-bold">3 · Generate knockout bracket</h2>
           <p className="mt-1 text-xs text-muted">
-            Creates QF/SF/3rd place/Final from the seeds (S1 v S8, S4 v S5, S2 v S7, S3 v S6) at the offline schedule times: QFs Fri 27 Nov from 10:30 AM,
-            SFs Sat 28 Nov at 11 AM and 2 PM, 3rd place and Grand Final Sun 29 Nov at 11:30 AM and 3 PM. Slots fill automatically as results come in.
+            Creates QF/SF/3rd place/Final from the seeds (S1 v S8, S4 v S5, S2 v S7, S3 v S6) at the published times: QFs Fri 27 Nov from 10:30 AM,
+            then Sun 29 Nov from 11 AM: SFs at 11 AM and 1 PM, 3rd place at 3 PM, Grand Final at 5 PM. Slots fill automatically as results come in.
           </p>
           <ActionForm action={generateBracket} submit="Generate bracket" className="mt-4 flex flex-col gap-3">
             <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="third" defaultChecked className="accent-signal" /> Include a 3rd-place match</label>

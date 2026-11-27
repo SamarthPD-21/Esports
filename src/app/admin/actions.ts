@@ -85,14 +85,14 @@ export const saveMatch = staff(async (form, { db }) => {
   const id = str(form, "id");
   const status = str(form, "status");
   const fw = str(form, "forfeit_winner");
-  if (status === "forfeit" && fw !== "A" && fw !== "B") throw new Error("Pick who wins the forfeit.");
+  if ((status === "forfeit" || status === "decided") && fw !== "A" && fw !== "B") throw new Error(`Pick who wins the ${status === "forfeit" ? "forfeit" : "series"}.`);
   check(
     await db.from("matches").update({
       side_a: str(form, "side_a"),
       side_b: str(form, "side_b"),
       scheduled_at: toIso(str(form, "date"), str(form, "time")),
       status_override: status || null,
-      forfeit_winner: status === "forfeit" ? fw : null,
+      forfeit_winner: status === "forfeit" || status === "decided" ? fw : null,
       veto_note: str(form, "veto_note") || null,
       notes: str(form, "notes") || null,
       updated_at: new Date().toISOString(),
