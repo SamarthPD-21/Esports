@@ -1,12 +1,15 @@
 # Yugaantar 2026 Esports
 
-The esports site for **Yugaantar 2026 · Gameverse** at Scaler School of Technology. One site runs all six events:
+The esports site for **Yugaantar 2026 · Gameverse** at Scaler School of Technology. One site runs all six events.
+
+- **Live site:** https://yugaantar-esports.onrender.com (branch `main`)
+- **Static showcase:** https://samarthpd-21.github.io/Esports/ (branch `showcase`)
 
 | Game | Entry | Format |
 |---|---|---|
-| Call of Duty: Mobile | squads of 5+1 | 29 teams in 7 groups over three online mode days, then the top 8 offline (CODM Carnage 2.0: Rift Ops) |
+| Call of Duty: Mobile | squads of 5+1 | 29 teams in 7 groups over three online mode days, online Quarterfinals, then the Semifinals and Grand Final at the arena (CODM Carnage 2.0: Rift Ops) |
 | Valorant | teams of 5 | 32-team single elimination: Round of 32, 16 and 8 online (BO1, 23–25 Nov), Semifinals and Final offline |
-| BGMI | squads of 4+1 | 64 teams in 4 fixed groups of 16, top 32 to the Semifinals, top 16 to the campus Final |
+| BGMI | squads of 4+1 | 64 teams in 4 fixed groups of 16, top 32 to the Semifinals, 16 finalists to the campus Grand Final |
 | Free Fire MAX | squads of 4+1 | 127 teams in 11 fixed groups, 48 straight to the LAN Semifinals, top 12 to the Grand Final |
 | Smash Karts | solo | free-for-all lobbies of 20, reshuffled every match, 20 → 1 points |
 | FIFA | solo | knockout on campus |
@@ -33,11 +36,12 @@ It covers the whole event in one place:
 
 ## Branches
 
-| Branch | What it is |
-|---|---|
-| `main` | The full platform: Supabase (Postgres + Auth), every game, logins, referee and admin screens. |
-| `sheets` | A display-only version. No database and no logins: rosters come from the Unstop sheet and results from a results sheet per game. |
-| `backend` | The CODM-only version from before the multi-game rebuild. |
+| Branch | What it is | Deploys to |
+|---|---|---|
+| `main` | The live site: Supabase (Postgres + Auth), every game, leader logins, referee and admin screens. | [Render](https://yugaantar-esports.onrender.com), on every push |
+| `showcase` | A static, read-only copy: no database and no logins. Teams come from the Unstop sheet at build time; fixtures and results from the published docs in `src/content/`. | [GitHub Pages](https://samarthpd-21.github.io/Esports/), on every push or *Actions → Pages → Run workflow* |
+
+Changes to shared code (rules, content, components) go to `main` first and are cherry-picked onto `showcase`. Files that need the database (`src/app/admin`, `src/app/me`, `src/lib/db`, …) don't exist on `showcase`, so a cherry-pick that touches them drops those files.
 
 The rule documents for each game are in [`docs/`](docs). The site shows a short version of each, and the PDFs are served from `public/rules/`. `context.md` is the running project log: decisions, open questions for organisers, changelog.
 
@@ -52,7 +56,7 @@ The rule documents for each game are in [`docs/`](docs). The site shows a short 
   - Qualifying rows are marked with where they're going, e.g. *→ Semifinals* or *→ Grand Final*, as projected until the stage is complete.
   - Long tables (Smash Karts has ~360 players) show the top 40 and a *Find your team* box.
 - **Valorant and FIFA:** the bracket, round by round. Byes are listed on one line.
-- **CODM:** group tables, the best runner-up race, seeding and the offline bracket. Its Schedule tab is a wave board like the published fixtures image: 7 waves × 7 lobbies, each match-up's Hardpoint, Domination and S&D results side by side, and a *Find your team* picker.
+- **CODM:** group tables, seeding and the knockout bracket. Its Schedule tab opens with the knockout days still to play, then finished knockouts (latest first), then the group stage as a wave board like the published fixtures image: 7 waves × 7 lobbies, each match-up's Hardpoint, Domination and S&D results side by side, and a *Find your team* picker.
 
 ![Free Fire standings](docs/screenshots/lobby-standings.png)
 
@@ -172,7 +176,7 @@ Unstop ──► registrations sheet (one tab per game)
    - **Free Fire, BGMI:** open the game's control room → *Create stages* → on the Qualifiers stage, *Apply groups and schedule*. That puts every registered team in its published group (pick any name that doesn't match) and creates every match at the published time.
    - **Smash Karts:** *Create stages* → *Fill from eligible teams* → *Draw lobbies*.
    - **Valorant, FIFA:** *Draw bracket*.
-   - **CODM:** CODM → Setup → *Apply groups and fixtures* (the official 29 teams and 138 matches; pick any name that doesn't match a registration) → set the S&D day's first wave once it's decided → *Generate bracket* after the group stage.
+   - **CODM:** CODM → Setup → *Apply groups and fixtures* (the official 29 teams and 138 matches; pick any name that doesn't match a registration) → set each mode day's first wave. The knockout matches are in a migration, since the Quarterfinals were a published random draw rather than by seed.
 4. Add referees under Staff and tag each with their games (e.g. `valo-ref`).
 
 ### A lobby night (Free Fire, BGMI, Smash Karts)
@@ -193,16 +197,18 @@ Each game's facts live in [`src/games/registry.ts`](src/games/registry.ts): rost
 | | Lobby | Points | Tiebreakers | Advancement |
 |---|---|---|---|---|
 | **Free Fire MAX** | 12, fixed groups | Booyah 12, 9, 8, 7, 6, 5, 4, 3, 2, 1 + 1 per kill | Booyahs, kills, latest match | Qualifiers (A–D Mon, E–H Tue, I–K Wed): top 5 per group in A–D, top 4 in E–K → 48 LAN Semifinalists; Semifinals: 4 groups of 12, top 3 per group → 12-team, 6-match Grand Final |
-| **BGMI** | 16, fixed groups | 10, 6, 5, 4, 3, 2, 1, 1, 1, 1 + 1 per kill | chicken dinners, placement points, kill points, latest match | Qualifiers (A–B Mon, C–D Tue): top 32 overall → Semifinals (Wed 25) → top 16 → Final (Sat 28 Nov, campus, 4 matches) |
+| **BGMI** | 16, fixed groups | 10, 6, 5, 4, 3, 2, 1, 1, 1, 1 + 1 per kill | chicken dinners, placement points, kill points, latest match | Qualifiers (A–B Mon, C–D Tue): top 32 overall → Semifinals (Wed 25) → 16 finalists → Grand Final (Sat 28 Nov, 12–4 PM, campus, 1 lobby, 4 matches). Prizes ₹5,000 / ₹3,000 / ₹2,000 |
 | **Smash Karts** | 20 + host kart, reshuffled | 20 → 1 by rank | kills, best rank | top 120 → top 40 → top 20 |
 
-Free Fire follows the 23–25 Nov Pre-Round Schedule and its group allocations; the older 84/104-team rulebooks (8-7-6… points, a Wildcard LCQ) are superseded. BGMI follows the 23 Nov progression and group allocations. All of these are in `docs/`, and the published groups are `src/content/lobby-groups.ts`.
+Free Fire follows the 23–25 Nov Pre-Round Schedule and its group allocations; the older 84/104-team rulebooks (8-7-6… points, a Wildcard LCQ) are superseded. BGMI follows the 23 Nov progression and group allocations. All of these are in `docs/`, and the published groups are `src/content/lobby-groups.ts`. Group standings the organisers published as totals, and BGMI's 16 finalists, are in `src/content/official-standings.ts`.
 
 **CODM** follows the Master Tournament Doc (Final) in `docs/`:
-- 29 teams in 7 groups (six of 4, Group G of 5). Every pair plays once per mode, one mode a day: Hardpoint on Summit (Mon 23 Nov), Domination on Raid (Tue 24), S&D on Firing Range (Wed 25, time TBD). 46 BO1 matches a day across 7 waves × 7 lobbies; a team's wave and lobby stay the same all three days. The schedule is `src/content/codm-schedule.ts`.
+- 29 teams in 7 groups (six of 4, Group G of 5). Every pair plays once per mode, one mode a day: Hardpoint on Summit (Mon 23 Nov), Domination on Raid (Tue 24), S&D on Tunisia (Wed 25). 46 BO1 matches a day across 7 waves × 7 lobbies; a team's wave and lobby stay the same all three days. The schedule is `src/content/codm-schedule.ts`.
 - 1 point per win. Level teams: wins against each other, then a tiebreaker match. Score difference never counts.
-- The 7 group winners (Seeds 1–7, by points then coin toss) and the best runner-up (Seed 8) play the offline bracket on 27–29 Nov. Seeds 7 and 8 swap if Seed 8 shares Seed 1's group.
-- Online, captains check in once a day, 30 minutes before the first wave. Offline vetoes are per mode from a 5-map pool: Ban×4, or Ban–Ban–Pick–Pick for the Final's second Hardpoint and S&D.
+- The 7 group winners and the best runner-up go through. The Quarterfinals were a random draw (EDGE v J²•D•Y•S, RVCE v Bawts, LIQUID v Freakuency, TF141 v $500), played online at 10 PM on Fri 27 Nov as BO3s, HP → S&D → Control, from a 3-map pool per mode. Only the winners were published, so those series are marked *won, no map scores*.
+- Sat 28 Nov has no matches. Sun 29 Nov at the Gaming Arena from 11 AM: Semifinals (BO3), 3rd-place match (BO3) and Grand Final (BO5).
+- The draw, maps and winners are in `src/content/event.ts`; the live site has the same in `supabase/migrations/20261128*`.
+- Online, captains check in once a day, 30 minutes before the first wave.
 
 The details are on `/codm/rules`.
 
@@ -277,6 +283,7 @@ src/
     admin/                   games, per-game control rooms, lobby result entry, sync, CODM setup
     api/sync/                registration sync endpoint (cron)
   games/registry.ts          every game's facts and lobby stage defaults
+  content/                   published fixtures, groups, standings and CODM event facts
   lib/
     lobby/                   lobby engine: standings, tiebreakers, advancement, dealing; data loader
     sync/                    Unstop sheet: fetch, parse, apply

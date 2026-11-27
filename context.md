@@ -9,7 +9,7 @@ The site now runs every Yugaantar esports event: CODM, Valorant, BGMI, Free Fire
 - **Two shapes, two engines.** Head-to-head games (CODM, Valorant, FIFA) keep the CODM engine (`src/lib/tournament.ts`) and tables, now tagged with `game_id`; brackets of any size with byes come from `src/lib/knockout.ts`. Lobby games (Free Fire, BGMI, Smash Karts) use `lobby_*` tables and `src/lib/lobby/` (points tables, ordered tiebreakers, advancement rules, fixed or reshuffled lobbies). Solo games register each player as a team of one.
 - **Registrations** come from the Unstop sheet (one tab per game, two header rows) through `src/lib/sync/`, every 5 minutes via `/api/sync` (Supabase cron) or *Sync now*. Teams match by name, players by email; nothing is deleted.
 - **Logins:** only team leaders and solo players (Unstop role *Leader*), plus staff. One login can lead teams in several games. Staff can be limited to games (`staff.games`).
-- **Branches:** `main` = this platform; `sheets` = display-only version read from sheets; `backend` = the CODM-only version before the rebuild.
+- **Branches (since 28 Nov):** `main` = the live site on Render; `showcase` = the static copy on GitHub Pages. All other branches were deleted; they're kept in `../esports-old-branches.bundle` outside the repo.
 - **Cache Components gotcha:** game routes must read `params` inside `<Suspense>`. After a tag invalidation Next re-renders the generic `/[game]` shell, and awaiting params outside Suspense there made every game page 500 until the next deploy. Fixed in `19928ec`; `next build` does not catch it, so check with `next start` after a publish.
 
 ### Open questions (multi-game)
@@ -35,7 +35,7 @@ The site now runs every Yugaantar esports event: CODM, Valorant, BGMI, Free Fire
 
 ---
 
-## Branch plan
+## Branch plan (historical; see Branches above for today)
 
 | Branch | What it is | State |
 |---|---|---|
@@ -229,6 +229,7 @@ Sheet gotchas:
 - Custom primitives (`.panel`, `.rail`, `.link`, `.rift-line`) live in `@layer components` so Tailwind utilities can override them.
 
 ## Changelog
+- **2026-11-28:** CODM Quarterfinals from the Discord draw (random, not by seed), played at 10 PM on 27 Nov, HP → S&D → Control; EDGE, RVCE, LIQUID and TF141 through, no map scores published (new "decided" status). Semifinals, 3rd place and Grand Final all on Sun 29 Nov from 11 AM at the arena; the schedule shows upcoming knockouts first. BGMI's 16 finalists and a ₹10,000 prize pool (5k/3k/2k). Best runner-up table removed from CODM standings. Repo trimmed to `main` and `showcase`; the sheet-template export removed.
 - **2026-11-22:** CODM moved to the final format: 7 groups and the published 7-wave × 7-lobby schedule, best runner-up, Domination, per-mode offline veto, day check-in. Admin Setup applies the official draw to the synced teams; the Schedule tab is a wave board; referees filter their list by day and lobby. Fixed matches without a time sorting first.
 - **2026-11-06:** `sheets` branch built: display-only, rosters from the Unstop sheet and results from one results sheet (two tabs per game), no database or logins. Its privacy check against the real sheet found two players with an email typed as their IGN or a phone number as their game ID. The same filter now runs in `main`'s sync: those values are hidden and listed as issues (`contact_in_field`); a real sync left 0 email- or phone-like values in public fields. Lobby rooms, check-ins and disputes are now limited to that game's staff in RLS too.
 - **2026-11-05/06:** Multi-game rebuild on branch `platform`, merged into `main`. Feature commits:
