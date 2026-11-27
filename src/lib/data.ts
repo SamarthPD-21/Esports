@@ -2,14 +2,17 @@
 // showcase branch: everything is read at build time. Teams come from the
 // public Unstop registrations sheet; CODM's fixtures, Valorant's bracket and
 // the lobby games' groups are the published schedules. CODM's results come
-// from the organisers' published results sheets (content/codm-results), and
+// from the organisers' published results sheets (content/codm-results) and
+// the Discord Quarterfinal announcement (content/event), and
 // Valorant's from their STANDINGS doc (content/valorant-results).
 
 import { CODM_RESULTS } from "../content/codm-results";
+import { KNOCKOUT_TIMES, QF_DRAW, QF_WINNERS, qfVetoNote } from "../content/event";
 import { VALORANT_RESULTS } from "../content/valorant-results";
 import { matchOfficialTeams, MODE_DAYS, officialFixtures, OFFICIAL_GROUPS } from "../content/codm-schedule";
 import { OFFICIAL_LOBBY_GROUPS } from "../content/lobby-groups";
 import { valorantBestOf, VALORANT_SCHEDULE, VALORANT_TEAMS } from "../content/valorant-bracket";
+import { knockoutSkeleton } from "./fixtures";
 import { scheduleKnockout, singleElimination } from "./knockout";
 import { matchNames } from "./match-names";
 import type { GameId } from "../games/registry";
@@ -45,6 +48,16 @@ async function loadTournament(game: GameId): Promise<Tournament> {
         bestOf: 1, sideA: f.a, sideB: f.b, scheduledAt: f.scheduledAt,
         maps: CODM_RESULTS[f.id] ? [{ game: 1, mode: f.mode, map: f.map ?? "", scoreA: CODM_RESULTS[f.id] === "A" ? 1 : 0, scoreB: CODM_RESULTS[f.id] === "B" ? 1 : 0 }] : [],
       }));
+    // Knockouts: the published Quarterfinal draw (random, not by seed) and its winners.
+    for (const k of knockoutSkeleton(8, true)) {
+      const draw = QF_DRAW[k.id];
+      matches.push({
+        id: k.id, stage: k.stage, bestOf: k.bestOf, scheduledAt: KNOCKOUT_TIMES[k.id], maps: [],
+        sideA: draw ? ids.get(draw[0]) ?? draw[0] : k.a,
+        sideB: draw ? ids.get(draw[1]) ?? draw[1] : k.b,
+        ...(QF_WINNERS[k.id] ? { statusOverride: "decided" as const, forfeitWinner: QF_WINNERS[k.id], vetoNote: qfVetoNote(k.id) } : {}),
+      });
+    }
     matchDays = MODE_DAYS.map((d) => ({ day: d.date, mode: d.mode, map: d.map }));
   }
   if (game === "valorant") {
